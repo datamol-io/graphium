@@ -19,7 +19,7 @@
         <link rel="next" href="architectures.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -2398,7 +2398,7 @@
 
 
 <h3 id="graphium.nn.base_graph_layer" class="doc doc-heading">
-          <code>graphium.nn.base_graph_layer</code>
+            <code>graphium.nn.base_graph_layer</code>
 
 
 <a href="#graphium.nn.base_graph_layer" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2421,22 +2421,22 @@
 
 
 <h4 id="graphium.nn.base_graph_layer.BaseGraphModule" class="doc doc-heading">
-        <code>BaseGraphModule</code>
+          <code>BaseGraphModule</code>
 
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2462,6 +2462,8 @@
 in the current library. It will allow a network to seemlesly swap between
 different GNN layers by better understanding the expected inputs
 and outputs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2612,14 +2614,13 @@ and outputs.</p>
 
 
 <h4 id="graphium.nn.base_graph_layer.BaseGraphStructure" class="doc doc-heading">
-        <code>BaseGraphStructure</code>
+          <code>BaseGraphStructure</code>
 
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-
 
 
 
@@ -2641,8 +2642,8 @@ and outputs.</p>
 <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.layer_inputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2654,6 +2655,8 @@ and outputs.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_input_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2688,8 +2691,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.layer_outputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2701,6 +2704,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_output_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2779,8 +2784,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.out_dim_factor" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2796,6 +2801,8 @@ the next layer.</p>
 of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2824,6 +2831,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2840,6 +2848,8 @@ of heads.</p>
 in the current library. It will allow a network to seemlesly swap between
 different GNN layers by better understanding the expected inputs
 and outputs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2977,6 +2987,7 @@ and outputs.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2995,6 +3006,7 @@ and outputs.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3009,6 +3021,8 @@ and outputs.</p>
   
       <p>Apply the different normalization and the dropout to the
 output layer.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3094,6 +3108,8 @@ output layer.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3119,6 +3135,7 @@ output layer.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3133,6 +3150,8 @@ output layer.</p>
   
       <p>Abstract method. Return a boolean specifying if the layer type
 supports output edges edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3169,6 +3188,7 @@ supports output edges edges or not.</p>
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3203,7 +3223,7 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 <h3 id="graphium.nn.base_layers" class="doc doc-heading">
-          <code>graphium.nn.base_layers</code>
+            <code>graphium.nn.base_layers</code>
 
 
 <a href="#graphium.nn.base_layers" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3226,22 +3246,22 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 <h4 id="graphium.nn.base_layers.DropPath" class="doc doc-heading">
-        <code>DropPath</code>
+          <code>DropPath</code>
 
 
 <a href="#graphium.nn.base_layers.DropPath" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3267,6 +3287,8 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 Deep Networks with Stochastic Depth
 Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3300,6 +3322,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3312,6 +3335,8 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3368,6 +3393,8 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3394,6 +3421,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3412,6 +3440,8 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
   
       <p>Get the stochastic drop rate from the nominal drop rate, the layer index, and the layer depth.</p>
 <p><code>return drop_rate * (layer_idx / (layer_depth - 1))</code></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3486,16 +3516,15 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 <h4 id="graphium.nn.base_layers.FCLayer" class="doc doc-heading">
-        <code>FCLayer</code>
+          <code>FCLayer</code>
 
 
 <a href="#graphium.nn.base_layers.FCLayer" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
@@ -3553,6 +3582,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3573,6 +3603,8 @@ The order in which transformations are applied is:</p>
 <li>Dropout (if applicable)</li>
 <li>Batch Normalization (if applicable)</li>
 </ul>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3722,6 +3754,8 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
     </tbody>
   </table>
 
+
+
   <p><strong>Attributes:</strong></p>
   <table>
     <thead>
@@ -3746,7 +3780,7 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
         <tr>
           <td><code>normalization</code></td>
           <td>
-                <code>None or Callable</code>
+                <code>None or <span title="typing.Callable">Callable</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3816,6 +3850,7 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3829,6 +3864,8 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
   <div class="doc doc-contents ">
   
       <p>Apply the FC layer on the input features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3860,6 +3897,8 @@ Input feature tensor, before the FC.
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3887,6 +3926,7 @@ Output feature tensor, after the FC.
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3919,22 +3959,22 @@ Output feature tensor, after the FC.
 
 
 <h4 id="graphium.nn.base_layers.GRU" class="doc doc-heading">
-        <code>GRU</code>
+          <code>GRU</code>
 
 
 <a href="#graphium.nn.base_layers.GRU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3957,6 +3997,8 @@ Output feature tensor, after the FC.
   <div class="doc doc-contents ">
   
       <p>Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4004,6 +4046,7 @@ Output feature tensor, after the FC.
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4016,6 +4059,8 @@ Output feature tensor, after the FC.
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4059,6 +4104,8 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4097,22 +4144,22 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
 
 
 <h4 id="graphium.nn.base_layers.MLP" class="doc doc-heading">
-        <code>MLP</code>
+          <code>MLP</code>
 
 
 <a href="#graphium.nn.base_layers.MLP" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4135,6 +4182,8 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
   <div class="doc doc-contents ">
   
       <p>Simple multi-layer perceptron, built of a series of FCLayers</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4366,6 +4415,7 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4384,6 +4434,7 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4397,6 +4448,8 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
   <div class="doc doc-contents ">
   
       <p>Apply the MLP on the input features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4427,6 +4480,8 @@ Input feature tensor, before the MLP.
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4469,15 +4524,15 @@ Output feature tensor, after the MLP.
 
 
 <h4 id="graphium.nn.base_layers.MuReadoutGraphium" class="doc doc-heading">
-        <code>MuReadoutGraphium</code>
+          <code>MuReadoutGraphium</code>
 
 
 <a href="#graphium.nn.base_layers.MuReadoutGraphium" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="mup.MuReadout">MuReadout</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="mup.MuReadout">MuReadout</span></code></p>
 
   
       <p>PopTorch-compatible replacement for <code>mup.MuReadout</code></p>
@@ -4486,7 +4541,6 @@ Output feature tensor, after the MLP.
 <p>Set <code>base_width</code> to width of base model passed to <code>mup.set_base_shapes</code>
 to get same results on IPU and CPU. Should still "work" with any other
 value, but won't give the same results as CPU</p>
-
 
 
   
@@ -4514,22 +4568,21 @@ value, but won't give the same results as CPU</p>
 
 
 <h4 id="graphium.nn.base_layers.MultiheadAttentionMup" class="doc doc-heading">
-        <code>MultiheadAttentionMup</code>
+          <code>MultiheadAttentionMup</code>
 
 
 <a href="#graphium.nn.base_layers.MultiheadAttentionMup" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.MultiheadAttention">MultiheadAttention</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.MultiheadAttention">MultiheadAttention</span></code></p>
 
   
       <p>Modifying the MultiheadAttention to work with the muTransfer paradigm.
 The layers are initialized using the mup package.
 The <code>_scaled_dot_product_attention</code> normalizes the attention matrix with <code>1/d</code> instead of <code>1/sqrt(d)</code>
 The biased self-attention option is added to have 3D attention bias.</p>
-
 
 
   
@@ -4557,21 +4610,20 @@ The biased self-attention option is added to have 3D attention bias.</p>
 
 
 <h4 id="graphium.nn.base_layers.TransformerEncoderLayerMup" class="doc doc-heading">
-        <code>TransformerEncoderLayerMup</code>
+          <code>TransformerEncoderLayerMup</code>
 
 
 <a href="#graphium.nn.base_layers.TransformerEncoderLayerMup" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
 
   
       <p>Modified version of <code>torch.nn.TransformerEncoderLayer</code> that uses :math:<code>1/n</code>-scaled attention
 for compatibility with muP (as opposed to the original :math:<code>1/\sqrt{n}</code> scaling factor)
 Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
-
 
 
   
@@ -4595,6 +4647,7 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4608,6 +4661,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
   <div class="doc doc-contents ">
   
       <p>returns the activation function represented by the input string</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4638,6 +4693,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4664,6 +4721,7 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4677,6 +4735,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
   <div class="doc doc-contents ">
   
       <p>returns the string related to the activation function</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4707,6 +4767,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4733,6 +4795,7 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4746,6 +4809,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
   <div class="doc doc-contents ">
   
       <p>returns the normalization function represented by the input string</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4790,6 +4855,8 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4830,7 +4897,7 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 
 <h3 id="graphium.nn.residual_connections" class="doc doc-heading">
-          <code>graphium.nn.residual_connections</code>
+            <code>graphium.nn.residual_connections</code>
 
 
 <a href="#graphium.nn.residual_connections" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4856,22 +4923,22 @@ Concat and DenseNet</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionBase" class="doc doc-heading">
-        <code>ResidualConnectionBase</code>
+          <code>ResidualConnectionBase</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionBase" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4901,6 +4968,8 @@ the ResNet, weighted-ResNet, skip-concat and DensNet.</p>
 <li><code>h_dim_increase_type()</code></li>
 <li><code>has_weights()</code></li>
 </ul>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4937,6 +5006,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4955,6 +5025,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4968,6 +5039,8 @@ layers are connected.</p>
   <div class="doc doc-contents ">
   
       <p>find the true output dimensions</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4997,6 +5070,8 @@ layers are connected.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5023,6 +5098,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5040,6 +5116,8 @@ layers are connected.</p>
   <div class="doc doc-contents ">
   
       <p>How does the dimension of the output features increases after each layer?</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5078,6 +5156,7 @@ of all previous layers.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5094,6 +5173,8 @@ of all previous layers.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5134,22 +5215,22 @@ Whether the residual connection uses weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionConcat" class="doc doc-heading">
-        <code>ResidualConnectionConcat</code>
+          <code>ResidualConnectionConcat</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionConcat" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5174,6 +5255,8 @@ Whether the residual connection uses weights</p>
       <p>Class for the simple residual connections proposed but where
 the skip connection features are concatenated to the current
 layer features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5210,6 +5293,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5223,6 +5307,8 @@ layers are connected.</p>
   <div class="doc doc-contents ">
   
       <p>Concatenate <code>h</code> with the previous layers with skip connection <code>h_prev</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5285,6 +5371,8 @@ Current layer index or step index in the forward loop of the architecture.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5323,6 +5411,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5335,6 +5424,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5362,6 +5453,7 @@ The dimension of the output layer is the concatenation with the previous layer.<
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5374,6 +5466,8 @@ The dimension of the output layer is the concatenation with the previous layer.<
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5414,22 +5508,22 @@ The current class does not use weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionDenseNet" class="doc doc-heading">
-        <code>ResidualConnectionDenseNet</code>
+          <code>ResidualConnectionDenseNet</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionDenseNet" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5454,6 +5548,8 @@ The current class does not use weights</p>
       <p>Class for the residual connections proposed by DenseNet, where
 all previous skip connection features are concatenated to the current
 layer features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5490,6 +5586,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5503,6 +5600,8 @@ layers are connected.</p>
   <div class="doc doc-contents ">
   
       <p>Concatenate <code>h</code> with all the previous layers with skip connection <code>h_prev</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5565,6 +5664,8 @@ Current layer index or step index in the forward loop of the architecture.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5603,6 +5704,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5615,6 +5717,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5642,6 +5746,7 @@ The dimension of the output layer is the concatenation of all the previous layer
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5654,6 +5759,8 @@ The dimension of the output layer is the concatenation of all the previous layer
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5694,25 +5801,25 @@ The current class does not use weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionNone" class="doc doc-heading">
-        <code>ResidualConnectionNone</code>
+          <code>ResidualConnectionNone</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionNone" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
   
       <p>No residual connection.
 This class is only used for simpler code compatibility</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5740,6 +5847,7 @@ This class is only used for simpler code compatibility</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5753,6 +5861,8 @@ This class is only used for simpler code compatibility</p>
   <div class="doc doc-contents ">
   
       <p>Ignore the skip connection.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5790,6 +5900,7 @@ Return same as input.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5802,6 +5913,8 @@ Return same as input.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5828,6 +5941,7 @@ Return same as input.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5840,6 +5954,8 @@ Return same as input.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5880,22 +5996,22 @@ The current class does not use weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionRandom" class="doc doc-heading">
-        <code>ResidualConnectionRandom</code>
+          <code>ResidualConnectionRandom</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionRandom" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5919,6 +6035,8 @@ The current class does not use weights</p>
   
       <p>Class for the random residual connection, where each layer is connected
 to each following layer with a random weight between 0 and 1.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5980,6 +6098,7 @@ of layers. Must be provided if <code>num_layers</code> is None.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5994,6 +6113,8 @@ of layers. Must be provided if <code>num_layers</code> is None.</p>
   
       <p>Add <code>h</code> with the previous layers with skip connection <code>h_prev</code>,
 similar to ResNet.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6055,6 +6176,8 @@ Current layer index or step index in the forward loop of the architecture.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6093,6 +6216,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6105,6 +6229,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6131,6 +6257,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6143,6 +6270,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6183,22 +6312,22 @@ The current class does not use weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionSimple" class="doc doc-heading">
-        <code>ResidualConnectionSimple</code>
+          <code>ResidualConnectionSimple</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionSimple" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -6223,6 +6352,8 @@ The current class does not use weights</p>
       <p>Class for the simple residual connections proposed by ResNet,
 where the current layer output is summed to a
 previous layer output.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6259,6 +6390,7 @@ layers are connected.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6273,6 +6405,8 @@ layers are connected.</p>
   
       <p>Add <code>h</code> with the previous layers with skip connection <code>h_prev</code>,
 similar to ResNet.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6334,6 +6468,8 @@ Current layer index or step index in the forward loop of the architecture.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6372,6 +6508,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6384,6 +6521,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6410,6 +6549,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6422,6 +6562,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6462,22 +6604,22 @@ The current class does not use weights</p>
 
 
 <h4 id="graphium.nn.residual_connections.ResidualConnectionWeighted" class="doc doc-heading">
-        <code>ResidualConnectionWeighted</code>
+          <code>ResidualConnectionWeighted</code>
 
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionWeighted" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.residual_connections.ResidualConnectionBase" href="#graphium.nn.residual_connections.ResidualConnectionBase">ResidualConnectionBase</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -6503,6 +6645,8 @@ The current class does not use weights</p>
 with an added layer in the residual connection itself.
 The layer output is summed to a a non-linear transformation
 of a previous layer output.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6618,6 +6762,7 @@ Whether to apply add a bias after the weights</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6632,6 +6777,8 @@ Whether to apply add a bias after the weights</p>
   
       <p>Add <code>h</code> with the previous layers with skip connection <code>h_prev</code>, after
 a feed-forward layer.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6693,6 +6840,8 @@ Current layer index or step index in the forward loop of the architecture.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6731,6 +6880,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6743,6 +6893,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6769,6 +6921,7 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6781,6 +6934,8 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>

@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.utils.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -600,6 +600,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="md-nav__link">
+    ADMETBenchmarkDataModule
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.data.datamodule.BaseDataModule" class="md-nav__link">
     BaseDataModule
   </a>
@@ -1054,6 +1061,13 @@
           <li class="md-nav__item">
   <a href="#graphium.data.utils.download_graphium_dataset" class="md-nav__link">
     download_graphium_dataset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.data.utils.found_size_mismatch" class="md-nav__link">
+    found_size_mismatch()
   </a>
   
 </li>
@@ -1571,6 +1585,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="md-nav__link">
+    ADMETBenchmarkDataModule
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.data.datamodule.BaseDataModule" class="md-nav__link">
     BaseDataModule
   </a>
@@ -2030,6 +2051,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.data.utils.found_size_mismatch" class="md-nav__link">
+    found_size_mismatch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.data.utils.graphium_package_path" class="md-nav__link">
     graphium_package_path()
   </a>
@@ -2104,7 +2132,7 @@
 
 
 <h3 id="graphium.data.datamodule" class="doc doc-heading">
-          <code>graphium.data.datamodule</code>
+            <code>graphium.data.datamodule</code>
 
 
 <a href="#graphium.data.datamodule" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2126,17 +2154,115 @@
 
 
 
+<h4 id="graphium.data.datamodule.ADMETBenchmarkDataModule" class="doc doc-heading">
+          <code>ADMETBenchmarkDataModule</code>
+
+
+<a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
+
+  
+      <p>Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).</p>
+<div class="admonition warning">
+<p class="admonition-title">Dependency</p>
+<p>This class requires <a href="https://pypi.org/project/PyTDC/">PyTDC</a> to be installed.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Citation</p>
+<p>Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., &amp; Zitnik, M. (2021).
+Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
+Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.</p>
+</div>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>tdc_benchmark_names</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>This can be any subset of the benchmark names that make up the ADMET benchmarking group.
+If <code>None</code>, uses the complete benchmarking group. For all full list of options, see
+<a href="https://tdcommons.ai/benchmark/admet_group/overview/">the TDC website</a> or use:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">tdc.utils.retrieve_benchmark_names</span>
+<span class="n">retrieve_benchmark_names</span><span class="p">(</span><span class="s2">&quot;admet_group&quot;</span><span class="p">)</span>
+</code></pre></div>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>tdc_train_val_seed</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>TDC recommends a default splitting method for the train-val split. This parameter
+is used to seed that splitting method.</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h4 id="graphium.data.datamodule.BaseDataModule" class="doc doc-heading">
-        <code>BaseDataModule</code>
+          <code>BaseDataModule</code>
 
 
 <a href="#graphium.data.datamodule.BaseDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>lightning.<span title="lightning.LightningDataModule">LightningDataModule</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code>lightning.<span title="lightning.LightningDataModule">LightningDataModule</span></code></p>
 
 
 
@@ -2195,6 +2321,7 @@
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2208,6 +2335,8 @@
   <div class="doc doc-contents ">
   
       <p>base dataset module for all datasets (to be inherented)</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2311,6 +2440,7 @@
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2324,6 +2454,8 @@
   <div class="doc doc-contents ">
   
       <p>Get the dataloader for a given dataset</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2381,6 +2513,8 @@
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2407,6 +2541,7 @@
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2420,6 +2555,8 @@
   <div class="doc doc-contents ">
   
       <p>Get the options for the dataloader depending on the current stage.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2463,6 +2600,8 @@
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2489,6 +2628,7 @@
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2502,6 +2642,8 @@
   <div class="doc doc-contents ">
   
       <p>Get the maximum number of edges across all datasets from the datamodule</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2545,6 +2687,8 @@ If None, all stages are considered.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2572,6 +2716,7 @@ If None, all stages are considered.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2585,6 +2730,8 @@ If None, all stages are considered.</p>
   <div class="doc doc-contents ">
   
       <p>Get the maximum number of nodes across all datasets from the datamodule</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2629,6 +2776,8 @@ If None, all stages are considered.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2655,6 +2804,7 @@ If None, all stages are considered.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2672,6 +2822,7 @@ If None, all stages are considered.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2691,6 +2842,7 @@ If None, all stages are considered.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2708,6 +2860,7 @@ If None, all stages are considered.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2740,14 +2893,13 @@ If None, all stages are considered.</p>
 
 
 <h4 id="graphium.data.datamodule.DatasetProcessingParams" class="doc doc-heading">
-        <code>DatasetProcessingParams</code>
+          <code>DatasetProcessingParams</code>
 
 
 <a href="#graphium.data.datamodule.DatasetProcessingParams" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-
 
 
 
@@ -2763,12 +2915,13 @@ If None, all stages are considered.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
 
 <h5 id="graphium.data.datamodule.DatasetProcessingParams.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">idx_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_val</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">split_test</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splits_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">label_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">idx_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mol_ids_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_val</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">split_test</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch_sampling_fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">splits_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">label_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.DatasetProcessingParams.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2776,6 +2929,8 @@ If None, all stages are considered.</p>
   <div class="doc doc-contents ">
   
       <p>object to store the parameters for the dataset processing</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2791,7 +2946,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>task_level</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2805,7 +2960,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>df</code></td>
           <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
+                <code><span title="typing.Optional">Optional</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2833,7 +2988,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>smiles_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2861,7 +3016,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>weights_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2875,7 +3030,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>weights_type</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2889,11 +3044,25 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>idx_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
               <p>The column name of the indices</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mol_ids_col</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The column name of the molecule ids</p>
             </div>
           </td>
           <td>
@@ -2990,15 +3159,15 @@ If None, all stages are considered.</p>
 
 
 <h4 id="graphium.data.datamodule.FakeDataModule" class="doc doc-heading">
-        <code>FakeDataModule</code>
+          <code>FakeDataModule</code>
 
 
 <a href="#graphium.data.datamodule.FakeDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
 
   
       <p>A fake datamodule that generates artificial data by mimicking the true data coming
@@ -3007,10 +3176,10 @@ It is useful to test the speed and performance of the model on a dataset without
 having to featurize it and wait for the workers to load it.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3032,6 +3201,8 @@ having to featurize it and wait for the workers to load it.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3058,6 +3229,7 @@ having to featurize it and wait for the workers to load it.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3078,6 +3250,7 @@ graph to not fail is returned.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3113,6 +3286,7 @@ graph to not fail is returned.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3126,6 +3300,8 @@ graph to not fail is returned.</p>
   <div class="doc doc-contents ">
   
       <p>Prepare the torch dataset. Called on every GPUs. Setting state here is ok.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3172,22 +3348,22 @@ graph to not fail is returned.</p>
 
 
 <h4 id="graphium.data.datamodule.GraphOGBDataModule" class="doc doc-heading">
-        <code>GraphOGBDataModule</code>
+          <code>GraphOGBDataModule</code>
 
 
 <a href="#graphium.data.datamodule.GraphOGBDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3211,6 +3387,8 @@ graph to not fail is returned.</p>
   
       <p>Load an OGB (Open-graph-benchmark) GraphProp dataset.</p>
 
+
+
   <p><strong>Parameters:</strong></p>
   <table>
     <thead>
@@ -3225,7 +3403,7 @@ graph to not fail is returned.</p>
         <tr>
           <td><code>task_specific_args</code></td>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.data.datamodule.DatasetProcessingParams" href="#graphium.data.datamodule.DatasetProcessingParams">DatasetProcessingParams</a>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3415,6 +3593,7 @@ cores.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3428,6 +3607,8 @@ cores.</p>
   <div class="doc doc-contents ">
   
       <p>geenrate a dictionary representation of the class</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3468,7 +3649,7 @@ cores.</p>
 
 
 <h4 id="graphium.data.datamodule.IPUDataModuleModifier" class="doc doc-heading">
-        <code>IPUDataModuleModifier</code>
+          <code>IPUDataModuleModifier</code>
 
 
 <a href="#graphium.data.datamodule.IPUDataModuleModifier" class="headerlink" title="Permanent link">&para;</a></h4>
@@ -3478,10 +3659,10 @@ cores.</p>
 
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3509,6 +3690,8 @@ cores.</p>
         BaseDataModule.__init__(self, **kwargs)
         IPUDataModuleModifier.__init__(self, **kwargs)
 </code></pre></div></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3621,16 +3804,15 @@ cores.</p>
 
 
 <h4 id="graphium.data.datamodule.MultitaskFromSmilesDataModule" class="doc doc-heading">
-        <code>MultitaskFromSmilesDataModule</code>
+          <code>MultitaskFromSmilesDataModule</code>
 
 
 <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.BaseDataModule" href="#graphium.data.datamodule.BaseDataModule">BaseDataModule</a></code>, <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.IPUDataModuleModifier" href="#graphium.data.datamodule.IPUDataModuleModifier">IPUDataModuleModifier</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.BaseDataModule" href="#graphium.data.datamodule.BaseDataModule">BaseDataModule</a></code>, <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.IPUDataModuleModifier" href="#graphium.data.datamodule.IPUDataModuleModifier">IPUDataModuleModifier</a></code></p>
 
 
 
@@ -3711,6 +3893,7 @@ raw positional encoding dimensions such eigval, eigvec, rwse and more</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3725,6 +3908,8 @@ raw positional encoding dimensions such eigval, eigvec, rwse and more</p>
   
       <p>only for parameters beginning with task_*, we have a dictionary where the key is the task name
 and the value is specified below.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4114,6 +4299,7 @@ Possible options:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4127,6 +4313,8 @@ Possible options:</p>
   <div class="doc doc-contents ">
   
       <p>Returns the number of elements of the current DataModule, which is the combined size of all single-task datasets given.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4154,6 +4342,7 @@ Possible options:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4172,6 +4361,7 @@ Possible options:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4185,6 +4375,8 @@ Possible options:</p>
   <div class="doc doc-contents ">
   
       <p>Calculate the statistics of the labels for each task, and overwrites the <code>self.task_norms</code> attribute.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4200,7 +4392,7 @@ Possible options:</p>
         <tr>
           <td><code>dataset</code></td>
           <td>
-                <code><span title="graphium.data.dataset">Datasets</span>.<span title="graphium.data.dataset.MultitaskDataset">MultitaskDataset</span></code>
+                <code><span title="graphium">Datasets</span>.<span title="graphium.MultitaskDataset">MultitaskDataset</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4232,6 +4424,7 @@ Possible options:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4245,6 +4438,8 @@ Possible options:</p>
   <div class="doc doc-contents ">
   
       <p>Create a hash for the dataset, and use it to generate a file name</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4274,6 +4469,8 @@ Possible options:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4300,6 +4497,7 @@ Possible options:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4319,6 +4517,7 @@ Useful to cache the pre-processed data.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4332,6 +4531,8 @@ Useful to cache the pre-processed data.</p>
   <div class="doc doc-contents ">
   
       <p>Get the poptorch dataloader for a given dataset</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4389,6 +4590,8 @@ Useful to cache the pre-processed data.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4415,6 +4618,7 @@ Useful to cache the pre-processed data.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4428,6 +4632,8 @@ Useful to cache the pre-processed data.</p>
   <div class="doc doc-contents ">
   
       <p>Get the options for the dataloader depending on the current stage.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4471,6 +4677,8 @@ Useful to cache the pre-processed data.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4497,6 +4705,7 @@ Useful to cache the pre-processed data.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4511,6 +4720,8 @@ Useful to cache the pre-processed data.</p>
   
       <p>Low memory footprint method to get the featurization of a fake graph
 without reading the dataset. Useful for getting the number of node/edge features.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4537,6 +4748,7 @@ without reading the dataset. Useful for getting the number of node/edge features
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4551,6 +4763,8 @@ without reading the dataset. Useful for getting the number of node/edge features
   
       <p>Get the label statistics from the dataset, and save them to file, if needed.
 <code>self.task_norms</code> will be modified in-place with the label statistics.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4594,7 +4808,7 @@ without reading the dataset. Useful for getting the number of node/edge features
         <tr>
           <td><code>dataset</code></td>
           <td>
-                <code><span title="graphium.data.dataset">Datasets</span>.<span title="graphium.data.dataset.MultitaskDataset">MultitaskDataset</span></code>
+                <code><span title="graphium">Datasets</span>.<span title="graphium.MultitaskDataset">MultitaskDataset</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4626,6 +4840,7 @@ without reading the dataset. Useful for getting the number of node/edge features
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4639,6 +4854,8 @@ without reading the dataset. Useful for getting the number of node/edge features
   <div class="doc doc-contents ">
   
       <p>From a dictionary of datasets and their associated indices, subset the train/val/test sets</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4654,7 +4871,7 @@ without reading the dataset. Useful for getting the number of node/edge features
         <tr>
           <td><code>single_task_datasets</code></td>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="graphium.data.dataset">Datasets</span>.<span title="graphium.data.dataset.SingleTaskDataset">SingleTaskDataset</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="graphium">Datasets</span>.<span title="graphium.SingleTaskDataset">SingleTaskDataset</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4710,6 +4927,8 @@ without reading the dataset. Useful for getting the number of node/edge features
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4756,6 +4975,7 @@ without reading the dataset. Useful for getting the number of node/edge features
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4770,6 +4990,8 @@ without reading the dataset. Useful for getting the number of node/edge features
   
       <p>Load the datasets from cache. First create a hash for the dataset, and verify if that
 hash is available at the path given by <code>self.cache_data_path</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4813,6 +5035,8 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4839,6 +5063,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4852,6 +5077,8 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
   <div class="doc doc-contents ">
   
       <p>Normalize the labels in the dataset using the statistics in <code>self.task_norms</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4867,7 +5094,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
         <tr>
           <td><code>dataset</code></td>
           <td>
-                <code><span title="graphium.data.dataset">Datasets</span>.<span title="graphium.data.dataset.MultitaskDataset">MultitaskDataset</span></code>
+                <code><span title="graphium">Datasets</span>.<span title="graphium.MultitaskDataset">MultitaskDataset</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4881,6 +5108,8 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4892,7 +5121,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="graphium.data.dataset">Datasets</span>.<span title="graphium.data.dataset.MultitaskDataset">MultitaskDataset</span></code>
+                <code><span title="graphium">Datasets</span>.<span title="graphium.MultitaskDataset">MultitaskDataset</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4906,6 +5135,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4941,6 +5171,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4955,6 +5186,8 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
   
       <p>Save the datasets from cache. First create a hash for the dataset, use it to
 generate a file name. Then save to the path given by <code>self.cache_data_path</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5002,6 +5235,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5015,6 +5249,8 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
   <div class="doc doc-contents ">
   
       <p>Prepare the torch dataset. Called on every GPUs. Setting state here is ok.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5048,6 +5284,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5061,6 +5298,8 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
   <div class="doc doc-contents ">
   
       <p>Returns a dictionary representation of the current DataModule</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5112,7 +5351,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
 
 
 <h3 id="graphium.data.collate" class="doc doc-heading">
-          <code>graphium.data.collate</code>
+            <code>graphium.data.collate</code>
 
 
 <a href="#graphium.data.collate" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5122,6 +5361,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5146,6 +5386,8 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
       <p>Function to collate pytorch geometric graphs.
 Convert all numpy types to torch
 Convert edge indices to int64</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5194,6 +5436,7 @@ This is useful for using packing with the Transformer,</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5207,6 +5450,8 @@ This is useful for using packing with the Transformer,</p>
   <div class="doc doc-contents ">
   
       <p>Collate labels for multitask learning.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5268,6 +5513,8 @@ and the dtype of the label tensor as value. This is necessary to ensure the miss
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5302,6 +5549,7 @@ and the dtype of the label tensor as value. This is necessary to ensure the miss
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5316,6 +5564,8 @@ and the dtype of the label tensor as value. This is necessary to ensure the miss
   
       <p>Function to collate pytorch geometric labels.
 Convert all numpy types to torch</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5349,6 +5599,7 @@ Convert all numpy types to torch</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5367,6 +5618,7 @@ and the number of targets in the task-dataset.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5391,6 +5643,8 @@ for more details.</p>
   <p>If graphium needs to manipulate other tricky-to-batch objects. Support
 for them should be added to this single collate function.</p>
 </details>
+
+
   <p><strong>Parameters:</strong></p>
   <table>
     <thead>
@@ -5505,6 +5759,8 @@ with an additional mask to indicate which nodes are from the same graph under th
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5531,6 +5787,7 @@ with an additional mask to indicate which nodes are from the same graph under th
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5544,6 +5801,8 @@ with an additional mask to indicate which nodes are from the same graph under th
   <div class="doc doc-contents ">
   
       <p>This function zero-pads nodepair-level positional encodings to conform with the batching logic.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5559,7 +5818,7 @@ with an additional mask to indicate which nodes are from the same graph under th
         <tr>
           <td><code>pe</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, num_nodes, num_feat]</code>
+                <code>(torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, num_nodes, num_feat])</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5601,6 +5860,8 @@ with an additional mask to indicate which nodes are from the same graph under th
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5612,7 +5873,7 @@ with an additional mask to indicate which nodes are from the same graph under th
     <tbody>
         <tr>
 <td><code>padded_pe</code></td>          <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, max_num_nodes_per_graph, num_feat]</code>
+                <code>(torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, max_num_nodes_per_graph, num_feat])</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5626,6 +5887,7 @@ with an additional mask to indicate which nodes are from the same graph under th
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5661,7 +5923,7 @@ with <code>torch.nan</code> accordingly.</p>
 
 
 <h3 id="graphium.data.utils" class="doc doc-heading">
-          <code>graphium.data.utils</code>
+            <code>graphium.data.utils</code>
 
 
 <a href="#graphium.data.utils" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5671,6 +5933,7 @@ with <code>torch.nan</code> accordingly.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5693,6 +5956,8 @@ with <code>torch.nan</code> accordingly.</p>
   <div class="doc doc-contents ">
   
       <p>Download a Graphium dataset to a specified location.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5764,6 +6029,8 @@ with <code>torch.nan</code> accordingly.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5790,6 +6057,122 @@ with <code>torch.nan</code> accordingly.</p>
 
 </div>
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.data.utils.found_size_mismatch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">found_size_mismatch</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">smiles</span><span class="p">)</span></code>
+
+<a href="#graphium.data.utils.found_size_mismatch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check if a size mismatch exists between features and labels with respect to node/edge/nodepair.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>task</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The task name is needed to determine the task level (graph, node, edge or nodepair)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>features</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, <a class="autorefs autorefs-internal" title="graphium.features.featurizer.GraphDict" href="graphium.features.html#graphium.features.featurizer.GraphDict">GraphDict</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Features/information of molecule/graph (e.g., edge_index, feat, edge_feat, num_nodes, etc.)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Target label of molecule for the task</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>smiles</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Smiles string of molecule</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>mismatch</code></td>          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Boolean variable indicating if a size mismatch was found between featurs and labels.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
 <div class="doc doc-object doc-function">
 
 
@@ -5808,6 +6191,7 @@ with <code>torch.nan</code> accordingly.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5821,6 +6205,8 @@ with <code>torch.nan</code> accordingly.</p>
   <div class="doc doc-contents ">
   
       <p>List Graphium datasets available to download.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5848,6 +6234,7 @@ with <code>torch.nan</code> accordingly.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5861,6 +6248,8 @@ with <code>torch.nan</code> accordingly.</p>
   <div class="doc doc-contents ">
   
       <p>Return a dataframe of micro ZINC (1000 data points).</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5888,6 +6277,7 @@ with <code>torch.nan</code> accordingly.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5901,6 +6291,8 @@ with <code>torch.nan</code> accordingly.</p>
   <div class="doc doc-contents ">
   
       <p>Return a dataframe of tiny ZINC (100 data points).</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>

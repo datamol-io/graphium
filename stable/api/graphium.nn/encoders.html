@@ -19,7 +19,7 @@
         <link rel="next" href="pyg_layers.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -1968,7 +1968,7 @@
 
 
 <h3 id="graphium.nn.encoders.base_encoder" class="doc doc-heading">
-          <code>graphium.nn.encoders.base_encoder</code>
+            <code>graphium.nn.encoders.base_encoder</code>
 
 
 <a href="#graphium.nn.encoders.base_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -1991,22 +1991,22 @@
 
 
 <h4 id="graphium.nn.encoders.base_encoder.BaseEncoder" class="doc doc-heading">
-        <code>BaseEncoder</code>
+          <code>BaseEncoder</code>
 
 
 <a href="#graphium.nn.encoders.base_encoder.BaseEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2030,6 +2030,8 @@
   
       <p>Base class for all positional and structural encoders.
 Initialize the encoder with the following arguments:</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2160,6 +2162,7 @@ Initialize the encoder with the following arguments:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2178,6 +2181,8 @@ Initialize the encoder with the following arguments:</p>
   
       <p>Forward pass of the encoder on a graph.
 This is a method to be implemented by the child class.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2211,6 +2216,7 @@ This is a method to be implemented by the child class.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2226,6 +2232,8 @@ This is a method to be implemented by the child class.</p>
       <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
 The base model is usually identical to the regular model, but with the
 layers width divided by a given factor (2 by default)</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2269,6 +2277,8 @@ layers width divided by a given factor (2 by default)</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2295,6 +2305,7 @@ layers width divided by a given factor (2 by default)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2312,6 +2323,8 @@ layers width divided by a given factor (2 by default)</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>input_keys</code> argument. This is a method to be implemented by the child class.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2345,6 +2358,7 @@ layers width divided by a given factor (2 by default)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2364,6 +2378,7 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2381,6 +2396,8 @@ If the prefix is <code>None</code>, it is ignored</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>output_keys</code> argument.  This is a method to be implemented by the child class.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2438,7 +2455,7 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 <h3 id="graphium.nn.encoders.gaussian_kernel_pos_encoder" class="doc doc-heading">
-          <code>graphium.nn.encoders.gaussian_kernel_pos_encoder</code>
+            <code>graphium.nn.encoders.gaussian_kernel_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2461,22 +2478,22 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 <h4 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder" class="doc doc-heading">
-        <code>GaussianKernelPosEncoder</code>
+          <code>GaussianKernelPosEncoder</code>
 
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2500,6 +2517,8 @@ If the prefix is <code>None</code>, it is ignored</p>
   
       <p>Configurable gaussian kernel-based Positional Encoding node and edge encoder.
 Useful for encoding 3D conformation positions.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2672,6 +2691,7 @@ Useful for encoding 3D conformation positions.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2685,6 +2705,8 @@ Useful for encoding 3D conformation positions.</p>
   <div class="doc doc-contents ">
   
       <p>forward function of the GaussianKernelPosEncoder class</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2728,6 +2750,8 @@ Useful for encoding 3D conformation positions.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2754,6 +2778,7 @@ Useful for encoding 3D conformation positions.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2775,6 +2800,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2801,6 +2828,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2814,6 +2842,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>input_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2843,6 +2873,8 @@ factor_in_dim: Whether to factor the input dimension</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2869,6 +2901,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2882,6 +2915,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>output_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2910,6 +2945,8 @@ factor_in_dim: Whether to factor the input dimension</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2961,7 +2998,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h3 id="graphium.nn.encoders.laplace_pos_encoder" class="doc doc-heading">
-          <code>graphium.nn.encoders.laplace_pos_encoder</code>
+            <code>graphium.nn.encoders.laplace_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2984,22 +3021,22 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h4 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder" class="doc doc-heading">
-        <code>LapPENodeEncoder</code>
+          <code>LapPENodeEncoder</code>
 
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3023,6 +3060,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   
       <p>Laplace Positional Embedding node encoder.
 LapPE of size dim_pe will get appended to each node feature vector.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3192,6 +3231,7 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3205,6 +3245,8 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
   <div class="doc doc-contents ">
   
       <p>Forward pass of the encoder.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3248,6 +3290,8 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3274,6 +3318,7 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3295,6 +3340,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3321,6 +3368,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3334,6 +3382,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the input keys and make sure they are supported for this encoder</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3363,6 +3413,8 @@ factor_in_dim: Whether to factor the input dimension</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3389,6 +3441,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3402,6 +3455,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>parse the output keys</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3430,6 +3485,8 @@ factor_in_dim: Whether to factor the input dimension</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3481,7 +3538,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h3 id="graphium.nn.encoders.mlp_encoder" class="doc doc-heading">
-          <code>graphium.nn.encoders.mlp_encoder</code>
+            <code>graphium.nn.encoders.mlp_encoder</code>
 
 
 <a href="#graphium.nn.encoders.mlp_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3504,22 +3561,22 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h4 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder" class="doc doc-heading">
-        <code>CatMLPEncoder</code>
+          <code>CatMLPEncoder</code>
 
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3543,6 +3600,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   
       <p>Configurable kernel-based Positional Encoding node/edge-level encoder.
 Concatenates the list of input (node or edge) features in the feature dimension</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3708,6 +3767,7 @@ Concatenates the list of input (node or edge) features in the feature dimension<
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3721,6 +3781,8 @@ Concatenates the list of input (node or edge) features in the feature dimension<
   <div class="doc doc-contents ">
   
       <p>forward function of the mlp encoder</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3764,6 +3826,8 @@ Concatenates the list of input (node or edge) features in the feature dimension<
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3790,6 +3854,7 @@ Concatenates the list of input (node or edge) features in the feature dimension<
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3811,6 +3876,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3837,6 +3904,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3850,6 +3918,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>input_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3879,6 +3949,8 @@ factor_in_dim: Whether to factor the input dimension</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3905,6 +3977,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3918,6 +3991,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>output_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3946,6 +4021,8 @@ factor_in_dim: Whether to factor the input dimension</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3986,22 +4063,22 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h4 id="graphium.nn.encoders.mlp_encoder.MLPEncoder" class="doc doc-heading">
-        <code>MLPEncoder</code>
+          <code>MLPEncoder</code>
 
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4024,6 +4101,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Configurable kernel-based Positional Encoding node/edge-level encoder.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4189,6 +4268,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4202,6 +4282,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>forward function of the mlp encoder</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4245,6 +4327,8 @@ factor_in_dim: Whether to factor the input dimension</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4271,6 +4355,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4292,6 +4377,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4318,6 +4405,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4331,6 +4419,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>input_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4360,6 +4450,8 @@ factor_in_dim: Whether to factor the input dimension</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4386,6 +4478,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4399,6 +4492,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Parse the <code>output_keys</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4427,6 +4522,8 @@ factor_in_dim: Whether to factor the input dimension</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4478,7 +4575,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h3 id="graphium.nn.encoders.signnet_pos_encoder" class="doc doc-heading">
-          <code>graphium.nn.encoders.signnet_pos_encoder</code>
+            <code>graphium.nn.encoders.signnet_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4504,20 +4601,19 @@ based on <a href="https://github.com/cptq/SignNet-BasisNet">https://github.com/c
 
 
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.GINDeepSigns" class="doc doc-heading">
-        <code>GINDeepSigns</code>
+          <code>GINDeepSigns</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.GINDeepSigns" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
   
       <p>Sign invariant neural network with MLP aggregation.
 f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
-
 
 
   
@@ -4545,20 +4641,19 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 
 
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.MaskedGINDeepSigns" class="doc doc-heading">
-        <code>MaskedGINDeepSigns</code>
+          <code>MaskedGINDeepSigns</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.MaskedGINDeepSigns" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
   
       <p>Sign invariant neural network with sum pooling and DeepSet.
 f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
-
 
 
   
@@ -4586,15 +4681,15 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 
 
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder" class="doc doc-heading">
-        <code>SignNetNodeEncoder</code>
+          <code>SignNetNodeEncoder</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.encoders.base_encoder.BaseEncoder" href="#graphium.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</a></code></p>
 
   
       <p>SignNet Positional Embedding node encoder.
@@ -4607,6 +4702,8 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
 \rho is an MLP if k is a constant, but if all eigenvectors are used then
 \rho is DeepSet with sum-pooling.</p>
 <p>SignNetPE of size dim_pe will get appended to each node feature vector.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4636,10 +4733,10 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
   </table>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4665,6 +4762,8 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
 The base model is usually identical to the regular model, but with the
 layers width divided by a given factor (2 by default)</p>
 <h6 id="graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken">TODO: Update this. It is broken<a class="headerlink" href="#graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken" title="Permanent link">&para;</a></h6>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4725,22 +4824,22 @@ layers width divided by a given factor (2 by default)</p>
 
 
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.SimpleGIN" class="doc doc-heading">
-        <code>SimpleGIN</code>
+          <code>SimpleGIN</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.SimpleGIN" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
