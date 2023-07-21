@@ -171,6 +171,8 @@ class MultitaskDataset(Dataset):
             about: A description of the dataset
             progress: Whether to display the progress bar
             about: A description of the dataset
+            data_path: The location of the data if saved on disk
+            load_from_file: Whether to load the data from disk
             files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
@@ -378,17 +380,6 @@ class MultitaskDataset(Dataset):
         if self.load_from_file:
             data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
-            # these type changes are necessary for label dtype match of the largmix
-            # if hasattr(data_dict["labels"], "graph_l1000_vcap"):
-            #     data_dict["labels"].graph_l1000_vcap = data_dict["labels"].graph_l1000_vcap.astype(np.float32)
-            # if hasattr(data_dict["labels"], "graph_l1000_mcf7"):
-            #     data_dict["labels"].graph_l1000_mcf7 = data_dict["labels"].graph_l1000_mcf7.astype(np.float32)
-            # if hasattr(data_dict["labels"], "graph_pcba_1328"):
-            #     data_dict["labels"].graph_pcba_1328 = data_dict["labels"].graph_pcba_1328.astype(np.float32)
-            # if hasattr(data_dict["labels"], "graph_pcqm4m_g25"):
-            #     data_dict["labels"].graph_pcqm4m_g25 = data_dict["labels"].graph_pcqm4m_g25.astype(np.float32)
-            # if hasattr(data_dict["labels"], "node_pcqm4m_n4"):
-            #     data_dict["labels"].node_pcqm4m_n4 = data_dict["labels"].node_pcqm4m_n4.astype(np.float32)
             datum["labels"] = data_dict["labels"]
             if "smiles" in data_dict.keys():
                 datum["smiles"] = data_dict["smiles"]

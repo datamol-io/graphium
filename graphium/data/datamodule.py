@@ -40,7 +40,9 @@ from graphium.features import (
     GraphDict,
     mol_to_pyggraph,
 )
-from graphium.data.utils import graphium_package_path
+
+from graphium.data.sampler import DatasetSubSampler
+from graphium.data.utils import graphium_package_path, found_size_mismatch
 from graphium.utils.arg_checker import check_arg_iterator
 from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
@@ -656,6 +658,7 @@ class DatasetProcessingParams:
         split_val: float = 0.2,
         split_test: float = 0.2,
         seed: int = None,
+        epoch_sampling_fraction: float = 1.0,
         splits_path: Optional[Union[str, os.PathLike]] = None,
         split_names: Optional[List[str]] = ["train", "val", "test"],
         label_normalization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
@@ -681,6 +684,8 @@ class DatasetProcessingParams:
 
         if df is None and df_path is None:
             raise ValueError("Either `df` or `df_path` must be provided")
+        if epoch_sampling_fraction <= 0 or epoch_sampling_fraction > 1:
+            raise ValueError("The value of epoch_sampling_fraction must be in the range of (0, 1].")
 
         self.df = df
         self.task_level = task_level
@@ -698,6 +703,7 @@ class DatasetProcessingParams:
         self.splits_path = splits_path
         self.split_names = split_names
         self.label_normalization = label_normalization
+        self.epoch_sampling_fraction = epoch_sampling_fraction
 
 
 class IPUDataModuleModifier:
@@ -877,6 +883,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             key = self._get_task_key(ds_args.task_level, task)
             self.task_dataset_processing_params[key] = ds_args
 
+        self.sampler_task_dict = {
+            task: self.task_dataset_processing_params[task].epoch_sampling_fraction
+            for task in self.task_dataset_processing_params.keys()
+        }
+
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
@@ -1012,9 +1023,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             logger.info("Filtering the molecules for Hydrogen")
             logger.info(f"Looking at column {df.columns[0]}")
-            # Filter the DataFrame based on the function
-            # need this for pcba dataset
-            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
@@ -1078,8 +1086,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for task, args in task_dataset_args.items():
             # Find out which molecule failed featurization, and filter them out
             idx_none = []
-            for idx, feat in enumerate(args["features"]):
-                if did_featurization_fail(feat):
+            for idx, (feat, labels, smiles) in enumerate(
+                zip(args["features"], args["labels"], args["smiles"])
+            ):
+                if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
                     idx_none.append(idx)
             this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
             df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
@@ -1477,11 +1487,21 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             The poptorch dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
+        sampler = None
+        # use sampler only when sampler_task_dict is set in the config and during training
+        if DatasetSubSampler.check_sampling_required(self.sampler_task_dict) and stage in [
+            RunningStage.TRAINING
+        ]:
+            sampler = DatasetSubSampler(
+                dataset, self.sampler_task_dict, self.processed_graph_data_path, self.data_hash
+            )
+            # turn shuffle off when sampler is used as sampler option is mutually exclusive with shuffle
+            kwargs["shuffle"] = False
         is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
         if is_ipu:
-            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, **kwargs)
+            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
         else:
-            loader = BaseDataModule._dataloader(self, dataset=dataset, **kwargs)
+            loader = BaseDataModule._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
 
         return loader
 
@@ -1886,9 +1906,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
                 )
             train, val, test = split_names
-            train_indices = np.asarray(splits[train].dropna()).astype("int").tolist()
-            val_indices = np.asarray(splits[val].dropna()).astype("int").tolist()
-            test_indices = np.asarray(splits[test].dropna()).astype("int").tolist()
+            train_indices = np.asarray(splits[train]).astype("int")
+            train_indices = train_indices[~np.isnan(train_indices)].tolist()
+            val_indices = np.asarray(splits[val]).astype("int")
+            val_indices = val_indices[~np.isnan(val_indices)].tolist()
+            test_indices = np.asarray(splits[test]).astype("int")
+            test_indices = test_indices[~np.isnan(test_indices)].tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
@@ -1931,9 +1954,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Get a hash specific to a dataset and smiles_transformer.
         Useful to cache the pre-processed data.
         """
+        args = deepcopy(self.task_specific_args)
+        # pop epoch_sampling_fraction out when creating hash
+        # so that the data cache does not need to be regenerated
+        # when epoch_sampling_fraction has changed.
+        for task in self.task_specific_args.keys():
+            if "epoch_sampling_fraction" in args[task].keys():
+                args[task].pop("epoch_sampling_fraction")
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
-            "task_specific_args": self.task_specific_args,
+            "task_specific_args": args,
         }
         data_hash = get_md5_hash(hash_dict)
         return data_hash

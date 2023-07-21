@@ -113,8 +113,7 @@ def load_ipu_options(
         ), f"Received inconsistent gradient accumulation `{current}` and `{gradient_accumulation}"
         ipu_options.Training.gradientAccumulation(gradient_accumulation)
 
-    ipu_options.anchorTensor("input", "input")
-    if precision == 16:
+    if precision == "16-true":
         # IPUOptions.loadFromFile currently doesn't support setting half partials, doing it here
         ipu_options.Precision.setPartialsType(torch.half)
     training_opts = ipu_options
@@ -125,7 +124,7 @@ def load_ipu_options(
     if ipu_inference_opts is not None:
         ipu_inference_opts_file = ipu_options_list_to_file(ipu_inference_opts)
         inference_opts.loadFromFile(ipu_inference_opts_file.name)
-        inference_opts.close()
+        ipu_inference_opts_file.close()
 
     return training_opts, inference_opts
 

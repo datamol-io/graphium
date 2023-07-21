@@ -11,12 +11,12 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 60
+          max_num_nodes_per_graph: 44 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 60
+          max_num_nodes_per_graph: 44 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 80
         # Data handling-related
         batch_size_training: 50
         batch_size_inference: 50
@@ -25,17 +25,29 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16-true
-        accumulate_grad_batches: 1
+        precision: 16
+        accumulate_grad_batches: 4
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(2)
+    - replicationFactor(4)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
+    - useIpuModel(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 64
+#       batch_size_inference: 256
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -44,7 +56,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       qm9:
         df: null
-        df_path: data/neurips2023/small-dataset/qm9.csv.gz
+        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
@@ -54,11 +66,12 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       tox21:
         df: null
-        df_path: data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
+        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
@@ -70,7 +83,8 @@ datamodule:
 
       zinc:
         df: null
-        df_path: data/neurips2023/small-dataset/ZINC12k.csv.gz
+        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # df_path: data/neurips2023/small-dataset/ZINC12k.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
@@ -80,6 +94,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -87,7 +102,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
+    # processed_graph_data_path: "../datacache/neurips2023-small/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -119,7 +134,7 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
+    num_workers: -1 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -172,7 +187,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 128
+    out_dim: &gnn_dim 96
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -250,8 +265,8 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 20
-    warmup_epochs: 10
+    max_num_epochs: &max_epochs 3
+    warmup_epochs: 1
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train
@@ -273,6 +288,11 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
   tox21:
     - name: auroc
       metric: auroc_ipu
@@ -286,7 +306,7 @@ metrics:
       threshold_kwargs: null
     - name: f1 > 0.5
       metric: f1
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       target_to_int: True
       num_classes: 2
       average: micro
@@ -297,7 +317,7 @@ metrics:
         th_on_target: True
     - name: precision > 0.5
       metric: precision
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       average: micro
       threshold_kwargs: *threshold_05
   zinc: *qm9_metrics
@@ -314,15 +334,13 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: "models_checkpoints/neurips2023-small-gcn/"
+    dirpath: models_checkpoints/neurips2023-small-gcn/
     filename: *name
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    # every_n_epochs: 4
     save_last: True
-    # save_on_train_epoch_end: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 4
+    check_val_every_n_epoch: 20

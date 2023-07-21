@@ -101,7 +101,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
         outputs = self.convert_from_fp16(outputs)
-        outputs["loss"] = outputs["loss"].mean()
+        outputs["loss"] = outputs["loss"][outputs["loss"] != 0].mean()
         super().on_train_batch_end(outputs, batch, batch_idx)
 
     def training_step(self, batch, batch_idx) -> Dict[str, Any]:
