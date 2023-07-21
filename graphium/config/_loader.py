@@ -466,9 +466,6 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tup
         if precision is not None:
             torch.set_float32_matmul_precision(precision)
 
-    if accelerator_type != "ipu":
-        del config["predictor"]["optim_kwargs"]["loss_scaling"]
-
     return config, accelerator_type
 
 

@@ -1,0 +1,29 @@
+# @package _global_
+
+accelerator:
+  float32_matmul_precision: medium
+
+architecture:
+  task_heads:
+    tox21:
+      last_activation: none
+
+datamodule:
+  args:
+    batch_size_training: 200
+    batch_size_inference: 200
+    featurization_n_jobs: 4
+    num_workers: 4
+
+predictor:
+  optim_kwargs: {}
+  loss_fun:
+    tox21: bce_logits_ipu
+  metrics_every_n_steps: 300
+  torch_scheduler_kwargs:
+    max_num_epochs: &max_epochs 300
+
+trainer:
+  trainer:
+    accumulate_grad_batches: 1
+    max_epochs: *max_epochs
