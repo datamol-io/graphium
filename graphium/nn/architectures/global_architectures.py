@@ -1014,7 +1014,9 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
             gnn_kwargs.setdefault("in_dim", next_in_dim)
-            assert next_in_dim == gnn_kwargs["in_dim"], "Inconsistent input/output dimensions"
+            assert (
+                next_in_dim == gnn_kwargs["in_dim"]
+            ), f"Inconsistent dimensions between pre-NN output ({next_in_dim}) and GNN input ({gnn_kwargs['in_dim']})"
 
         # Initialize the pre-processing neural net for edges (applied directly on edge features)
         if pre_nn_edges_kwargs is not None:
@@ -1022,7 +1024,9 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             self.pre_nn_edges = FeedForwardNN(**pre_nn_edges_kwargs, name=name)
             next_in_dim = self.pre_nn_edges.out_dim
             gnn_kwargs.setdefault("in_dim_edges", next_in_dim)
-            assert next_in_dim == gnn_kwargs["in_dim_edges"], "Inconsistent input/output dimensions"
+            assert (
+                next_in_dim == gnn_kwargs["in_dim_edges"]
+            ), f"Inconsistent dimensions between pre-NN-edges output ({next_in_dim}) and GNN input ({gnn_kwargs['in_dim_edges']})"
 
         # Initialize the graph neural net (applied after the pre_nn)
         name = gnn_kwargs.pop("name", "GNN")

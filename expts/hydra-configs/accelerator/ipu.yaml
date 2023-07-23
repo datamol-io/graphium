@@ -1,0 +1,9 @@
+type: ipu
+ipu_config:
+    - deviceIterations(5) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
