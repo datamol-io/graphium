@@ -4,11 +4,10 @@ import unittest as ut
 import numpy as np
 from copy import deepcopy
 from warnings import warn
+from unittest.mock import patch
 from lightning import Trainer, LightningModule
-from lightning_graphcore import IPUStrategy
 from functools import partial
 import pytest
-from unittest.mock import patch
 
 import torch
 from torch.utils.data.dataloader import default_collate
@@ -116,16 +115,21 @@ class test_DataLoading(ut.TestCase):
         to make sure that the dataloader and models handle them correcly.
         """
 
-        # Run this test only if poptorch is available
-        try:
-            import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-            return
-
-        # We patch the is_available flag to say there is hardware available for lightning
-        # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            from lightning_graphcore import IPUStrategy
+
+            # Run this test only if poptorch is available
+            try:
+                import poptorch
+            except Exception as e:
+                warn(f"Skipping this test because poptorch is not available.\n{e}")
+                return
+
+            # We patch the is_available flag to say there is hardware available for lightning
+            # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
+            # with patch('poptorch.ipuHardwareIsAvailable', return_value=True):
+            # with patch('lightning_graphcore.accelerator._IPU_AVAILABLE', new=True):
+
             # Initialize constants
             gradient_accumulation = 2
             device_iterations = 3
@@ -182,42 +186,46 @@ class test_DataLoading(ut.TestCase):
             )
             trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
         """
         Test the device-iterations and gradient accumulation in a way
         that is very similar to the Graphium code
         to make sure that the dataloader and models handle them correcly.
         """
-
-        try:
-            import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-            return
-
-        # Simplified testing config - reflecting the toymix requirements
-        # CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
-        CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
-        with open(CONFIG_FILE, "r") as f:
-            cfg = yaml.safe_load(f)
-
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
-            cfg, accelerator = load_accelerator(cfg)
+            from lightning_graphcore import IPUStrategy
 
-            # Load the datamodule, and prepare the data
-            datamodule = load_datamodule(cfg, accelerator_type=accelerator)
-            datamodule.prepare_data()
-            metrics = load_metrics(cfg)
-            model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
-            # datamodule.setup()
-            predictor = load_predictor(
-                cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
-            )
-            trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
-            # Run the model training
-            with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-                trainer.fit(model=predictor, datamodule=datamodule)
+            try:
+                import poptorch
+            except Exception as e:
+                warn(f"Skipping this test because poptorch is not available.\n{e}")
+                return
+
+            # Simplified testing config - reflecting the toymix requirements
+            # CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
+            CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
+            with open(CONFIG_FILE, "r") as f:
+                cfg = yaml.safe_load(f)
+
+            with patch("lightning_graphcore.accelerator.IPUAccelerator.is_available", return_value=True):
+                cfg, accelerator = load_accelerator(cfg)
+
+                # Load the datamodule, and prepare the data
+                datamodule = load_datamodule(cfg, accelerator_type=accelerator)
+                datamodule.prepare_data()
+                metrics = load_metrics(cfg)
+                model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+                # datamodule.setup()
+                predictor = load_predictor(
+                    cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
+                )
+                trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
+                # Run the model training
+                with SafeRun(
+                    name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
+                ):
+                    trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":
