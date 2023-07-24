@@ -3,7 +3,7 @@ import unittest as ut
 import torch
 from torch_geometric.data import Batch, Data
 
-from graphium.ipu_wrapper import PyGArgsParser
+from graphium.ipu.ipu_wrapper import PyGArgsParser
 
 def _make_fake_graph(num_nodes, num_edges, hidden_dim=16):
 
@@ -21,21 +21,20 @@ class test_ArgParser(ut.TestCase):
     
     def test_arg_parser(self):
 
-        tensor_iterator = self.arg_parser.yieldTensors(g1)
-        reconstructed_data = self.arg_parser.reconstruct(g1, tensor_iterator)
+        tensor_iterator = self.arg_parser.yieldTensors(self.g1)
+        reconstructed_data = self.arg_parser.reconstruct(self.g1, tensor_iterator)
 
         self.assertTrue(isinstance(reconstructed_data, Data))
-        self.assertTrue(reconstructed_data.keys() == g1.keys())
-        for k in g1.keys():
-            self.assertTrue(reconstructed_data[k] == g1[k])
+        self.assertTrue(reconstructed_data.keys() == self.g1.keys())
+        for k in self.g1.keys():
+            self.assertTrue(reconstructed_data[k].eq(self.g1[k]).all())
 
-        batch = Batch.from_data_list(g1, g2)
+        batch = Batch.from_data_list([self.g1, self.g2])
 
         tensor_iterator = self.arg_parser.yieldTensors(batch)
         reconstructed_data = self.arg_parser.reconstruct(batch, tensor_iterator)
 
         self.assertTrue(isinstance(reconstructed_data, Data))
-        self.assertTrue(reconstructed_data.keys() == g1.keys())
-        for k in g1.keys():
-            self.assertTrue(reconstructed_data[k] == g1[k])
-        
+        self.assertTrue(reconstructed_data.keys() == batch.keys())
+        for k in batch.keys():
+            self.assertTrue(reconstructed_data[k].eq(batch[k]).all())
