@@ -122,10 +122,10 @@ class test_DataLoading(ut.TestCase):
         except Exception as e:
             warn(f"Skipping this test because poptorch is not available.\n{e}")
             return
-        
+
         # We patch the is_available flag to say there is hardware available for lightning
         # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
-        with patch('lightning_graphcore.accelerator.IPUAccelerator.is_available', return_value=True):
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             # Initialize constants
             gradient_accumulation = 2
             device_iterations = 3
@@ -168,7 +168,9 @@ class test_DataLoading(ut.TestCase):
 
             # Build the model, and run it on "IPU"
             model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
-            strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts, unittest_mode=True, autoreport=True)
+            strategy = IPUStrategy(
+                training_opts=training_opts, inference_opts=inference_opts, autoreport=True
+            )
             trainer = Trainer(
                 logger=True,
                 enable_checkpointing=False,
@@ -178,11 +180,9 @@ class test_DataLoading(ut.TestCase):
                 accelerator="ipu",
                 devices=1,
             )
-            # trainer = Trainer(strategy=strategy, accelerator="ipu")
-            # trainer.validate(model, dataloaders=val_dataloader)
             trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
         """
         Test the device-iterations and gradient accumulation in a way
@@ -201,22 +201,23 @@ class test_DataLoading(ut.TestCase):
         CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
-        cfg, accelerator = load_accelerator(cfg)
-        
 
-        # Load the datamodule, and prepare the data
-        datamodule = load_datamodule(cfg, accelerator_type=accelerator)
-        datamodule.prepare_data()
-        metrics = load_metrics(cfg)
-        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
-        # datamodule.setup()
-        predictor = load_predictor(
-            cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
-        )
-        trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
-        # Run the model training
-        with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-            trainer.fit(model=predictor, datamodule=datamodule)
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            cfg, accelerator = load_accelerator(cfg)
+
+            # Load the datamodule, and prepare the data
+            datamodule = load_datamodule(cfg, accelerator_type=accelerator)
+            datamodule.prepare_data()
+            metrics = load_metrics(cfg)
+            model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+            # datamodule.setup()
+            predictor = load_predictor(
+                cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
+            )
+            trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
+            # Run the model training
+            with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+                trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":
