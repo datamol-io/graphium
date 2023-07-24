@@ -85,6 +85,7 @@ class TestIPUBatch:
 
             # Check the idx are all the true values in the mask
             assert (mask.flatten()[idx] == True).all()
+            poptorch_model_inf.detach()
         except ImportError:
             pytest.skip("Skipping this test because poptorch is not available")
 
