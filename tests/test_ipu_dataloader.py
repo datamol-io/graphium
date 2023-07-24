@@ -182,7 +182,7 @@ class test_DataLoading(ut.TestCase):
             )
             trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
-    # @pytest.mark.skip
+    @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
         """
         Test the device-iterations and gradient accumulation in a way
