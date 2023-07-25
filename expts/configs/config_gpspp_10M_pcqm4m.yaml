@@ -30,8 +30,8 @@ accelerator:
         accumulate_grad_batches: 4
 
   ipu_config:
-    - deviceIterations(2) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - deviceIterations(20) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -70,11 +70,12 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        sample_size: 8000 # use sample_size for test
+        # sample_size: 8000 # use sample_size for test
         splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # graphium/data/PCQM4Mv2/split_dict.pt
         # graphium/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
+        seed: *seed
         label_normalization:
           method: "normal"
           min_clipping: [0]
@@ -82,10 +83,10 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
+    featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "/tmp/graphium_data/PCQM4Mv2/"
+    processed_graph_data_path: "../datacache/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -119,7 +120,7 @@ datamodule:
 
 
     # cache_data_path: .
-    num_workers: 20 # -1 to use all
+    num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
@@ -156,29 +157,29 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        input_keys: ["eigvecs", "eigvals"]
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.18
+        dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
+        input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
-        dropout: 0.18
+        dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
       gaussian_pos: # 3D_bias
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "graph_gaussian_bias_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
         num_heads: 32
         num_layers: 1 #2
         embed_dim: 32
@@ -197,7 +198,6 @@ architecture:
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
@@ -210,7 +210,7 @@ architecture:
         out_dim_edges: 128
       attn_type: "full-attention" # "full-attention", "none"
       precision: &precision 16
-      biased_attention_key: "graph_gaussian_bias_3d" # 3D_bias
+      biased_attention_key: "nodepair_gaussian_bias_3d" # 3D_bias
       attn_kwargs:
         num_heads: 32
       droppath_rate_attn: 0.0
@@ -274,10 +274,33 @@ metrics:
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+
+trainer:
+  seed: *seed
+  logger:
+    save_dir: logs/PCQMv2
+    name: *name
+    project: PCQMv2_gpspp
+  #early_stopping:
+  #  monitor: *monitor
+  #  min_delta: 0
+  #  patience: 10
+  #  mode: &mode min
+  model_checkpoint:
+    dirpath: models_checkpoints/PCMQ4Mv2/
+    filename: *name
+    #monitor: *monitor
+    #mode: *mode
+    save_top_k: 1
+    every_n_epochs: 100
+  trainer:
+    max_epochs: *max_epochs
+    min_epochs: 1
+    check_val_every_n_epoch: 20

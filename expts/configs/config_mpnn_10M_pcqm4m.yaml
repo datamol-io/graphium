@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# MPNN model with the PCQMv2 dataset on IPU.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
@@ -85,7 +85,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
+    featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
     processed_graph_data_path: "../datacache/PCQM4Mv2/"
@@ -259,7 +259,7 @@ metrics:
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
