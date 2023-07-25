@@ -23,6 +23,7 @@ umap-learn
 pytest >==6.0
 pytest-cov
 pytest-xdist
+pytest-forked
 black >=23
 jupyterlab
 ipywidgets
