@@ -3,6 +3,7 @@ constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  entity: multitask-gnn
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -37,12 +38,20 @@ accelerator:
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
 
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
+
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:
-#     datamodule:
-#       batch_size_training: 256
-#       batch_size_inference: 64
+#     args:
+#       datamodule:
+#         batch_size_training: 256
+#         batch_size_inference: 64
 #     trainer:
 #       trainer:
 #         precision: 32
@@ -71,6 +80,8 @@ datamodule:
         seed: *seed
         label_normalization:
           method: "normal"
+          min_clipping: [0]
+          max_clipping: [50]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -112,8 +123,6 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
-
 
 architecture:
   model_type: FullGraphMultiTaskNetwork

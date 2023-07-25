@@ -3,6 +3,7 @@ constants:
   name: &name neurips2023_large_data_gcn
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  entity: multitask-gnn
 
 accelerator:
   type: ipu  # cpu or ipu or gpu

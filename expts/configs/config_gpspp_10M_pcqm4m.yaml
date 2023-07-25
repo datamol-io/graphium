@@ -3,8 +3,59 @@ constants:
   name: &name pcqm4mv2_gpspp_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  accelerator:
-    type: ipu  # cpu or ipu or gpu
+  entity: multitask-gnn
+
+accelerator:
+  type: ipu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 16
+        batch_size_inference: 16
+    predictor:
+      optim_kwargs:
+        loss_scaling: 1024
+    trainer:
+      trainer:
+        precision: 16-true
+        accumulate_grad_batches: 4
+
+  ipu_config:
+    - deviceIterations(2) # IPU would require large batches to be ready for the model.
+    - replicationFactor(4)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     args:
+#       datamodule:
+#         batch_size_training: 256
+#         batch_size_inference: 64
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -14,20 +65,20 @@ datamodule:
       homolumo:
         df: null
         task_level: "graph"
-        df_path: graphium/data/PCQM4Mv2/pcqm4mv2.csv #graphium/data/PCQM4Mv2/pcqm4mv2.csv
+        df_path: graphium/data/PCQM4M/pcqm4mv2.csv #graphium/data/PCQM4Mv2/pcqm4mv2.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 80000 # use sample_size for test
-        splits_path: graphium/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        sample_size: 8000 # use sample_size for test
+        splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # graphium/data/PCQM4Mv2/split_dict.pt
         # graphium/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
         label_normalization:
           method: "normal"
-          min_clipping: 0
-          max_clipping: 50
+          min_clipping: [0]
+          max_clipping: [50]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -49,36 +100,29 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
             num_pos: 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
-            pos_type: rwse
+            pos_level: node
+            pos_type: rw_return_probs
             ksteps: 16
 
 
-    # Data handling-related
-    batch_size_training: 16
-    batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
-
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -173,10 +217,22 @@ architecture:
       droppath_rate_ffn: 0.0
 
 
-  post_nn: null
+  graph_output_nn:
+    graph:
+      pooling: [sum]
+      out_dim: 256
+      hidden_dims: 256
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
 
   task_heads:
     homolumo:
+      task_level: graph
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
