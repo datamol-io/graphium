@@ -171,7 +171,6 @@ datamodule:
     num_workers: 32 # -1 to use all
     persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
 
 architecture:
