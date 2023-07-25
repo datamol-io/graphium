@@ -13,8 +13,6 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 
-
-
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
     indices = np.arange(len(num_nodes))
@@ -111,34 +109,33 @@ class test_DataLoading(ut.TestCase):
         # Set the patch
         # monkeypatch.setattr('poptorch.ipuHardwareIsAvailable', lambda: True)
         # import poptorch
-        #poptorch.ipuHardwareIsAvailable = lambda : True    
+        # poptorch.ipuHardwareIsAvailable = lambda : True
         # assert poptorch.ipuHardwareIsAvailable()
         # assert pop_val
         # except Exception as e:
         #     warn(f"Skipping this test because poptorch is not available.\n{e}")
         #     return
-        
+
         # from lightning_graphcore import IPUStrategy, accelerator
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True) as pop_val:
-        # with patch('accelerator._IPU_AVAILABLE', return_value=True):
-        # if True:
-        #with patch('lightning_graphcore.accelerator.poptorch.ipuHardwareIsAvailable', new=True):
+            # with patch('accelerator._IPU_AVAILABLE', return_value=True):
+            # if True:
+            # with patch('lightning_graphcore.accelerator.poptorch.ipuHardwareIsAvailable', new=True):
             # assert pop_val() is True
-            
-            
 
             # Run this test only if poptorch is available
             # try:
             import poptorch
-            # #poptorch.ipuHardwareIsAvailable = lambda : True    
+
+            # #poptorch.ipuHardwareIsAvailable = lambda : True
             # assert poptorch.ipuHardwareIsAvailable()
             # assert pop_val
             # # except Exception as e:
             # #     warn(f"Skipping this test because poptorch is not available.\n{e}")
             # #     return
-            
+
             from lightning_graphcore import IPUStrategy
-            
+
             #:wraise Exception(poptorch.)
             # We patch the is_available flag to say there is hardware available for lightning
             # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
@@ -209,8 +206,6 @@ class test_DataLoading(ut.TestCase):
         to make sure that the dataloader and models handle them correcly.
         """
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
-            
-
             try:
                 import poptorch
             except Exception as e:
@@ -219,6 +214,7 @@ class test_DataLoading(ut.TestCase):
 
             from lightning_graphcore import IPUStrategy
             import lightning_graphcore
+
             # Current library imports
             from graphium.config._loader import (
                 load_datamodule,
@@ -229,6 +225,7 @@ class test_DataLoading(ut.TestCase):
                 load_trainer,
             )
             from graphium.utils.safe_run import SafeRun
+
             # Simplified testing config - reflecting the toymix requirements
             # CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
             CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
@@ -236,11 +233,12 @@ class test_DataLoading(ut.TestCase):
                 cfg = yaml.safe_load(f)
 
             # with patch("lightning_graphcore.accelerator.IPUAccelerator.is_available", return_value=True) as mock_method:
-                
+
             # print(mock_method)
             # assert mock_method
             cfg, accelerator = load_accelerator(cfg)
             from lightning_graphcore.accelerator import _IPU_AVAILABLE
+
             assert _IPU_AVAILABLE is True
 
             # Load the datamodule, and prepare the data
@@ -254,9 +252,7 @@ class test_DataLoading(ut.TestCase):
             )
             trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
             # Run the model training
-            with SafeRun(
-                name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
-            ):
+            with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
                 trainer.fit(model=predictor, datamodule=datamodule)
 
 
