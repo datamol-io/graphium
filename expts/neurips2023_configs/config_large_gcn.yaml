@@ -15,13 +15,13 @@ accelerator:
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
         batch_size_training: 30
         batch_size_inference: 30
     predictor:
-      metrics_every_n_steps: 10
+      metrics_every_n_train_steps: 1000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
@@ -167,7 +167,7 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
+    num_workers: 32 # -1 to use all
     persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"

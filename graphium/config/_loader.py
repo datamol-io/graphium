@@ -123,7 +123,7 @@ def load_datamodule(
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
             ipu_inference_opts=ipu_inference_opts,
-            precision=config["trainer"]["trainer"]["precision"],
+            precision=config["trainer"]["trainer"].get("precision"),
         )
         # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_training"]
@@ -367,7 +367,7 @@ def load_trainer(
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            precision=config["trainer"]["trainer"]["precision"],
+            precision=config["trainer"]["trainer"].get("precision"),
         )
 
         from lightning_graphcore import IPUStrategy
@@ -465,9 +465,6 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tup
         precision = config_acc.get("float32_matmul_precision", None)
         if precision is not None:
             torch.set_float32_matmul_precision(precision)
-
-    if accelerator_type != "ipu":
-        del config["predictor"]["optim_kwargs"]["loss_scaling"]
 
     return config, accelerator_type
 

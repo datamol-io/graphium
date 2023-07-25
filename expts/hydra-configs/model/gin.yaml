@@ -1,0 +1,5 @@
+# @package _global_
+
+architecture:
+  gnn:
+    layer_type: 'pyg:gin'
