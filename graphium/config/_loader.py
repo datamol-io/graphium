@@ -113,7 +113,7 @@ def load_datamodule(
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         # Default empty values for the IPU configurations
-        ipu_training_opts, ipu_inference_opts = None, None
+        ipu_training_opts = None
 
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
@@ -465,9 +465,6 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tup
         precision = config_acc.get("float32_matmul_precision", None)
         if precision is not None:
             torch.set_float32_matmul_precision(precision)
-
-    if accelerator_type != "ipu":
-        del config["predictor"]["optim_kwargs"]["loss_scaling"]
 
     return config, accelerator_type
 

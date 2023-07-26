@@ -1,0 +1,269 @@
+# @package _global_
+
+architecture:
+  model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
+  pre_nn:
+    out_dim: 64
+    hidden_dims: 256
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.18
+    normalization: &normalization layer_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges: null
+
+  pe_encoders:
+    out_dim: 32
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        encoder_type: "laplacian_pe"
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
+        output_keys: ["feat"]
+        hidden_dim: 64
+        out_dim: 32
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 2
+        num_layers_post: 1 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        encoder_type: "mlp"
+        input_keys: ["rw_return_probs"]
+        output_keys: ["feat"]
+        hidden_dim: 64
+        out_dim: 32
+        num_layers: 2
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+
+  gnn:  # Set as null to avoid a post-nn network
+    in_dim: 64 # or otherwise the correct value
+    out_dim: &gnn_dim 96
+    hidden_dims: *gnn_dim
+    depth: 4
+    activation: gelu
+    last_activation: none
+    dropout: 0.1
+    normalization: "layer_norm"
+    last_normalization: *normalization
+    residual_type: simple
+    virtual_node: 'none'
+    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_kwargs: null # Parameters for the model itself. You could define dropout_attn: 0.1
+
+  graph_output_nn:
+    graph:
+      pooling: [sum]
+      out_dim: *gnn_dim
+      hidden_dims: *gnn_dim
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+
+  task_heads:
+    qm9:
+      task_level: graph
+      out_dim: 19
+      hidden_dims: 128
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    tox21:
+      task_level: graph
+      out_dim: 12
+      hidden_dims: 64
+      depth: 2
+      activation: relu
+      last_activation: sigmoid
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    zinc:
+      task_level: graph
+      out_dim: 3
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+
+predictor:
+  metrics_on_progress_bar:
+    qm9: ["mae"]
+    tox21: ["auroc"]
+    zinc: ["mae"]
+  loss_fun:
+    qm9: mae_ipu
+    tox21: bce_ipu
+    zinc: mae_ipu
+  random_seed: ${constants.seed}
+  optim_kwargs:
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
+    # weight_decay: 1.e-7
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: &max_epochs 100
+    warmup_epochs: 10
+    verbose: False
+  scheduler_kwargs:
+  target_nan_mask: null
+  multitask_handling: flatten # flatten, mean-per-label
+
+metrics:
+  qm9: &qm9_metrics
+    - name: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: flatten
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+  tox21:
+    - name: auroc
+      metric: auroc_ipu
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: avpr
+      metric: average_precision_ipu
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: f1 > 0.5
+      metric: f1
+      multitask_handling: mean-per-label
+      target_to_int: True
+      num_classes: 2
+      average: micro
+      threshold_kwargs: &threshold_05
+        operator: greater
+        threshold: 0.5
+        th_on_preds: True
+        th_on_target: True
+    - name: precision > 0.5
+      metric: precision
+      multitask_handling: mean-per-label
+      average: micro
+      threshold_kwargs: *threshold_05
+  zinc: *qm9_metrics
+
+trainer:
+  seed: ${constants.seed}
+  logger:
+    save_dir: logs/neurips2023-small/
+    name: ${constants.name}
+    project: ${constants.name}
+  model_checkpoint:
+    dirpath: models_checkpoints/neurips2023-small-gcn/
+    filename: ${constants.name}
+    save_last: True
+  trainer:
+    precision: 16
+    max_epochs: *max_epochs
+    min_epochs: 1
+    check_val_every_n_epoch: 20
+
+datamodule:
+  module_type: "MultitaskFromSmilesDataModule"
+  args:
+    prepare_dict_or_graph: pyg:graph
+    featurization_n_jobs: 30
+    featurization_progress: True
+    featurization_backend: "loky"
+    processed_graph_data_path: "../datacache/neurips2023-small/"
+    num_workers: 30 # -1 to use all
+    persistent_workers: False
+    task_specific_args:
+      qm9:
+        df: null
+        df_path: ${constants.data_dir}/qm9.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        seed: ${constants.seed} #*seed
+        task_level: graph
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"
+
+      tox21:
+        df: null
+        df_path: ${constants.data_dir}/Tox21-7k-12-labels.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        seed: ${constants.seed}
+        task_level: graph
+
+      zinc:
+        df: null
+        df_path: ${constants.data_dir}/ZINC12k.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["SA", "logp", "score"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        seed: ${constants.seed}
+        task_level: graph
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"
+    featurization:
+      atom_property_list_onehot: [atomic-number, group, period, total-valence]
+      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
+      edge_property_list: [bond-type-onehot, stereo, in-ring]
+      add_self_loop: False
+      explicit_H: False # if H is included
+      use_bonds_weights: False
+      pos_encoding_as_features:
+        pos_types:
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # normalization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
+            num_pos: 8
+            normalization: "none" # normalization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          rw_pos: # use same name as pe_encoder
+            pos_level: node
+            pos_type: rw_return_probs
+            ksteps: 16

@@ -30,6 +30,7 @@ def global_batch_collator(batch_size, batches):
     return global_batch
 
 
+@pytest.mark.skip_ipu
 @pytest.mark.ipu
 @pytest.mark.forked
 @pytest.mark.specific

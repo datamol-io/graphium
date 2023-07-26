@@ -1,4 +1,4 @@
-# Testing the gcn model with the PCQMv2 dataset on IPU.
+# Running the gcn model with the largemix dataset on IPU.
 constants:
   name: &name neurips2023_large_data_gcn
   seed: &seed 42
@@ -11,39 +11,48 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 10
-        batch_size_inference: 10
+        batch_size_training: 30
+        batch_size_inference: 30
     predictor:
+      metrics_every_n_train_steps: 1000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 32
-        accumulate_grad_batches: 8
+        precision: 16-true
+        accumulate_grad_batches: 2
 
   ipu_config:
-    - deviceIterations(10) # IPU would require large batches to be ready for the model.
+    - deviceIterations(30) # IPU would require large batches to be ready for the model.
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
+    - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#       args:
+#         batch_size_training: 64
+#         batch_size_inference: 256
 #     trainer:
 #       trainer:
 #         precision: 32
@@ -64,6 +73,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
         df: null
@@ -75,6 +85,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcba_1328:
         df: null
@@ -86,6 +97,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
         df: null
@@ -100,6 +112,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_n4:
         df: null
@@ -115,6 +128,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -153,8 +167,8 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch.
+    num_workers: 32 # -1 to use all
+    persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
@@ -273,7 +287,7 @@ architecture:
       hidden_dims: 64
       depth: 2
       activation: relu
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -319,10 +333,12 @@ predictor:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
+      alpha: 0.5
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-    pcba_1328: bce_ipu
+      alpha: 0.5
+    pcba_1328: bce_logits_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
   random_seed: *seed
@@ -405,4 +421,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 20

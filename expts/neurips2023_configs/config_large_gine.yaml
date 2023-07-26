@@ -1,4 +1,4 @@
-# Testing the gine model with the PCQMv2 dataset on IPU.
+# Running the gine model with the largemix dataset on IPU.
 constants:
   name: &name neurips2023_large_data_gine
   config_override: "expts/neurips2023_configs/config_large_gcn.yaml"

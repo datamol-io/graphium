@@ -6,7 +6,7 @@ from datetime import datetime
 from copy import deepcopy
 
 import graphium
-from graphium.config._loader import load_datamodule
+from graphium.config._loader import load_datamodule, load_accelerator
 import time
 from typing import Optional, List, Sequence
 import wandb
@@ -18,7 +18,9 @@ import numpy as np
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
-CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
+# CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
 
 
@@ -90,9 +92,11 @@ def main(
         wandb.init(project="multitask-gnn", name=run_name, config=cfg)
 
     cfg = deepcopy(cfg)
-
+    cfg, accelerator_type = load_accelerator(cfg)
     # Load and initialize the dataset
-    datamodule = benchmark(load_datamodule, cfg, message="Load duration", log2wandb=log2wandb)
+    datamodule = benchmark(
+        load_datamodule, cfg, accelerator_type, message="Load duration", log2wandb=log2wandb
+    )
 
     benchmark(datamodule.prepare_data, message="Prepare duration", log2wandb=log2wandb)
 
