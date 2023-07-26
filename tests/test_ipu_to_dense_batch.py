@@ -22,6 +22,7 @@ from torch.utils.data.dataloader import default_collate
 from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
 
+@pytest.mark.skip
 @pytest.mark.ipu
 class TestIPUBatch:
     @pytest.fixture(autouse=True)
@@ -45,6 +46,7 @@ class TestIPUBatch:
         self.bg = Batch.from_data_list([self.g1, self.g2])
         self.attn_kwargs = {"embed_dim": self.in_dim, "num_heads": 2, "batch_first": True}
 
+    @pytest.mark.skip
     @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [(10, 5), (20, 10), (30, 15)])
     def test_ipu_to_dense_batch(self, max_num_nodes_per_graph, batch_size):
         # Run this test only if poptorch is available

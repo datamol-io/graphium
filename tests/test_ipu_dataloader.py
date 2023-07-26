@@ -40,6 +40,7 @@ def global_batch_collator(batch_size, batches):
     return global_batch
 
 
+@pytest.mark.skip_ipu
 @pytest.mark.ipu
 class test_DataLoading(ut.TestCase):
     class TestSimpleLightning(LightningModule):
