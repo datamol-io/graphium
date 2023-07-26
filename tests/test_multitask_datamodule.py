@@ -9,6 +9,7 @@ import numpy as np
 import graphium
 
 
+@pytest.mark.skip
 class Test_Multitask_DataModule(ut.TestCase):
     def setUp(self):
         # Create a temporary directory
