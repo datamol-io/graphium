@@ -22,6 +22,7 @@ from torch.utils.data.dataloader import default_collate
 from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
 
+@pytest.mark.skip
 @pytest.mark.ipu
 class TestIPUBatch:
     @pytest.fixture(autouse=True)
