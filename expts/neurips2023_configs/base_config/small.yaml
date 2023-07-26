@@ -195,7 +195,6 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs: null # Parameters for the model itself. You could define dropout_attn: 0.1
 
 

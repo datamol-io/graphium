@@ -1,7 +1,8 @@
 # Testing the gine model with the PCQMv2 dataset on IPU.
 
 defaults:
- - base_config: small
+  - base_config: small
+  - _self_
 
 constants:
   name: neurips2023_small_data_gine
