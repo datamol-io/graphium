@@ -52,6 +52,7 @@ class TestIPUBatch:
         # Run this test only if poptorch is available
         try:
             import poptorch
+
             opts = poptorch.Options()
             opts.useIpuModel(True)
 
