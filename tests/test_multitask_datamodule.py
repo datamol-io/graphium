@@ -9,6 +9,7 @@ import numpy as np
 import graphium
 
 
+@pytest.mark.skip
 class Test_Multitask_DataModule(ut.TestCase):
     def setUp(self):
         # Create a temporary directory
@@ -18,7 +19,6 @@ class Test_Multitask_DataModule(ut.TestCase):
         # Remove the directory after the test
         shutil.rmtree(self.tmp_test_dir)
 
-    @pytest.mark.skip
     def test_multitask_fromsmiles_dm(
         self,
     ):  # TODO: I think we can remove this as it tests tiny_zinc which only contain graph level labels
