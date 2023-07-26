@@ -131,7 +131,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["graph_logp"].shape == (16, 1)
             assert batch["labels"]["graph_score"].shape == (16, 1)
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_multitask_fromsmiles_from_config(self):
         config = graphium.load_config(name="zinc_default_multitask_pyg")
 
