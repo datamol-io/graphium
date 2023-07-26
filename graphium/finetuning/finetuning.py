@@ -18,8 +18,8 @@ class MolecularFinetuning(BaseFinetuning):
         """
         super().__init__()
 
-        cfg_finetune = cfg['trainer']['finetuning']
-        self.depth = cfg_finetune['added_layers']['depth']
+        cfg_finetune = cfg['finetuning']
+        self.depth = cfg_finetune['added_depth']
         try:
             self.depth += cfg_finetune['add_finetune_depth']
         except:

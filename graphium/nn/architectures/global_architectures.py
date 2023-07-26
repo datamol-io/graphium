@@ -1331,21 +1331,21 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
     def overwrite_with_pretrained(self, cfg, pretrained_model):
 
-        cfg_finetune = cfg['trainer']['finetuning']
-        choice = cfg_finetune['choice']
+        cfg_finetune = cfg['finetuning']
+        task_head_from_pretrained = cfg_finetune['task_head_from_pretrained']
         task = cfg_finetune['task']
-        added_depth = cfg_finetune['added_layers']['depth']
+        added_depth = cfg_finetune['added_depth']
 
         for module in ['pre_nn', 'pre_nn_edges', 'gnn', 'graph_output_nn', 'task_heads']:
 
-            if module == cfg_finetune['module']:
+            if module == cfg_finetune['module_from_pretrained']:
                 break
 
             self.overwrite_complete_module(module, pretrained_model)
 
-        self.overwrite_partial_module(module, task, choice, added_depth, pretrained_model)       
+        self.overwrite_partial_module(module, task, task_head_from_pretrained, added_depth, pretrained_model)       
 
-    def overwrite_partial_module(self, module, task, choice, added_depth, pretrained_model):
+    def overwrite_partial_module(self, module, task, task_head_from_pretrained, added_depth, pretrained_model):
         """Completely overwrite the specified module
         """
         if module == 'gnn':
@@ -1358,7 +1358,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
             assert shared_depth >= 0
             if shared_depth > 0:
-                self.task_heads.task_heads[task].layers = pretrained_model.task_heads.task_heads[choice].layers[:shared_depth] + self.task_heads.task_heads[task].layers[shared_depth:]
+                self.task_heads.task_heads[task].layers = pretrained_model.task_heads.task_heads[task_head_from_pretrained].layers[:shared_depth] + self.task_heads.task_heads[task].layers[shared_depth:]
 
         elif module in ['pre_nn', 'pre_nn_edges']:
             raise NotImplementedError(f"It is unlikely that we will want to finetune from pre-NNs")

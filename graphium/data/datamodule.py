@@ -1961,8 +1961,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
         for task in self.task_specific_args.keys():
-            if "epoch_sampling_fraction" in args[task].keys():
-                args[task].pop("epoch_sampling_fraction")
+            try:
+                if "epoch_sampling_fraction" in args[task].keys():
+                    args[task].pop("epoch_sampling_fraction")
+            except:
+                pass
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
             "task_specific_args": args,
