@@ -10,13 +10,13 @@ import graphium
 
 
 class Test_Multitask_DataModule(ut.TestCase):
-    # def setUp(self):
-    #     # Create a temporary directory
-    #     self.tmp_test_dir = tempfile.mkdtemp()
+    def setUp(self):
+        # Create a temporary directory
+        self.tmp_test_dir = tempfile.mkdtemp()
 
-    # def tearDown(self):
-    #     # Remove the directory after the test
-    #     shutil.rmtree(self.tmp_test_dir)
+    def tearDown(self):
+        # Remove the directory after the test
+        shutil.rmtree(self.tmp_test_dir)
 
     def test_multitask_fromsmiles_dm(
         self,
