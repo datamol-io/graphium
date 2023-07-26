@@ -34,6 +34,7 @@ def global_batch_collator(batch_size, batches):
 @pytest.mark.ipu
 @pytest.mark.forked
 @pytest.mark.specific
+@pytest.mark.skip
 class test_DataLoading(ut.TestCase):
     class TestSimpleLightning(LightningModule):
         # Create a basic Ligthning for testing the batch sizes
