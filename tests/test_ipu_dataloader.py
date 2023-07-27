@@ -119,7 +119,7 @@ class test_DataLoading(ut.TestCase):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             # with patch('accelerator._IPU_AVAILABLE', return_value=True):
             # if True:
-            with patch('lightning_graphcore.accelerator.IPUAccelerator.is_available', return_value=True):
+            with patch("lightning_graphcore.accelerator.IPUAccelerator.is_available", return_value=True):
                 # assert pop_val() is True
 
                 # Run this test only if poptorch is available
@@ -134,6 +134,7 @@ class test_DataLoading(ut.TestCase):
                 # #     return
 
                 from lightning_graphcore import IPUStrategy
+
                 # pass
 
                 #:wraise Exception(poptorch.)
@@ -141,8 +142,7 @@ class test_DataLoading(ut.TestCase):
                 # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
                 # with patch('poptorch.ipuHardwareIsAvailable', return_value=True):
                 # with patch('lightning_graphcore.accelerator._IPU_AVAILABLE', new=True):
-                
-                
+
                 # Initialize constants
                 gradient_accumulation = 2
                 device_iterations = 3
@@ -164,8 +164,12 @@ class test_DataLoading(ut.TestCase):
                 data_size = num_batch * batch_size
                 dataset = self.TestDataset(
                     labels=np.random.rand(data_size).astype(np.float32),
-                    node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
-                    edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
+                    node_features=[
+                        np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)
+                    ],
+                    edge_features=[
+                        np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)
+                    ],
                 )
 
                 # Initialize the dataloader
@@ -198,7 +202,6 @@ class test_DataLoading(ut.TestCase):
                     devices=1,
                 )
                 trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
-                
 
     @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
