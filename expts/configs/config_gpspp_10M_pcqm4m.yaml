@@ -92,7 +92,7 @@ datamodule:
     # 'num_chiral_centers (not included yet)']
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      conformer_property_list: [positions_3d] # 3D_bias
+      conformer_property_list: [positions_3d]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
@@ -175,7 +175,7 @@ architecture:
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-      gaussian_pos: # 3D_bias
+      gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
         output_keys: ["feat", "nodepair_gaussian_bias_3d"]
@@ -209,7 +209,7 @@ architecture:
         out_dim_edges: 128
       attn_type: "full-attention" # "full-attention", "none"
       precision: &precision 16-true
-      biased_attention_key: "nodepair_gaussian_bias_3d" # 3D_bias
+      biased_attention_key: "nodepair_gaussian_bias_3d"
       attn_kwargs:
         num_heads: 32
       droppath_rate_attn: 0.0

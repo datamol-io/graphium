@@ -1,8 +1,8 @@
 # @package _global_
 
-# MPNN model with the PCQMv2 dataset.
+# GPS++ model with the PCQMv2 dataset.
 constants:
-  name: pcqm4mv2_mpnn_4layer
+  name: pcqm4mv2_gpspp_4layer
   entity: "multitask-gnn"
   seed: 42
   max_epochs: 100
@@ -10,4 +10,4 @@ constants:
 
 trainer:
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQ4Mv2/mpnn/
+    dirpath: models_checkpoints/PCMQ4Mv2/gpspp/

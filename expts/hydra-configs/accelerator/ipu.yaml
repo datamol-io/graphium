@@ -7,3 +7,10 @@ ipu_config:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
+
+ipu_inference_config:
+    # set device iteration and replication factor to 1 during inference
+    # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
