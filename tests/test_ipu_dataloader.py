@@ -119,85 +119,86 @@ class test_DataLoading(ut.TestCase):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             # with patch('accelerator._IPU_AVAILABLE', return_value=True):
             # if True:
-            # with patch('lightning_graphcore.accelerator.poptorch.ipuHardwareIsAvailable', new=True):
-            # assert pop_val() is True
+            with patch('lightning_graphcore.accelerator.IPUAccelerator.is_available', new=True):
+                # assert pop_val() is True
 
-            # Run this test only if poptorch is available
-            # try:
-            import poptorch
+                # Run this test only if poptorch is available
+                # try:
+                import poptorch
 
-            # #poptorch.ipuHardwareIsAvailable = lambda : True
-            assert poptorch.ipuHardwareIsAvailable()
-            # assert pop_val
-            # # except Exception as e:
-            # #     warn(f"Skipping this test because poptorch is not available.\n{e}")
-            # #     return
+                # #poptorch.ipuHardwareIsAvailable = lambda : True
+                assert poptorch.ipuHardwareIsAvailable()
+                # assert pop_val
+                # # except Exception as e:
+                # #     warn(f"Skipping this test because poptorch is not available.\n{e}")
+                # #     return
 
-            """
-            from lightning_graphcore import IPUStrategy
+                from lightning_graphcore import IPUStrategy
+                # pass
 
-            #:wraise Exception(poptorch.)
-            # We patch the is_available flag to say there is hardware available for lightning
-            # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
-            # with patch('poptorch.ipuHardwareIsAvailable', return_value=True):
-            # with patch('lightning_graphcore.accelerator._IPU_AVAILABLE', new=True):
+                #:wraise Exception(poptorch.)
+                # We patch the is_available flag to say there is hardware available for lightning
+                # Then we use the IPUModel to run the tests as if we have IPU hardware present for poptorch
+                # with patch('poptorch.ipuHardwareIsAvailable', return_value=True):
+                # with patch('lightning_graphcore.accelerator._IPU_AVAILABLE', new=True):
+                
+                
+                # Initialize constants
+                gradient_accumulation = 2
+                device_iterations = 3
+                batch_size = 5
+                num_replicate = 7
+                node_feat_size = 11
+                edge_feat_size = 13
 
-            # Initialize constants
-            gradient_accumulation = 2
-            device_iterations = 3
-            batch_size = 5
-            num_replicate = 7
-            node_feat_size = 11
-            edge_feat_size = 13
+                # Initialize the batch info and poptorch options
+                opts = poptorch.Options()
+                opts.useIpuModel(True)
+                opts.deviceIterations(device_iterations)
+                training_opts = deepcopy(opts)
+                training_opts.Training.gradientAccumulation(gradient_accumulation)
+                inference_opts = deepcopy(opts)
 
-            # Initialize the batch info and poptorch options
-            opts = poptorch.Options()
-            opts.useIpuModel(True)
-            opts.deviceIterations(device_iterations)
-            training_opts = deepcopy(opts)
-            training_opts.Training.gradientAccumulation(gradient_accumulation)
-            inference_opts = deepcopy(opts)
+                # Initialize the dataset
+                num_batch = device_iterations * gradient_accumulation * num_replicate
+                data_size = num_batch * batch_size
+                dataset = self.TestDataset(
+                    labels=np.random.rand(data_size).astype(np.float32),
+                    node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
+                    edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
+                )
 
-            # Initialize the dataset
-            num_batch = device_iterations * gradient_accumulation * num_replicate
-            data_size = num_batch * batch_size
-            dataset = self.TestDataset(
-                labels=np.random.rand(data_size).astype(np.float32),
-                node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
-                edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
-            )
+                # Initialize the dataloader
+                train_dataloader = poptorch.DataLoader(
+                    options=training_opts,
+                    dataset=deepcopy(dataset),
+                    batch_size=batch_size,
+                    collate_fn=partial(global_batch_collator, batch_size),
+                )
 
-            # Initialize the dataloader
-            train_dataloader = poptorch.DataLoader(
-                options=training_opts,
-                dataset=deepcopy(dataset),
-                batch_size=batch_size,
-                collate_fn=partial(global_batch_collator, batch_size),
-            )
+                val_dataloader = poptorch.DataLoader(
+                    options=inference_opts,
+                    dataset=deepcopy(dataset),
+                    batch_size=batch_size,
+                    collate_fn=partial(global_batch_collator, batch_size),
+                )
 
-            val_dataloader = poptorch.DataLoader(
-                options=inference_opts,
-                dataset=deepcopy(dataset),
-                batch_size=batch_size,
-                collate_fn=partial(global_batch_collator, batch_size),
-            )
-
-            # Build the model, and run it on "IPU"
-            model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
-            strategy = IPUStrategy(
-                training_opts=training_opts, inference_opts=inference_opts, autoreport=True
-            )
-            trainer = Trainer(
-                logger=True,
-                enable_checkpointing=False,
-                max_epochs=2,
-                strategy=strategy,
-                num_sanity_val_steps=0,
-                accelerator="ipu",
-                devices=1,
-            )
-            trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
-            """
+                # Build the model, and run it on "IPU"
+                model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
+                strategy = IPUStrategy(
+                    training_opts=training_opts, inference_opts=inference_opts, autoreport=True
+                )
+                trainer = Trainer(
+                    logger=True,
+                    enable_checkpointing=False,
+                    max_epochs=2,
+                    strategy=strategy,
+                    num_sanity_val_steps=0,
+                    accelerator="ipu",
+                    devices=1,
+                )
+                trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+                
 
     @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
