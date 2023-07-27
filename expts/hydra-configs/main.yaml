@@ -1,7 +1,7 @@
 defaults:
   - accelerator: ipu
-  - dataset: toymix
-  - model: gcn
+  - dataset: pcqm4m
+  - model: mpnn
 
   # Specializations
   - experiment: ${dataset}_${model}
