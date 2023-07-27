@@ -1,7 +1,7 @@
 defaults:
   - accelerator: ipu
   - dataset: pcqm4m
-  - model: gpspp
+  - model: mpnn
 
   # Specializations
   - experiment: ${dataset}_${model}
