@@ -119,7 +119,7 @@ class test_DataLoading(ut.TestCase):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             # with patch('accelerator._IPU_AVAILABLE', return_value=True):
             # if True:
-            with patch('lightning_graphcore.accelerator.IPUAccelerator.is_available', new=True):
+            with patch('lightning_graphcore.accelerator.IPUAccelerator.is_available', return_value=True):
                 # assert pop_val() is True
 
                 # Run this test only if poptorch is available
