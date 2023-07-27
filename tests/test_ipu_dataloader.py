@@ -133,6 +133,9 @@ class test_DataLoading(ut.TestCase):
                 # #     warn(f"Skipping this test because poptorch is not available.\n{e}")
                 # #     return
 
+                from lightning_graphcore.accelerator import _IPU_AVAILABLE
+
+                assert _IPU_AVAILABLE is True
                 from lightning_graphcore import IPUStrategy
 
                 # pass
