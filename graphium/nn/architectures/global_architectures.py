@@ -1,6 +1,7 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
+from loguru import logger
 
 # Misc imports
 import inspect
@@ -271,6 +272,28 @@ class FeedForwardNN(nn.Module, MupMixin):
 
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
+
+    def drop_layers(self, depth: int) -> None:
+        r"""
+        Remove the last layers of the model part.
+        """
+
+        assert depth >= 0
+        assert depth <= len(self.layers)
+
+        if depth > 0:
+            self.layers = self.layers[:-depth]
+
+    def add_layers(self, layers: int) -> None:
+        r"""
+        Add layers to the end of the model.
+        """
+        assert isinstance(layers, nn.ModuleList)
+        assert len(layers) > 0
+        if len(self.layers) > 0:
+            assert layers[0].in_dim == self.layers[-1].out_dim
+
+        self.layers.extend(layers)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
@@ -1277,6 +1300,95 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                     layer.max_num_edges_per_graph = max_edges
 
         self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+
+    def modify_architecture(self, cfg):
+
+        cfg_finetune = cfg['trainer']['finetuning']
+        choice = cfg_finetune['choice']
+        task = cfg_finetune['task']
+
+        if cfg_finetune['module'] == 'task_heads':
+            self.task_heads.task_heads = nn.ModuleDict({task: self.task_heads.task_heads[choice]})
+
+            self.task_heads.task_heads[task].drop_layers(cfg_finetune['depth'])
+
+            in_dim = self.task_heads.task_heads[task].layers[-1].out_dim
+            added_layers = FeedForwardNN(in_dim, **cfg_finetune['added_layers']).layers
+
+            self.task_heads.task_heads[task].add_layers(added_layers)
+
+            self.task_heads.task_heads_kwargs = {task: self.task_heads.task_heads_kwargs[choice]}
+            self.task_heads.task_heads_kwargs[task].update(
+                {
+                    'out_dim': cfg_finetune['added_layers']['out_dim'],
+                    'depth': self.task_heads.task_heads_kwargs[task]['depth'] + cfg_finetune['added_layers']['depth'],
+                    'name': 'NN-' + task
+                }
+            )
+
+        else:
+            raise NotImplementedError()
+
+    def overwrite_with_pretrained(self, cfg, pretrained_model):
+
+        cfg_finetune = cfg['finetuning']
+        task_head_from_pretrained = cfg_finetune['task_head_from_pretrained']
+        task = cfg_finetune['task']
+        added_depth = cfg_finetune['added_depth']
+
+        for module in ['pre_nn', 'pre_nn_edges', 'gnn', 'graph_output_nn', 'task_heads']:
+
+            if module == cfg_finetune['module_from_pretrained']:
+                break
+
+            self.overwrite_complete_module(module, pretrained_model)
+
+        self.overwrite_partial_module(module, task, task_head_from_pretrained, added_depth, pretrained_model)       
+
+    def overwrite_partial_module(self, module, task, task_head_from_pretrained, added_depth, pretrained_model):
+        """Completely overwrite the specified module
+        """
+        if module == 'gnn':
+            shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
+            assert shared_depth >= 0
+            if shared_depth > 0:
+                self.gnn.layers[:shared_depth] = pretrained_model.gnn.layers[:shared_depth]
+
+        if module == "task_heads":
+            shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
+            assert shared_depth >= 0
+            if shared_depth > 0:
+                self.task_heads.task_heads[task].layers = pretrained_model.task_heads.task_heads[task_head_from_pretrained].layers[:shared_depth] + self.task_heads.task_heads[task].layers[shared_depth:]
+
+        elif module in ['pre_nn', 'pre_nn_edges']:
+            raise NotImplementedError(f"It is unlikely that we will want to finetune from pre-NNs")
+        
+        else:
+            raise NotImplementedError()
+
+    def overwrite_complete_module(self, module, pretrained_model):
+        """Completely overwrite the specified module
+        """
+        if module == "pre_nn":
+            try:
+                self.pre_nn.layers = pretrained_model.pre_nn.layers
+            except:
+                logger.warning(f"Pretrained ({pretrained_model.pre_nn}) and/or finetune model ({self.pre_nn}) do not use a pre-NN.")
+                pass
+        
+        elif module == "pre_nn_edges":
+            try:
+                self.pre_nn_edges.layers = pretrained_model.pre_nn_edges.layers
+            except:
+                logger.warning(f"Pretrained ({pretrained_model.pre_nn_edges}) and/or finetune model ({self.pre_nn_edges}) do not use a pre-NN-edges.")
+                pass
+        
+        elif module == "gnn":
+            self.gnn.layers = pretrained_model.gnn.layers
+        
+        elif module == "graph_output_nn":
+            for task_level in self.task_heads.graph_output_nn.keys():
+                self.task_heads.graph_output_nn[task_level] = pretrained_model.task_heads.graph_output_nn[task_level]
 
     def __repr__(self) -> str:
         r"""
