@@ -3,6 +3,7 @@ constants:
   name: &name neurips2023_large_data_gcn_mcf7
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  entity: research
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -16,7 +17,7 @@ accelerator:
         ipu_dataloader_inference_opts:
           mode: async
           max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 100
+          max_num_edges_per_graph: 130
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 2
@@ -25,7 +26,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 32
+        precision: 16-true
         accumulate_grad_batches: 8
 
   ipu_config:
@@ -36,6 +37,13 @@ accelerator:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
@@ -55,14 +63,14 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       l1000_mcf7:
         df: null
-        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        df_path: expts/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        splits_path: expts/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -104,7 +112,7 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
+    #    featurization_backend: "loky"
 
 
 architecture:
@@ -211,7 +219,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 20
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
