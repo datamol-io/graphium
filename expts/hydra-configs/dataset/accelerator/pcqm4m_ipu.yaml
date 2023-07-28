@@ -23,3 +23,4 @@ trainer:
   trainer:
     precision: 16-true
     accumulate_grad_batches: 4
+    
