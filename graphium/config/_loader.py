@@ -24,6 +24,7 @@ from graphium.utils.mup import set_base_shapes
 from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
 from graphium.trainer.metrics import MetricWrapper
 from graphium.nn.architectures import FullGraphMultiTaskNetwork
+from graphium.finetuning import FullGraphFinetuningNetwork
 from graphium.nn.utils import MupMixin
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import DATAMODULE_DICT
@@ -198,6 +199,8 @@ def load_architecture(
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
+    elif model_type == "fullgraphfinetuningnetwork":
+        model_class = FullGraphFinetuningNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
@@ -257,8 +260,15 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         graph_output_nn_kwargs=graph_output_nn_kwargs,
-        task_heads_kwargs=task_heads_kwargs,
+        task_heads_kwargs=task_heads_kwargs
     )
+
+    if model_class is FullGraphFinetuningNetwork and "finetuning_head" in cfg_arch.keys():
+        finetuning_head_kwargs = dict(cfg_arch["finetuning_head"]) if cfg_arch["finetuning_head"] is not None else None
+
+        model_kwargs.update(
+            dict(finetuning_head_kwargs=finetuning_head_kwargs)
+        )
 
     return model_class, model_kwargs
 

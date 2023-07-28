@@ -75,8 +75,10 @@ def main(cfg: DictConfig) -> None:
     # Changes for finetuning
 
     # Load pretrained & replace in predictor
-    pretrained_model = predictor.load_pretrained_models('dummy-pretrained-model').model     # make pretrained model part of config
-    
+    pretrained_model = predictor.load_pretrained_models(
+        "dummy-pretrained-model"
+    ).model  # make pretrained model part of config  # use latest or best available checkpoint
+
     # Adapt pretrained model to new task
     # We need to overwrite shared weights with pretrained
 
@@ -84,22 +86,20 @@ def main(cfg: DictConfig) -> None:
 
     # (Un)freezing will be handled by finetuning callback added to trainer
 
-    predictor.model = set_base_shapes(predictor.model, base=None)       # how do we deal with muP for finetuning; it
+    predictor.model = set_base_shapes(predictor.model, base=None)  # how do we deal with muP for finetuning
     ########################
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name, accelerator_type, date_time_suffix)
-    
+
     ########################
     # Changes for finetuning
 
     # Add the pl.BaseFinetuning callback to trainer
-    
-    trainer.callbacks.append(
-        MolecularFinetuning(cfg)
-    )
+
+    trainer.callbacks.append(MolecularFinetuning(cfg))
     ########################
 
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)

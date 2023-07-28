@@ -1,7 +1,7 @@
 # @package _global_
 
 architecture:
-  model_type: FullGraphMultiTaskNetwork
+  model_type: FullGraphFinetuningNetwork # FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:
     out_dim: 64
@@ -105,6 +105,20 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
+      ###########################
+      last_layer_is_readout: false
+      ###########################
+
+  finetuning_head: # none
+    task: lipophilicity_astrazeneca
+    previous_module: task_heads
+    incoming_level: graph
+    model_type: mlp
+    in_dim: 8
+    out_dim: 1
+    hidden_dims: 8
+    depth: 2
+    last_layer_is_readout: true
 
 predictor:
 ### Changes for finetuning ##############################
