@@ -2,11 +2,11 @@ from copy import deepcopy
 
 
 def modify_cfg_for_finetuning(cfg):
-    cfg_finetune = deepcopy(cfg["finetuning"])
+    cfg_finetune = cfg["finetuning"]
     module_from_pretrained = cfg_finetune["module_from_pretrained"]
     task = cfg_finetune["task"]
     level = cfg_finetune["level"]
-    task_head_from_pretrained = cfg_finetune.pop("task_head_from_pretrained", None)
+    task_head_from_pretrained = cfg_finetune.get("task_head_from_pretrained", None)
 
     # Find part of config of module to finetune from
     if module_from_pretrained == "gnn":
@@ -23,7 +23,7 @@ def modify_cfg_for_finetuning(cfg):
     # Modify config according to desired finetuning architecture
     upd_kwargs = {
         "out_dim": cfg_finetune["new_out_dim"],
-        "depth": new_module_kwargs["depth"] + cfg_finetune["added_depth"] - cfg_finetune["drop_depth"],
+        "depth": new_module_kwargs["depth"] + cfg_finetune.get("added_depth", 0) - cfg_finetune.get("drop_depth", 0),
     }
 
     # Update config
