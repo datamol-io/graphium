@@ -1,12 +1,12 @@
 # Testing the mpnn only model with the PCQMv2 dataset on IPU.
+
+defaults:
+ - base_config: large
+
 constants:
-  name: &name neurips2023_large_data_mpnn
-  config_override: "expts/neurips2023_configs/config_large_gcn.yaml"
+  name: neurips2023_large_data_mpnn
 
 architecture:
-  model_type: FullGraphMultiTaskNetwork
-  mup_base_path: null
-
   pre_nn_edges:   # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 128
@@ -14,32 +14,14 @@ architecture:
     activation: relu
     last_activation: none
     dropout: 0.18
-    normalization: layer_norm
-    last_normalization: layer_norm
+    normalization: ${architecture.pre_nn.normalization}
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: &gnn_dim 64
     hidden_dims: *gnn_dim
-    layer_type: 'pyg:mpnnplus' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
-      node_residual: false
       mpnn_type: 'pyg:mpnnplus'
-      in_dim_edges: 32
       out_dim_edges: 32
-
-  graph_output_nn:
-    graph:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-    node:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-
-trainer:
-  logger:
-    name: *name
-    project: *name
-  model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large-mpnn/
-    filename: *name
