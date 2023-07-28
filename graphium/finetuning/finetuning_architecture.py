@@ -2,6 +2,8 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, 
 
 from copy import deepcopy
 
+from loguru import logger
+
 import torch
 import torch.nn as nn
 
@@ -9,19 +11,21 @@ from torch import Tensor
 from torch_geometric.data import Batch
 
 from graphium.data.utils import get_keys
+from graphium.nn.base_graph_layer import BaseGraphStructure
 from graphium.nn.architectures.encoder_manager import EncoderManager
-from graphium.nn.architectures import FullGraphMultiTaskNetwork, FeedForwardNN, FeedForwardPyg, TaskHeads
+from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, TaskHeads
 from graphium.nn.architectures.global_architectures import FeedForwardGraph
 from graphium.trainer.predictor_options import ModelOptions
 from graphium.nn.utils import MupMixin
 
 FINETUNING_HEAD_DICT = {
     "mlp": FeedForwardNN,
-    "gnn": FeedForwardPyg
+    "gnn": FeedForwardPyg,
+    "task_head": TaskHeads
 }
 
 
-class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
+class FullGraphFinetuningNetwork(nn.Module, MupMixin):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
@@ -31,7 +35,7 @@ class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
         task_heads_kwargs: Optional[Dict[str, Any]] = None,
         graph_output_nn_kwargs: Optional[Dict[str, Any]] = None,
         finetuning_head_kwargs: Optional[Dict[str, Any]] = None,
-        accelerator_kwargs: Optional[Dict[str, Any]] = None,
+        # accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
         name: str = "FullFinetuningGNN",
@@ -99,19 +103,21 @@ class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
                 Name attributed to the current network, for display and printing
                 purposes.
         """
-
-        super().__init__(
-            gnn_kwargs,
-            pre_nn_kwargs,
-            pre_nn_edges_kwargs,
-            pe_encoders_kwargs,
-            task_heads_kwargs,
-            graph_output_nn_kwargs,
-            accelerator_kwargs,
-            num_inference_to_average,
-            last_layer_is_readout,
-            name
-        )
+        
+        super().__init__()
+        
+        # super().__init__(
+        #     gnn_kwargs,
+        #     pre_nn_kwargs,
+        #     pre_nn_edges_kwargs,
+        #     pe_encoders_kwargs,
+        #     task_heads_kwargs,
+        #     graph_output_nn_kwargs,
+        #     accelerator_kwargs,
+        #     num_inference_to_average,
+        #     last_layer_is_readout,
+        #     name
+        # )
 
         self.name = name
         self.num_inference_to_average = num_inference_to_average
@@ -165,14 +171,6 @@ class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
 
         if finetuning_head_kwargs is not None:
             self.finetuning_head = FinetuningHead(finetuning_head_kwargs)
-            # model_type = finetuning_head_kwargs.pop("model_type", "mlp")
-            # finetuning_model = FINETUNING_HEAD_DICT[model_type]
-            # self.finetuning_head = finetuning_model(**finetuning_head_kwargs)
-
-        if accelerator_kwargs is not None:
-            accelerator = accelerator_kwargs["_accelerator"]
-            if accelerator == "ipu":
-                self._apply_ipu_options(accelerator_kwargs)
 
     def forward(self, g: Batch) -> Tensor:
         r"""
@@ -239,11 +237,7 @@ class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
         if self.task_heads is not None:
             g = self.task_heads.forward(g)
 
-        # if self.task_heads is not None and self.finetuning_head is not None:
-        #     task, g = list(g.items())[0]
-
         if self.finetuning_head is not None:
-            # g = {task: self.finetuning_head.forward(g)}
             g = self.finetuning_head.forward(g)
 
         return g
@@ -322,6 +316,144 @@ class FullGraphFinetuningNetwork(FullGraphMultiTaskNetwork):
             )
 
         return kwargs
+
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
+        """
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
+
+        Parameters:
+            max_nodes: Maximum number of nodes in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+
+            max_edges: Maximum number of edges in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+        """
+        self.max_num_nodes_per_graph = max_nodes
+        self.max_num_edges_per_graph = max_edges
+        if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
+            for encoder in self.encoder_manager.pe_encoders.values():
+                encoder.max_num_nodes_per_graph = max_nodes
+                encoder.max_num_edges_per_graph = max_edges
+        if self.gnn is not None:
+            for layer in self.gnn.layers:
+                if isinstance(layer, BaseGraphStructure):
+                    layer.max_num_nodes_per_graph = max_nodes
+                    layer.max_num_edges_per_graph = max_edges
+
+        self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+
+    def overwrite_with_pretrained(self, cfg, pretrained_model):
+        cfg_finetune = cfg["finetuning"]
+        task_head_from_pretrained = cfg_finetune["task_head_from_pretrained"]
+        task = cfg_finetune["task"]
+        added_depth = cfg_finetune["added_depth"]
+
+        for module in ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]:
+            if module == cfg_finetune["module_from_pretrained"]:
+                break
+
+            self.overwrite_complete_module(module, pretrained_model)
+
+        self.overwrite_partial_module(module, task, task_head_from_pretrained, added_depth, pretrained_model)
+
+    def overwrite_partial_module(
+        self, module, task, task_head_from_pretrained, added_depth, pretrained_model
+    ):
+        """Completely overwrite the specified module"""
+        if module == "gnn":
+            shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
+            assert shared_depth >= 0
+            if shared_depth > 0:
+                self.gnn.layers[:shared_depth] = pretrained_model.gnn.layers[:shared_depth]
+
+        elif module == "graph_output_nn":
+            for task_level in self.task_heads.graph_output_nn.keys():
+                shared_depth = len(self.task_heads.graph_output_nn[task_level].graph_output_nn.layers) - added_depth
+                assert shared_depth >= 0
+                if shared_depth > 0:
+                    self.task_heads.graph_output_nn[task_level].graph_output_nn.layers = (
+                        pretrained_model.task_heads.graph_output_nn[task_level].graph_output_nn.layers[:shared_depth]
+                        + self.task_heads.graph_output_nn[task_level].graph_output_nn.layers[shared_depth:]
+                    )
+
+        elif module == "task_heads":
+            shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
+            assert shared_depth >= 0
+            if shared_depth > 0:
+                self.task_heads.task_heads[task].layers = (
+                    pretrained_model.task_heads.task_heads[task_head_from_pretrained].layers[:shared_depth]
+                    + self.task_heads.task_heads[task].layers[shared_depth:]
+                )
+
+        elif module in ["pre_nn", "pre_nn_edges"]:
+            raise NotImplementedError(f"Finetune from (edge) pre-NNs is not supported")
+
+        else:
+            raise NotImplementedError(f"This is an unknown module type")
+
+    def overwrite_complete_module(self, module, pretrained_model):
+        """Completely overwrite the specified module"""
+        if module == "pre_nn":
+            try:
+                self.pre_nn.layers = pretrained_model.pre_nn.layers
+            except:
+                logger.warning(
+                    f"Pretrained ({pretrained_model.pre_nn}) and/or finetune model ({self.pre_nn}) do not use a pre-NN."
+                )
+
+        elif module == "pre_nn_edges":
+            try:
+                self.pre_nn_edges.layers = pretrained_model.pre_nn_edges.layers
+            except:
+                logger.warning(
+                    f"Pretrained ({pretrained_model.pre_nn_edges}) and/or finetune model ({self.pre_nn_edges}) do not use a pre-NN-edges."
+                )
+
+        elif module == "gnn":
+            self.gnn.layers = pretrained_model.gnn.layers
+
+        elif module == "graph_output_nn":
+            for task_level in self.task_heads.graph_output_nn.keys():
+                self.task_heads.graph_output_nn[task_level] = pretrained_model.task_heads.graph_output_nn[
+                    task_level
+                ]
+
+        else:
+            raise NotImplementedError(f"This is an unknown module type")
+
+    @property
+    def in_dim(self) -> int:
+        r"""
+        Returns the input dimension of the network
+        """
+        if self.pre_nn is not None:
+            return self.pre_nn.in_dim
+        else:
+            return self.gnn.in_dim
+
+    @property
+    def out_dim(self) -> int:
+        r"""
+        Returns the output dimension of the network
+        """
+        return self.gnn.out_dim
+
+    @property
+    def out_dim_edges(self) -> int:
+        r"""
+        Returns the output dimension of the edges
+        of the network.
+        """
+        if self.gnn.full_dims_edges is not None:
+            return self.gnn.full_dims_edges[-1]
+        return self.gnn.in_dim_edges
+
+    @property
+    def in_dim_edges(self) -> int:
+        r"""
+        Returns the input edge dimension of the network
+        """
+        return self.gnn.in_dim_edges
     
 
 class FinetuningHead(nn.Module, MupMixin):
