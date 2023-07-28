@@ -14,4 +14,3 @@ architecture:
       attn_type: "none" # "full-attention", "none"
       # biased_attention: false
       attn_kwargs: null
-      

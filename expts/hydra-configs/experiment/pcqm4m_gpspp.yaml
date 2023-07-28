@@ -11,4 +11,3 @@ constants:
 trainer:
   model_checkpoint:
     dirpath: models_checkpoints/PCMQ4Mv2/gpspp/
-    

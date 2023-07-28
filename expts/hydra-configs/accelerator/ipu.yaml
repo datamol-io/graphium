@@ -14,4 +14,3 @@ ipu_inference_config:
     - deviceIterations(1)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
-    
