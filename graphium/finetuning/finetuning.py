@@ -38,8 +38,6 @@ class GraphFinetuning(BaseFinetuning):
 
         self.freeze_partial_module(pl_module, module)
 
-        self.freeze(modules=pl_module, train_bn=self.train_bn)
-
 
     def finetune_function(self, pl_module: pl.LightningModule, epoch: int, optimizer: Optimizer):
 

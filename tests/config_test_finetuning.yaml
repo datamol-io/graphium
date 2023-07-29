@@ -1,0 +1,302 @@
+# Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
+constants:
+  name: &name test_ipu #qm9_full
+  seed: &seed 42
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+
+accelerator:
+  type: ipu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 6
+        batch_size_inference: 6
+    trainer:
+      trainer:
+        precision: 16
+        accumulate_grad_batches: 4
+
+  ipu_config:
+    - deviceIterations(2)
+
+datamodule:
+  module_type: "MultitaskFromSmilesDataModule"
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      homo:
+        df: null
+        df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-2k-lumo-alpha.csv
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap", "lumo"]
+        split_val: 0.2
+        split_test: 0.2
+        seed: *seed
+        splits_path: null                 # This may not always be provided
+        sample_size: null                 # This may not always be provided
+        idx_col: null                     # This may not always be provided
+        weights_col: null                 # This may not always be provided
+        weights_type: null                # This may not always be provided
+        task_level: graph
+      alpha:
+        df: null
+        df_path: *df_path
+        smiles_col: "cxsmiles"
+        label_cols: ["alpha"]
+        split_val: 0.2
+        split_test: 0.2
+        seed: *seed
+        splits_path: null                 # This may not always be provided
+        sample_size: null                 # This may not always be provided
+        idx_col: null                     # This may not always be provided
+        weights_col: null                 # This may not always be provided
+        weights_type: null                # This may not always be provided
+        task_level: graph
+    # Featurization
+    prepare_dict_or_graph: pyg:graph
+    featurization_n_jobs: 0
+    featurization_progress: True
+    featurization:
+      atom_property_list_onehot: [atomic-number, valence]
+      atom_property_list_float: [mass, electronegativity, in-ring]
+      edge_property_list: [bond-type-onehot, stereo, in-ring]
+      conformer_property_list: [positions_3d]
+      add_self_loop: False
+      explicit_H: False
+      use_bonds_weights: False
+      pos_encoding_as_features: # encoder dropout 0.18
+        pos_types:
+          node_laplacian_eigvec:
+            pos_type: laplacian_eigvec
+            pos_level: node
+            num_pos: 5
+            normalization: "none"
+            disconnected_comp: True
+          node_laplacian_eigval:
+            pos_type: laplacian_eigval
+            pos_level: node
+            num_pos: 5
+            normalization: "none"
+            disconnected_comp: True
+          rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: node
+            ksteps: [4, 8]
+          edge_rw_transition_probs:
+            pos_type: rw_transition_probs
+            pos_level: edge
+            ksteps: [2, 4]
+          nodepair_rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: nodepair
+            ksteps: [4]
+          electrostatic:
+            pos_type: electrostatic
+            pos_level: node
+          edge_commute:
+            pos_type: commute
+            pos_level: edge
+          nodepair_graphormer:
+            pos_type: graphormer
+            pos_level: nodepair
+
+    num_workers: -1
+
+architecture:
+  model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
+
+  pre_nn:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 16
+    depth: 1
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.1
+    normalization: &normalization batch_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 16
+    depth: 1
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
+
+  pe_encoders:
+    out_dim: &pe_out_dim 16
+    edge_out_dim: &edge_pe_out_dim 8
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    max_num_nodes_per_graph: 30
+    encoders:
+      emb_la_pos:
+        encoder_type: "laplacian_pe"
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 2
+        num_layers_post: 1 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      emb_rwse:
+        encoder_type: "mlp"
+        input_keys: ["rw_return_probs"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        num_layers: 2
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_electrostatic:
+        encoder_type: "mlp"
+        input_keys: ["electrostatic"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_rwse:
+        encoder_type: "mlp"
+        input_keys: ["edge_rw_transition_probs"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_pes:
+        encoder_type: "cat_mlp"
+        input_keys: ["edge_rw_transition_probs", "edge_commute"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
+        num_heads: &num_heads 2
+        num_layers: 2
+        embed_dim: *pe_out_dim
+        use_input_keys_prefix: False
+
+  gnn:  # Set as null to avoid a post-nn network
+    out_dim: 8
+    hidden_dims: 16
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: simple
+    virtual_node: 'none'
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      mpnn_type: 'pyg:gine'
+      mpnn_kwargs: null
+        #out_dim_edges: 10
+      attn_type: "none" # "full-attention", "none"
+      attn_kwargs: null
+
+  graph_output_nn:
+    graph:
+      pooling: [sum, mean, max]
+      out_dim: 8
+      hidden_dims: 8
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+
+  task_heads:
+    homo:
+      out_dim: 2
+      hidden_dims: 8
+      depth: 1                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+      task_level: graph
+    alpha:
+      out_dim: 1
+      hidden_dims: 8
+      depth: 1                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+      task_level: graph
+    cv:
+      out_dim: 1
+      hidden_dims: 8
+      depth: 2                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+      task_level: graph
+
+#Task-specific
+predictor:
+  metrics_on_progress_bar:
+    homo: ["mae"]
+    alpha: ["mae"]
+  loss_fun:
+    homo: mse_ipu
+    alpha: mse_ipu
+  random_seed: *seed
+  optim_kwargs:
+    lr: 1.e-3
+  target_nan_mask: null
+
+# Task-specific
+metrics:
+  homo:
+    - name: mae
+      metric: mae
+      threshold_kwargs: null
+      target_nan_mask: null
+  alpha:
+    - name: mae
+      metric: mae
+      threshold_kwargs: null
+
+trainer:
+  logger:
+    save_dir: logs/QM9
+    name: *name
+  model_checkpoint:
+    dirpath: models_checkpoints/QM9/
+    filename: *name
+    save_top_k: 1
+    every_n_epochs: 1
+  trainer:
+    max_epochs: 2
+    min_epochs: 1

@@ -106,19 +106,6 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         
         super().__init__()
         
-        # super().__init__(
-        #     gnn_kwargs,
-        #     pre_nn_kwargs,
-        #     pre_nn_edges_kwargs,
-        #     pe_encoders_kwargs,
-        #     task_heads_kwargs,
-        #     graph_output_nn_kwargs,
-        #     accelerator_kwargs,
-        #     num_inference_to_average,
-        #     last_layer_is_readout,
-        #     name
-        # )
-
         self.name = name
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout

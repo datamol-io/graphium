@@ -8,7 +8,7 @@ from datetime import datetime
 from lightning.pytorch.utilities.model_summary import ModelSummary
 
 from graphium.utils.mup import set_base_shapes
-from graphium.finetuning import modify_cfg_for_finetuning, MolecularFinetuning
+from graphium.finetuning import modify_cfg_for_finetuning, GraphFinetuning
 
 # Current project imports
 import graphium
@@ -76,7 +76,7 @@ def main(cfg: DictConfig) -> None:
 
     # Load pretrained & replace in predictor
     pretrained_model = predictor.load_pretrained_models(
-        "dummy-pretrained-model"
+        cfg["finetuning"]["pretrained_model"]
     ).model  # make pretrained model part of config  # use latest or best available checkpoint
 
     # Adapt pretrained model to new task
@@ -99,7 +99,7 @@ def main(cfg: DictConfig) -> None:
 
     # Add the pl.BaseFinetuning callback to trainer
 
-    trainer.callbacks.append(MolecularFinetuning(cfg))
+    trainer.callbacks.append(GraphFinetuning(cfg))
     ########################
 
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
