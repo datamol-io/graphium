@@ -28,9 +28,7 @@ os.chdir(MAIN_DIR)
 
 
 class Test_Multitask_DataModule(ut.TestCase):
-
     def test_cfg_modification(self):
-
         cfg = graphium.load_config(name="dummy_finetuning")
         cfg = OmegaConf.to_container(cfg, resolve=True)
         # cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR)
@@ -38,7 +36,7 @@ class Test_Multitask_DataModule(ut.TestCase):
 
         cfg = modify_cfg_for_finetuning(cfg)
 
-         # Initialize the accelerator
+        # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
         # Load and initialize the dataset
@@ -58,16 +56,14 @@ class Test_Multitask_DataModule(ut.TestCase):
             cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
         )
 
-        self.assertEqual(len(predictor.model.task_heads.task_heads['lipophilicity_astrazeneca'].layers), 3)
-        self.assertEqual(predictor.model.task_heads.task_heads['lipophilicity_astrazeneca'].out_dim, 8)
+        self.assertEqual(len(predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].layers), 3)
+        self.assertEqual(predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].out_dim, 8)
         self.assertEqual(predictor.model.finetuning_head.finetuning_head.in_dim, 8)
         self.assertEqual(len(predictor.model.finetuning_head.finetuning_head.layers), 2)
         self.assertEqual(predictor.model.finetuning_head.finetuning_head.out_dim, 1)
 
         # Load pretrained & replace in predictor
-        pretrained_model = predictor.load_pretrained_models(
-            cfg["finetuning"]["pretrained_model"]
-        ).model.cpu()
+        pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model.cpu()
 
         predictor.model.overwrite_with_pretrained(cfg, pretrained_model)
 
@@ -79,9 +75,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert pretrained == overwritten
 
         # Task head has only been partially overwritten
-        pretrained_layers = pretrained_model.task_heads.task_heads['zinc'].layers
-        overwritten_layers = predictor.model.task_heads.task_heads['lipophilicity_astrazeneca'].layers
-        
+        pretrained_layers = pretrained_model.task_heads.task_heads["zinc"].layers
+        overwritten_layers = predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].layers
+
         for idx, (pretrained, overwritten) in enumerate(zip(pretrained_layers, overwritten_layers)):
             if idx < 1:
                 assert torch.equal(pretrained.linear.weight, overwritten.linear.weight)
@@ -89,8 +85,8 @@ class Test_Multitask_DataModule(ut.TestCase):
             else:
                 assert not torch.equal(pretrained.linear.weight, overwritten.linear.weight)
                 assert not torch.equal(pretrained.linear.bias, overwritten.linear.bias)
-            
-            if idx+1 == min(len(pretrained_layers), len(overwritten_layers)):
+
+            if idx + 1 == min(len(pretrained_layers), len(overwritten_layers)):
                 break
 
 

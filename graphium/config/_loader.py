@@ -260,15 +260,15 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         graph_output_nn_kwargs=graph_output_nn_kwargs,
-        task_heads_kwargs=task_heads_kwargs
+        task_heads_kwargs=task_heads_kwargs,
     )
 
     if model_class is FullGraphFinetuningNetwork and "finetuning_head" in cfg_arch.keys():
-        finetuning_head_kwargs = dict(cfg_arch["finetuning_head"]) if cfg_arch["finetuning_head"] is not None else None
-
-        model_kwargs.update(
-            dict(finetuning_head_kwargs=finetuning_head_kwargs)
+        finetuning_head_kwargs = (
+            dict(cfg_arch["finetuning_head"]) if cfg_arch["finetuning_head"] is not None else None
         )
+
+        model_kwargs.update(dict(finetuning_head_kwargs=finetuning_head_kwargs))
 
     return model_class, model_kwargs
 

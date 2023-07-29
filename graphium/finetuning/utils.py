@@ -23,7 +23,9 @@ def modify_cfg_for_finetuning(cfg):
     # Modify config according to desired finetuning architecture
     upd_kwargs = {
         "out_dim": cfg_finetune["new_out_dim"],
-        "depth": new_module_kwargs["depth"] + cfg_finetune.get("added_depth", 0) - cfg_finetune.get("drop_depth", 0),
+        "depth": new_module_kwargs["depth"]
+        + cfg_finetune.get("added_depth", 0)
+        - cfg_finetune.get("drop_depth", 0),
     }
 
     # Update config
@@ -38,7 +40,9 @@ def modify_cfg_for_finetuning(cfg):
 
     # Remove modules of pretrained model after module to finetune from
     module_list = ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]
-    cutoff_idx = module_list.index(module_from_pretrained) + 1                          # Index of module after module to finetune from
+    cutoff_idx = (
+        module_list.index(module_from_pretrained) + 1
+    )  # Index of module after module to finetune from
     for module in module_list[cutoff_idx:]:
         cfg["architecture"][module] = None
 

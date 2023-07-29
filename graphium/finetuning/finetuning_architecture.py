@@ -18,11 +18,7 @@ from graphium.nn.architectures.global_architectures import FeedForwardGraph
 from graphium.trainer.predictor_options import ModelOptions
 from graphium.nn.utils import MupMixin
 
-FINETUNING_HEAD_DICT = {
-    "mlp": FeedForwardNN,
-    "gnn": FeedForwardPyg,
-    "task_head": TaskHeads
-}
+FINETUNING_HEAD_DICT = {"mlp": FeedForwardNN, "gnn": FeedForwardPyg, "task_head": TaskHeads}
 
 
 class FullGraphFinetuningNetwork(nn.Module, MupMixin):
@@ -103,9 +99,9 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
                 Name attributed to the current network, for display and printing
                 purposes.
         """
-        
+
         super().__init__()
-        
+
         self.name = name
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
@@ -298,8 +294,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 
         if self.finetuning_head is not None:
             kwargs["finetuning_head_kwargs"] = self.finetuning_head.make_mup_base_kwargs(
-                divide_factor=divide_factor,
-                factor_in_dim=True
+                divide_factor=divide_factor, factor_in_dim=True
             )
 
         return kwargs
@@ -355,11 +350,15 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 
         elif module == "graph_output_nn":
             for task_level in self.task_heads.graph_output_nn.keys():
-                shared_depth = len(self.task_heads.graph_output_nn[task_level].graph_output_nn.layers) - added_depth
+                shared_depth = (
+                    len(self.task_heads.graph_output_nn[task_level].graph_output_nn.layers) - added_depth
+                )
                 assert shared_depth >= 0
                 if shared_depth > 0:
                     self.task_heads.graph_output_nn[task_level].graph_output_nn.layers = (
-                        pretrained_model.task_heads.graph_output_nn[task_level].graph_output_nn.layers[:shared_depth]
+                        pretrained_model.task_heads.graph_output_nn[task_level].graph_output_nn.layers[
+                            :shared_depth
+                        ]
                         + self.task_heads.graph_output_nn[task_level].graph_output_nn.layers[shared_depth:]
                     )
 
@@ -441,13 +440,10 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         Returns the input edge dimension of the network
         """
         return self.gnn.in_dim_edges
-    
+
 
 class FinetuningHead(nn.Module, MupMixin):
-    def __init__(
-        self,
-        finetuning_head_kwargs: Dict[str, Any]
-    ):
+    def __init__(self, finetuning_head_kwargs: Dict[str, Any]):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
         support for multiple layer types, and support for different residual
@@ -473,7 +469,6 @@ class FinetuningHead(nn.Module, MupMixin):
         self.finetuning_head = finetuning_model(**finetuning_head_kwargs)
 
     def forward(self, g: Union[torch.Tensor, Batch]):
-
         if self.previous_module == "task_heads":
             g = list(g.values())[0]
 
@@ -496,4 +491,6 @@ class FinetuningHead(nn.Module, MupMixin):
         """
         # For the post-nn network, all the dimension are divided
 
-        return self.finetuning_head.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
+        return self.finetuning_head.make_mup_base_kwargs(
+            divide_factor=divide_factor, factor_in_dim=factor_in_dim
+        )
