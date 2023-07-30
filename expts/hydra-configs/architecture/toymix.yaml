@@ -9,9 +9,9 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
-    normalization: &normalization layer_norm
-    last_normalization: *normalization
+    dropout: 0.18
+    normalization: layer_norm
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: none
 
   pre_nn_edges: null
@@ -52,7 +52,7 @@ architecture:
     last_activation: none
     dropout: 0.1
     normalization: "layer_norm"
-    last_normalization: *normalization
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: simple
     virtual_node: 'none'
     layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
@@ -66,129 +66,10 @@ architecture:
       depth: 1
       activation: relu
       last_activation: none
-      dropout: *dropout
-      normalization: *normalization
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
       last_normalization: "none"
       residual_type: none
-
-  task_heads:
-    qm9:
-      task_level: graph
-      out_dim: 19
-      hidden_dims: 128
-      depth: 2
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    tox21:
-      task_level: graph
-      out_dim: 12
-      hidden_dims: 64
-      depth: 2
-      activation: relu
-      last_activation: sigmoid
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    zinc:
-      task_level: graph
-      out_dim: 3
-      hidden_dims: 32
-      depth: 2
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-
-predictor:
-  metrics_on_progress_bar:
-    qm9: ["mae"]
-    tox21: ["auroc"]
-    zinc: ["mae"]
-  loss_fun:
-    qm9: mae_ipu
-    tox21: bce_ipu
-    zinc: mae_ipu
-  random_seed: ${constants.seed}
-  optim_kwargs:
-    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
-    # weight_decay: 1.e-7
-  torch_scheduler_kwargs:
-    module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
-    warmup_epochs: 10
-    verbose: False
-  scheduler_kwargs:
-  target_nan_mask: null
-  multitask_handling: flatten # flatten, mean-per-label
-
-metrics:
-  qm9: &qm9_metrics
-    - name: mae
-      metric: mae_ipu
-      target_nan_mask: null
-      multitask_handling: flatten
-      threshold_kwargs: null
-    - name: pearsonr
-      metric: pearsonr_ipu
-      threshold_kwargs: null
-      target_nan_mask: null
-      multitask_handling: mean-per-label
-    - name: r2_score
-      metric: r2_score_ipu
-      target_nan_mask: null
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-  tox21:
-    - name: auroc
-      metric: auroc_ipu
-      task: binary
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-    - name: avpr
-      metric: average_precision_ipu
-      task: binary
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-    - name: f1 > 0.5
-      metric: f1
-      multitask_handling: mean-per-label
-      target_to_int: True
-      num_classes: 2
-      average: micro
-      threshold_kwargs: &threshold_05
-        operator: greater
-        threshold: 0.5
-        th_on_preds: True
-        th_on_target: True
-    - name: precision > 0.5
-      metric: precision
-      multitask_handling: mean-per-label
-      average: micro
-      threshold_kwargs: *threshold_05
-  zinc: *qm9_metrics
-
-trainer:
-  seed: ${constants.seed}
-  logger:
-    save_dir: logs/neurips2023-small/
-    name: ${constants.name}
-    project: ${constants.name}
-  model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gcn/
-    filename: ${constants.name}
-    save_last: True
-  trainer:
-    precision: 16
-    max_epochs: *max_epochs
-    min_epochs: 1
-    check_val_every_n_epoch: 20
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
