@@ -46,6 +46,12 @@ jobs:
           
           python -c "import poptorch"
 
+          # Download the datafiles (Total ~ 10Mb - nothing compared to the libraries)
+          wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+          wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+          wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+
+
           # Install the IPU specific and graphium requirements
           pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
