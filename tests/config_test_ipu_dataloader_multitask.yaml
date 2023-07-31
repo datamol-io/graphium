@@ -141,17 +141,17 @@ architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 64
-    hidden_dims: 256
-    depth: 2
+    out_dim: 16
+    hidden_dims: 16
+    depth: 1
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges: null   # Set as null to avoid a pre-nn network
+  pre_nn_edges:  null # Set as null to avoid a pre-nn network
 
   pe_encoders:
     out_dim: 32
@@ -183,10 +183,10 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 96
+    in_dim: 16 # or otherwise the correct value
+    out_dim: &gnn_dim 16
     hidden_dims: *gnn_dim
-    depth: 4
+    depth: 1
     activation: gelu
     last_activation: none
     dropout: 0.1
@@ -215,8 +215,8 @@ architecture:
     qm9:
       task_level: graph
       out_dim: 19
-      hidden_dims: 128
-      depth: 2
+      hidden_dims: 16
+      depth: 1
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -226,8 +226,8 @@ architecture:
     tox21:
       task_level: graph
       out_dim: 12
-      hidden_dims: 64
-      depth: 2
+      hidden_dims: 16
+      depth: 1
       activation: relu
       last_activation: sigmoid
       dropout: *dropout
@@ -237,7 +237,7 @@ architecture:
     zinc:
       task_level: graph
       out_dim: 3
-      hidden_dims: 32
+      hidden_dims: 16
       depth: 2
       activation: relu
       last_activation: none
@@ -262,7 +262,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 3
+    max_num_epochs: &max_epochs 1
     warmup_epochs: 1
     verbose: False
   scheduler_kwargs:
