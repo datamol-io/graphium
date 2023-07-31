@@ -50,7 +50,6 @@ jobs:
           pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
-
           python3 -m pytest -m 'not ipu and not skip_ipu'
 
       - name: Test CLI
