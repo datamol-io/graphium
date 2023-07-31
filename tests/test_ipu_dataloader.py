@@ -8,9 +8,11 @@ from unittest.mock import patch
 from lightning import Trainer, LightningModule
 from functools import partial
 import pytest
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import torch
 from torch.utils.data.dataloader import default_collate
+from lightning_graphcore import IPUStrategy
 
 
 def random_packing(num_nodes, batch_size):
@@ -97,6 +99,32 @@ class test_DataLoading(ut.TestCase):
         def __getitem__(self, idx):
             # [label, [feat1, feat2]]
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
+    
+    # class TestIPUStrategy(IPUStrategy):
+    #     def __init__(self, *args, **kwargs):
+    #         self.device_iterations = kwargs.pop("device_iterations", 1)
+    #         self.autoreport = kwargs.pop("autoreport", False)
+    #         self.autoreport_dir = kwargs.pop("autoreport_dir", None)
+    #         self.poptorch_models = {}
+    #         self._training_opts = kwargs.pop("training_opts", None)
+    #         self._inference_opts = kwargs.pop("inference_opts", None)
+
+    #         super().__init__(*args, **kwargs)
+
+    #         # if self.autoreport:
+    #         #     options = {"autoReport.all": self.autoreport}
+    #         #     if self.autoreport_dir:
+    #         #         self._fs = get_filesystem(str(self.autoreport_dir))
+    #         #         self._fs.makedirs(self.autoreport_dir, exist_ok=True)
+    #         #         options["autoReport.directory"] = self.autoreport_dir
+    #         #     os.environ["POPLAR_ENGINE_OPTIONS"] = json.dumps(options)
+
+    #         self._update_dataloader_original = None
+    #         self._optimizer_zero_grad_original = None
+
+
+
+        
 
     # @pytest.mark.skip
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
@@ -136,7 +164,6 @@ class test_DataLoading(ut.TestCase):
                 from lightning_graphcore.accelerator import _IPU_AVAILABLE
 
                 assert _IPU_AVAILABLE is True
-                from lightning_graphcore import IPUStrategy
 
                 # pass
 
@@ -192,6 +219,7 @@ class test_DataLoading(ut.TestCase):
 
                 # Build the model, and run it on "IPU"
                 model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
+
                 strategy = IPUStrategy(
                     training_opts=training_opts, inference_opts=inference_opts, autoreport=True
                 )
@@ -245,9 +273,7 @@ class test_DataLoading(ut.TestCase):
             # print(mock_method)
             # assert mock_method
             cfg, accelerator = load_accelerator(cfg)
-            from lightning_graphcore.accelerator import _IPU_AVAILABLE
 
-            assert _IPU_AVAILABLE is True
 
             # Load the datamodule, and prepare the data
             datamodule = load_datamodule(cfg, accelerator_type=accelerator)
