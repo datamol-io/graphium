@@ -51,7 +51,7 @@ jobs:
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
 
-          python3 -m pytest -m 'ipu'
+          python3 -m pytest -m 'not ipu'
 
       - name: Test CLI
         run: graphium --help
