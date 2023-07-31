@@ -464,6 +464,7 @@ class PredictorModule(lightning.LightningModule):
             concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
 
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
+        # filter zeros out for the individual losses
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
                 if concatenated_metrics_logs[key].numel() > 1:
@@ -499,6 +500,12 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs.update(metrics_logs)
+
+        # apply averaging again as concatenated_metrics_logs get updated
+        for key in concatenated_metrics_logs:
+            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
+                if concatenated_metrics_logs[key].numel() > 1:
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
 
         # Log the metrics
         if self.logger is not None:

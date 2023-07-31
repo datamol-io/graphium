@@ -61,7 +61,7 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
+    num_workers: 52 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
