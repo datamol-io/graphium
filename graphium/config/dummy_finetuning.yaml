@@ -30,7 +30,7 @@ finetuning:
   level: graph
 
   # Pretrained model
-  pretrained_model: dummy-pretrained-model
+  pretrained_model: dummy-pretrained-model-cpu
   module_from_pretrained: task_heads                
   task_head_from_pretrained: zinc # none            
 
@@ -49,7 +49,7 @@ constants:
 
 accelerator:
   float32_matmul_precision: medium
-  type: gpu
+  type: cpu
 
 predictor:
   metrics_on_progress_bar:

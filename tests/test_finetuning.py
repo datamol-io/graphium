@@ -63,7 +63,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         self.assertEqual(predictor.model.finetuning_head.finetuning_head.out_dim, 1)
 
         # Load pretrained & replace in predictor
-        pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model.cpu()
+        pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
 
         predictor.model.overwrite_with_pretrained(cfg, pretrained_model)
 
