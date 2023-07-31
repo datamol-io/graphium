@@ -99,7 +99,7 @@ class test_DataLoading(ut.TestCase):
         def __getitem__(self, idx):
             # [label, [feat1, feat2]]
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
-    
+
     # class TestIPUStrategy(IPUStrategy):
     #     def __init__(self, *args, **kwargs):
     #         self.device_iterations = kwargs.pop("device_iterations", 1)
@@ -121,10 +121,6 @@ class test_DataLoading(ut.TestCase):
 
     #         self._update_dataloader_original = None
     #         self._optimizer_zero_grad_original = None
-
-
-
-        
 
     # @pytest.mark.skip
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
@@ -273,7 +269,6 @@ class test_DataLoading(ut.TestCase):
             # print(mock_method)
             # assert mock_method
             cfg, accelerator = load_accelerator(cfg)
-
 
             # Load the datamodule, and prepare the data
             datamodule = load_datamodule(cfg, accelerator_type=accelerator)
