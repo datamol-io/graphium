@@ -220,6 +220,7 @@ class test_featurizer(ut.TestCase):
                             self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
 
+    @pytest.mark.skip_ipu
     def test_mol_to_pyggraph(self):
         np.random.seed(42)
 
