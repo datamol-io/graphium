@@ -100,28 +100,6 @@ class test_DataLoading(ut.TestCase):
             # [label, [feat1, feat2]]
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
-    # class TestIPUStrategy(IPUStrategy):
-    #     def __init__(self, *args, **kwargs):
-    #         self.device_iterations = kwargs.pop("device_iterations", 1)
-    #         self.autoreport = kwargs.pop("autoreport", False)
-    #         self.autoreport_dir = kwargs.pop("autoreport_dir", None)
-    #         self.poptorch_models = {}
-    #         self._training_opts = kwargs.pop("training_opts", None)
-    #         self._inference_opts = kwargs.pop("inference_opts", None)
-
-    #         super().__init__(*args, **kwargs)
-
-    #         # if self.autoreport:
-    #         #     options = {"autoReport.all": self.autoreport}
-    #         #     if self.autoreport_dir:
-    #         #         self._fs = get_filesystem(str(self.autoreport_dir))
-    #         #         self._fs.makedirs(self.autoreport_dir, exist_ok=True)
-    #         #         options["autoReport.directory"] = self.autoreport_dir
-    #         #     os.environ["POPLAR_ENGINE_OPTIONS"] = json.dumps(options)
-
-    #         self._update_dataloader_original = None
-    #         self._optimizer_zero_grad_original = None
-
     # @pytest.mark.skip
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
         """
