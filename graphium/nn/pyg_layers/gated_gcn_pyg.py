@@ -31,6 +31,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        eps: float = 1e-3,
         **kwargs,
     ):
         r"""
@@ -63,6 +64,10 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
 
+            eps:
+                Epsilon value for the normalization `sum(gate_weights * messages) / (sum(gate_weights) + eps)`,
+                where `gate_weights` are the weights of the gates and follow a sigmoid function.
+
         """
         MessagePassing.__init__(self, aggr="add", flow="source_to_target", node_dim=-2)
         BaseGraphStructure.__init__(
@@ -92,6 +97,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.edge_out = FCLayer(
             in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
+        self.eps = eps
 
     def forward(
         self,
@@ -171,7 +177,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         sum_sigma = sigma_ij
         denominator_eta_xj = scatter(sum_sigma, index, 0, None, dim_size, reduce="sum")
 
-        out = numerator_eta_xj / (denominator_eta_xj + 1e-6)
+        out = numerator_eta_xj / (denominator_eta_xj + self.eps)
         return out
 
     def update(self, aggr_out: torch.Tensor, Ax: torch.Tensor):
