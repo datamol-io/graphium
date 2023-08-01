@@ -1,26 +1,11 @@
 # Running the gin model with the largemix dataset on IPU.
+defaults:
+  - base_config: large
+  - _self_
+
 constants:
-  name: &name neurips2023_large_data_gin
-  config_override: "expts/neurips2023_configs/config_large_gcn.yaml"
+  name: neurips2023_large_data_gin
 
 architecture:
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &gnn_dim 704
-    layer_type: 'pyg:gin' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    hidden_dims: *gnn_dim
-
-  graph_output_nn:
-    graph:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-    node:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-
-trainer:
-  logger:
-    name: *name
-    project: *name
-  model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large-gin/
-    filename: *name
+    layer_type: 'pyg:gin'

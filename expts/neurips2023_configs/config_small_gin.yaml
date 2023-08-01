@@ -1,16 +1,12 @@
 # Testing the gin model with the PCQMv2 dataset on IPU.
+
+defaults:
+  - base_config: small
+  - _self_
+
 constants:
-  name: &name neurips2023_small_data_gin
-  config_override: "expts/neurips2023_configs/config_small_gcn.yaml"
+  name: neurips2023_small_data_gin
 
 architecture:
   gnn:  # Set as null to avoid a post-nn network
-    layer_type: 'pyg:gin' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-
-trainer:
-  logger:
-    name: *name
-    project: *name
-  model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gin/
-    filename: *name
+    layer_type: 'pyg:gin'
