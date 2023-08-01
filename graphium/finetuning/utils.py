@@ -40,9 +40,7 @@ def modify_cfg_for_finetuning(cfg):
 
     # Remove modules of pretrained model after module to finetune from
     module_list = ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]
-    cutoff_idx = (
-        module_list.index(finetuning_module) + 1
-    )  # Index of module after module to finetune from
+    cutoff_idx = module_list.index(finetuning_module) + 1  # Index of module after module to finetune from
     for module in module_list[cutoff_idx:]:
         cfg["architecture"][module] = None
 
@@ -58,9 +56,8 @@ def modify_cfg_for_finetuning(cfg):
     finetuning_training_kwargs.pop("task_head_from_pretrained")
     # cfg["finetuning"]["training_kwargs"] = finetuning_training_kwargs
 
-    cfg["finetuning"].update({
-        "overwriting_kwargs": finetuning_overwriting_kwargs,
-        "training_kwargs": finetuning_training_kwargs
-    })
+    cfg["finetuning"].update(
+        {"overwriting_kwargs": finetuning_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}
+    )
 
     return cfg

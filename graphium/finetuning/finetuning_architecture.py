@@ -330,9 +330,8 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         task: str,
         finetuning_module: str,
         added_depth: int,
-        task_head_from_pretrained: str = None
+        task_head_from_pretrained: str = None,
     ):
-        
         for module in ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]:
             if module == finetuning_module:
                 break

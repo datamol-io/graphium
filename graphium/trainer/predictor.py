@@ -110,15 +110,15 @@ class PredictorModule(lightning.LightningModule):
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
-        
+
         # Maintain module map to easily select modules
         self._module_map = OrderedDict(
             pe_encoders=self.model.encoder_manager,
             pre_nn=self.model.pre_nn,
             pre_nn_edges=self.model.pre_nn_edges,
-            gnn = self.model.gnn,
+            gnn=self.model.gnn,
             graph_output_nn=self.model.task_heads.graph_output_nn,
-            task_heads=self.model.task_heads.task_heads
+            task_heads=self.model.task_heads.task_heads,
         )
 
         loss_fun = {
