@@ -122,7 +122,8 @@ def main(cfg: DictConfig) -> None:
     # Adapt pretrained model to new task
     # We need to overwrite shared weights with pretrained
 
-    predictor.model.overwrite_with_pretrained(cfg, pretrained_model)
+    finetuning_overwriting_kwargs = cfg["finetuning"]["overwriting_kwargs"]
+    predictor.model.overwrite_with_pretrained(pretrained_model, **finetuning_overwriting_kwargs)
 
     # (Un)freezing will be handled by finetuning callback added to trainer
 
