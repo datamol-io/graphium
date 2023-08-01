@@ -21,7 +21,3 @@ predictor:
 trainer:
   trainer:
     precision: 16-true
-<<<<<<< HEAD
-=======
-    accumulate_grad_batches: 2
->>>>>>> main
