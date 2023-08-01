@@ -3,8 +3,8 @@ task: lipophilicity_astrazeneca
 level: graph
 
 # Pretrained model
-pretrained_model: dummy-pretrained-model
-module_from_pretrained: task_heads                # options are (pre_nn, pre_nn_edges) gnn, graph_output_nn, task_heads, finetunehead
+pretrained_model: dummy-pretrained-model-gpu
+finetuning_module: task_heads                # options are (pre_nn, pre_nn_edges) gnn, graph_output_nn, task_heads, finetunehead
 task_head_from_pretrained: zinc # none            # (only needed when finetuning from task_heads)
                                                   # choose one from pretrained model (here qm9, tox12 or zinc)
 drop_depth: 1                                     # how many layers to drop at the end:
@@ -13,12 +13,12 @@ drop_depth: 1                                     # how many layers to drop at t
                                                   #   ==0 only if finetune task has same out_dim
                                                   #   >=1 otherwise, as we need to update out_dim  
 
-# Changes to module_from_pretrained               # here we simply extend the layer, we finetune from
+# Changes to finetuning model                     # here we simply extend the layer, we finetune from
 new_out_dim: 8
 added_depth: 2
 
 # Training
-add_finetune_depth: 0                             # if desired, we can also finetune layers before added layers
+added_finetuning_depth: 0                         # if desired, we can also finetune layers before added layers
 epoch_unfreeze_all: none                          # Indicate an epoch to unfreeze all layers
 
 

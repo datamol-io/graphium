@@ -1,5 +1,5 @@
 defaults:
-  - accelerator: ipu
+  - accelerator: gpu
   - dataset: toymix
   - model: gcn
 
