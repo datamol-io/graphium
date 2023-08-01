@@ -1,5 +1,13 @@
 # @package _global_
 
+datamodule:
+  args:
+    batch_size_training: 32
+
+trainer:
+  trainer:
+    accumulate_grad_batches: 2
+
 architecture:
   pe_encoders:
     encoders:

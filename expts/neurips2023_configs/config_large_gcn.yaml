@@ -31,7 +31,7 @@ accelerator:
         accumulate_grad_batches: 2
 
   ipu_config:
-    - deviceIterations(40) # IPU would require large batches to be ready for the model.
+    - deviceIterations(30) # IPU would require large batches to be ready for the model.
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
@@ -168,8 +168,8 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 40 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch.
+    num_workers: 30 # -1 to use all
+    persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
 
