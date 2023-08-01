@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - replicationFactor(1)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -56,13 +56,12 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       qm9:
         df: null
-        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        df_path: qm9.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
         sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: *seed
         task_level: graph
         label_normalization:
@@ -71,26 +70,24 @@ datamodule:
 
       tox21:
         df: null
-        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        df_path: Tox21-7k-12-labels.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
         sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: *seed
         task_level: graph
 
       zinc:
         df: null
-        df_path: https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        df_path: ZINC12k.csv.gz
         # df_path: data/neurips2023/small-dataset/ZINC12k.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
         sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         task_level: graph
         label_normalization:
@@ -144,17 +141,17 @@ architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 64
-    hidden_dims: 256
-    depth: 2
+    out_dim: 16
+    hidden_dims: 16
+    depth: 1
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges: null   # Set as null to avoid a pre-nn network
+  pre_nn_edges:  null # Set as null to avoid a pre-nn network
 
   pe_encoders:
     out_dim: 32
@@ -186,10 +183,10 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 96
+    in_dim: 16 # or otherwise the correct value
+    out_dim: &gnn_dim 16
     hidden_dims: *gnn_dim
-    depth: 4
+    depth: 1
     activation: gelu
     last_activation: none
     dropout: 0.1
@@ -218,8 +215,8 @@ architecture:
     qm9:
       task_level: graph
       out_dim: 19
-      hidden_dims: 128
-      depth: 2
+      hidden_dims: 16
+      depth: 1
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -229,8 +226,8 @@ architecture:
     tox21:
       task_level: graph
       out_dim: 12
-      hidden_dims: 64
-      depth: 2
+      hidden_dims: 16
+      depth: 1
       activation: relu
       last_activation: sigmoid
       dropout: *dropout
@@ -240,7 +237,7 @@ architecture:
     zinc:
       task_level: graph
       out_dim: 3
-      hidden_dims: 32
+      hidden_dims: 16
       depth: 2
       activation: relu
       last_activation: none
@@ -265,7 +262,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 3
+    max_num_epochs: &max_epochs 1
     warmup_epochs: 1
     verbose: False
   scheduler_kwargs:
