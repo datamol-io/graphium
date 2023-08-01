@@ -71,7 +71,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -83,7 +83,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -95,7 +95,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -107,7 +107,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
@@ -122,7 +122,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: ${constants.seed}
@@ -177,7 +177,7 @@ architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 64
+    out_dim: 160
     hidden_dims: 256
     depth: 2
     activation: relu
@@ -188,7 +188,7 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 32
+    out_dim: 64
     hidden_dims: 128
     depth: 2
     activation: relu
@@ -228,8 +228,8 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
-    hidden_dims: &gnn_dim 768
+    out_dim: 256
+    hidden_dims: &gnn_dim 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
     depth: 4
     activation: gelu
     last_activation: none
@@ -238,12 +238,18 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:mpnnplus' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
-      in_dim_edges: 32
-      out_dim_edges: 32
+      mpnn_kwargs:
+        in_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        out_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        in_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+        out_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null
 
 
 

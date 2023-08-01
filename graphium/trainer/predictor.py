@@ -501,12 +501,6 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs.update(metrics_logs)
 
-        # apply averaging again as concatenated_metrics_logs get updated
-        for key in concatenated_metrics_logs:
-            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
-                if concatenated_metrics_logs[key].numel() > 1:
-                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
-
         # Log the metrics
         if self.logger is not None:
             self.logger.log_metrics(
