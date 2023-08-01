@@ -31,16 +31,16 @@ finetuning:
 
   # Pretrained model
   pretrained_model: dummy-pretrained-model-cpu
-  module_from_pretrained: task_heads                
+  finetuning_module: task_heads                
   task_head_from_pretrained: zinc # none            
 
-  # Changes to module_from_pretrained                                                  
+  # Changes to finetuning_module                                                  
   drop_depth: 1 
   new_out_dim: 8
   added_depth: 2
 
   # Training
-  add_finetune_depth: 0
+  # added_finetuning_depth: 1
   epoch_unfreeze_all: none
 
 constants:
@@ -92,7 +92,7 @@ architecture:
   # Finetuning network
   model_type: FullGraphFinetuningNetwork
 
-  # Optional finetuning head appended to model after module_from_pretrained
+  # Optional finetuning head appended to model after finetuning_module
   finetuning_head:
     task: lipophilicity_astrazeneca
     previous_module: task_heads

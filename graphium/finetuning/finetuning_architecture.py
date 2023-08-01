@@ -324,24 +324,29 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 
         self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
-    def overwrite_with_pretrained(self, cfg, pretrained_model):
-        cfg_finetune = cfg["finetuning"]
-        task_head_from_pretrained = cfg_finetune["task_head_from_pretrained"]
-        task = cfg_finetune["task"]
-        added_depth = cfg_finetune["added_depth"]
-
+    def overwrite_with_pretrained(
+        self,
+        pretrained_model: str,
+        task: str,
+        finetuning_module: str,
+        added_depth: int,
+        task_head_from_pretrained: str = None
+    ):
+        
         for module in ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]:
-            if module == cfg_finetune["module_from_pretrained"]:
+            if module == finetuning_module:
                 break
 
-            self.overwrite_complete_module(module, pretrained_model)
+            self.overwrite_complete_module(pretrained_model, module)
 
-        self.overwrite_partial_module(module, task, task_head_from_pretrained, added_depth, pretrained_model)
+        self.overwrite_partial_module(pretrained_model, module, task, added_depth, task_head_from_pretrained)
 
     def overwrite_partial_module(
-        self, module, task, task_head_from_pretrained, added_depth, pretrained_model
+        self, pretrained_model, module, task, added_depth, task_head_from_pretrained
     ):
-        """Completely overwrite the specified module"""
+        """
+        Completely overwrite the specified module
+        """
         if module == "gnn":
             shared_depth = len(self.task_heads.task_heads[task].layers) - added_depth
             assert shared_depth >= 0
@@ -377,8 +382,10 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         else:
             raise NotImplementedError(f"This is an unknown module type")
 
-    def overwrite_complete_module(self, module, pretrained_model):
-        """Completely overwrite the specified module"""
+    def overwrite_complete_module(self, pretrained_model, module):
+        """
+        Completely overwrite the specified module
+        """
         if module == "pre_nn":
             try:
                 self.pre_nn.layers = pretrained_model.pre_nn.layers

@@ -1,5 +1,6 @@
 from graphium.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
+from collections import OrderedDict
 import numpy as np
 from copy import deepcopy
 import time
@@ -109,6 +110,17 @@ class PredictorModule(lightning.LightningModule):
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
+        
+        # Maintain module map to easily select modules
+        self._module_map = OrderedDict(
+            pe_encoders=self.model.encoder_manager,
+            pre_nn=self.model.pre_nn,
+            pre_nn_edges=self.model.pre_nn_edges,
+            gnn = self.model.gnn,
+            graph_output_nn=self.model.task_heads.graph_output_nn,
+            task_heads=self.model.task_heads.task_heads
+        )
+
         loss_fun = {
             self._get_task_key(
                 task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key

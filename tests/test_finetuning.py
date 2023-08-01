@@ -65,7 +65,9 @@ class Test_Multitask_DataModule(ut.TestCase):
         # Load pretrained & replace in predictor
         pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
 
-        predictor.model.overwrite_with_pretrained(cfg, pretrained_model)
+        
+        finetuning_overwriting_kwargs = cfg["finetuning"]["overwriting_kwargs"]
+        predictor.model.overwrite_with_pretrained(pretrained_model, **finetuning_overwriting_kwargs)
 
         # GNN layers need to be the same
         pretrained_layers = predictor.model.gnn.layers
