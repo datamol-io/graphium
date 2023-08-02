@@ -361,7 +361,7 @@ predictor:
 metrics:
   l1000_vcap: &classif_metrics
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       num_classes: 5
       task: multiclass
       target_to_int: True
@@ -370,7 +370,7 @@ metrics:
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: averageprecision
       num_classes: 5
       task: multiclass
       target_to_int: True

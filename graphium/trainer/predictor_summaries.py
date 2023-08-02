@@ -486,6 +486,13 @@ class TaskSummaries(SummaryInterface):
         task_metrics_logs = {}
         for task in self.tasks:
             task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
+            # average metrics
+            for key in task_metrics_logs[task]:
+                if isinstance(task_metrics_logs[task][key], torch.Tensor):
+                    if task_metrics_logs[task][key].numel() > 1:
+                        task_metrics_logs[task][key] = task_metrics_logs[task][key][
+                            task_metrics_logs[task][key] != 0
+                        ].mean()
 
         # Include global (weighted loss)
         task_metrics_logs["_global"] = {}
