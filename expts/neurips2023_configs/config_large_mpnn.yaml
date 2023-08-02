@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Running the mpnn model with the largemix dataset on IPU.
 
 defaults:
  - base_config: large
@@ -7,8 +7,20 @@ constants:
   name: neurips2023_large_data_mpnn
 
 architecture:
-  pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 32
+
+  pre_nn:
+    out_dim: 160
+    hidden_dims: 256
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.1
+    normalization: &normalization layer_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges:
+    out_dim: 64
     hidden_dims: 128
     depth: 2
     activation: relu
@@ -19,9 +31,26 @@ architecture:
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &gnn_dim 64
-    hidden_dims: *gnn_dim
-    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+    in_dim: 160 # should be consistent with pre_nn.out_dim
+    out_dim: 256
+    hidden_dims: &gnn_dim 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
+    depth: 4
+    activation: gelu
+    last_activation: none
+    dropout: 0.1
+    normalization: "layer_norm"
+    last_normalization: *normalization
+    residual_type: simple
+    virtual_node: 'none'
+    layer_type: 'pyg:gps'
+    layer_kwargs:
+      node_residual: false
       mpnn_type: 'pyg:mpnnplus'
-      out_dim_edges: 32
+      mpnn_kwargs:
+        in_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        out_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        in_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+        out_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null

@@ -1,6 +1,8 @@
 type: ipu
 ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
+    - deviceIterations(60) # IPU would require large batches to be ready for the model.
+    # 60 for PCQM4mv2
+    # 30 for largemix
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")

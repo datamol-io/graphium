@@ -1,5 +1,13 @@
 # @package _global_
 
+datamodule:
+  args:
+    batch_size_training: 64
+
+trainer:
+  trainer:
+    accumulate_grad_batches: 1
+
 architecture:
   gnn:
     layer_type: 'pyg:gps'
