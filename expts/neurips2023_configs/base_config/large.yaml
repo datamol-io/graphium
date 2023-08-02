@@ -108,7 +108,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        # sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
@@ -361,31 +361,35 @@ predictor:
 metrics:
   l1000_vcap: &classif_metrics
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       num_classes: 5
       task: multiclass
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: averageprecision
       num_classes: 5
       task: multiclass
-      target_to_int: True
-      target_nan_mask: -1000
-      ignore_index: -1000
+      # target_to_int: True
+      # target_nan_mask: -1000
+      # ignore_index: -1000
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: averageprecision
       task: binary
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics
     - name: mae

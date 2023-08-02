@@ -9,8 +9,8 @@ architecture:
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
-      dropout: *dropout
-      normalization: *normalization
+      dropout: 0.18
+      normalization: layer_norm
       last_normalization: "none"
       residual_type: none
 

@@ -3,6 +3,8 @@
 datamodule:
   args:
     batch_size_training: 32
+    featurization:
+      conformer_property_list: [positions_3d]
 
 trainer:
   trainer:
@@ -39,8 +41,3 @@ architecture:
         num_heads: 32
       droppath_rate_attn: 0.0
       droppath_rate_ffn: 0.0
-
-datamodule:
-  args: # Matches that in the test_multitask_datamodule.py case.
-    featurization:
-      conformer_property_list: [positions_3d]

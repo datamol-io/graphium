@@ -31,6 +31,7 @@ architecture:
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
+    in_dim: 160 # should be consistent with pre_nn.out_dim
     out_dim: 256
     hidden_dims: &gnn_dim 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
     depth: 4
