@@ -2,6 +2,8 @@ import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
 
+from dataclasses import dataclass
+
 import os
 from functools import partial
 import importlib.resources
@@ -642,6 +644,7 @@ class BaseDataModule(lightning.LightningDataModule):
         return max_num_edges
 
 
+@dataclass
 class DatasetProcessingParams:
     def __init__(
         self,
@@ -1956,16 +1959,20 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Get a hash specific to a dataset and smiles_transformer.
         Useful to cache the pre-processed data.
         """
-        args = deepcopy(self.task_specific_args)
+        args = {}
         # pop epoch_sampling_fraction out when creating hash
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
-        for task in self.task_specific_args.keys():
-            try:
-                if "epoch_sampling_fraction" in args[task].keys():
-                    args[task].pop("epoch_sampling_fraction")
-            except:
-                logger.warning(f"We cannot pop a key of DatasetProcessingParams as it is not a dict.")
+        for task_key, task_args in self.task_specific_args.items():
+            this_args = task_args.__dict__ # Convert the class to a dictionary
+
+            # Keep only first 5 rows of a dataframe
+            if this_args["df"] is not None:
+                this_args["df"] = this_args["df"].iloc[:5]
+
+            # Remove the `epoch_sampling_fraction`
+            this_args.pop("epoch_sampling_fraction", None)
+            args[task_key] = this_args
 
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
