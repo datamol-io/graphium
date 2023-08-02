@@ -380,14 +380,16 @@ metrics:
   l1000_mcf7: *classif_metrics
   pcba_1328:
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: averageprecision
       task: binary
       multitask_handling: mean-per-label
+      target_nan_mask: ignore
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics
     - name: mae
