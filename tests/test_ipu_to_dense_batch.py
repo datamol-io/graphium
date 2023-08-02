@@ -45,6 +45,7 @@ class TestIPUBatch:
         self.bg = Batch.from_data_list([self.g1, self.g2])
         self.attn_kwargs = {"embed_dim": self.in_dim, "num_heads": 2, "batch_first": True}
 
+    # @pytest.mark.skip
     @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [(10, 5), (20, 10), (30, 15)])
     def test_ipu_to_dense_batch(self, max_num_nodes_per_graph, batch_size):
         # Run this test only if poptorch is available
@@ -85,6 +86,7 @@ class TestIPUBatch:
 
             # Check the idx are all the true values in the mask
             assert (mask.flatten()[idx] == True).all()
+            poptorch_model_inf.detachFromDevice()
         except ImportError:
             pytest.skip("Skipping this test because poptorch is not available")
 

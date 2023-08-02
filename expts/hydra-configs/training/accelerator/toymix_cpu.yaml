@@ -1,10 +1,5 @@
 # @package _global_
 
-architecture:
-  task_heads:
-    tox21:
-      last_activation: none
-
 datamodule:
   args:
     batch_size_training: 200
@@ -14,9 +9,7 @@ datamodule:
 
 predictor:
   optim_kwargs: {}
-  loss_fun:
-    tox21: bce_logits_ipu
-  metrics_every_n_steps: 300
+  metrics_every_n_train_steps: 300
   torch_scheduler_kwargs:
     max_num_epochs: &max_epochs 300
 

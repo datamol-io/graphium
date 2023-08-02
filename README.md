@@ -113,6 +113,7 @@ mkdir ~/.venv                               # Create the folder for the environm
 python3 -m venv ~/.venv/graphium_ipu        # Create the environment
 source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
 
+python3 -m pip install --upgrade pip
 # We can download the Poplar SDK directly using `wget` - more details on the various Graphcore downloads can be found here `https://www.graphcore.ai/downloads`
 
 # NOTE: For simplicity this will download the SDK directly where you run this command, we recommend doing this outside the Graphium directory. 
