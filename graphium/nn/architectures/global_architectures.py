@@ -6,6 +6,7 @@ from loguru import logger
 # Misc imports
 import inspect
 from copy import deepcopy
+from collections import OrderedDict
 
 # Torch imports
 from torch import Tensor, nn
@@ -1140,6 +1141,16 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
+
+    def _create_module_map(self):
+        self._module_map = OrderedDict(
+            pe_encoders=self.encoder_manager,
+            pre_nn=self.pre_nn,
+            pre_nn_edges=self.pre_nn_edges,
+            gnn=self.gnn,
+            graph_output_nn=self.task_heads.graph_output_nn,
+            task_heads=self.task_heads.task_heads,
+        )
 
     def forward(self, g: Batch) -> Tensor:
         r"""

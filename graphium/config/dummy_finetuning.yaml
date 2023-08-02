@@ -32,7 +32,7 @@ finetuning:
   # Pretrained model
   pretrained_model: dummy-pretrained-model-cpu
   finetuning_module: task_heads                
-  task_head_from_pretrained: zinc # none            
+  task_head_from_pretrained: zinc # none       # could be more general      
 
   # Changes to finetuning_module                                                  
   drop_depth: 1 
@@ -40,8 +40,23 @@ finetuning:
   added_depth: 2
 
   # Training
-  # added_finetuning_depth: 1
+  # unfreeze_pretrained_depth: 1
   epoch_unfreeze_all: none
+
+  # # Finetuning network
+  # model_type: FullGraphFinetuningNetwork
+
+  # Optional finetuning head appended to model after finetuning_module
+  finetuning_head:
+    task: lipophilicity_astrazeneca
+    previous_module: task_heads
+    incoming_level: graph
+    model_type: mlp
+    in_dim: 8
+    out_dim: 1
+    hidden_dims: 8
+    depth: 2
+    last_layer_is_readout: true
 
 constants:
   seed: 42
@@ -87,22 +102,22 @@ metrics:
 
 architecture:
 
-### FINETUNING ###
+# ### FINETUNING ###
 
-  # Finetuning network
-  model_type: FullGraphFinetuningNetwork
+#   # Finetuning network
+#   model_type: FullGraphFinetuningNetwork
 
-  # Optional finetuning head appended to model after finetuning_module
-  finetuning_head:
-    task: lipophilicity_astrazeneca
-    previous_module: task_heads
-    incoming_level: graph
-    model_type: mlp
-    in_dim: 8
-    out_dim: 1
-    hidden_dims: 8
-    depth: 2
-    last_layer_is_readout: true
+#   # Optional finetuning head appended to model after finetuning_module
+#   finetuning_head:
+#     task: lipophilicity_astrazeneca
+#     previous_module: task_heads
+#     incoming_level: graph
+#     model_type: mlp
+#     in_dim: 8
+#     out_dim: 1
+#     hidden_dims: 8
+#     depth: 2
+#     last_layer_is_readout: true
 
 ### PRETRAINING ###
 
@@ -231,14 +246,14 @@ datamodule:
     featurization_n_jobs: 0
     num_workers: 0
 
-### PRETRAINING ###
-
     prepare_dict_or_graph: pyg:graph
     featurization_progress: True
     featurization_backend: "loky"
     processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
     
+### PRETRAINING ###
+
     featurization:
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]

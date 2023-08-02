@@ -17,8 +17,20 @@ drop_depth: 1                                     # how many layers to drop at t
 new_out_dim: 8
 added_depth: 2
 
+# Optional finetuning head appended to model after finetuning_module
+finetuning_head:
+  task: lipophilicity_astrazeneca
+  previous_module: task_heads
+  incoming_level: graph
+  model_type: mlp
+  in_dim: 8
+  out_dim: 1
+  hidden_dims: 8
+  depth: 2
+  last_layer_is_readout: true
+
 # Training
-added_finetuning_depth: 0                         # if desired, we can also finetune layers before added layers
+unfreeze_pretrained_depth: 0                         # if desired, we can also finetune layers before added layers
 epoch_unfreeze_all: none                          # Indicate an epoch to unfreeze all layers
 
 

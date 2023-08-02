@@ -16,7 +16,7 @@ class GraphFinetuning(BaseFinetuning):
         level: str,
         finetuning_module: str,
         added_depth: int,
-        added_finetuning_depth: Optional[int] = None,
+        unfreeze_pretrained_depth: Optional[int] = None,
         epoch_unfreeze_all: int = 0,
         train_bn: bool = False,
     ):
@@ -29,8 +29,8 @@ class GraphFinetuning(BaseFinetuning):
         self.level = level
         self.finetuning_module = finetuning_module
         self.training_depth = added_depth
-        if added_finetuning_depth is not None:
-            self.training_depth += added_finetuning_depth
+        if unfreeze_pretrained_depth is not None:
+            self.training_depth += unfreeze_pretrained_depth
         self.epoch_unfreeze_all = epoch_unfreeze_all
         self.train_bn = train_bn
 

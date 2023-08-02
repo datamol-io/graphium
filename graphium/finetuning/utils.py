@@ -1,8 +1,27 @@
 from copy import deepcopy
 
+from graphium.trainer import PredictorModule
+
+from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
+
 
 def modify_cfg_for_finetuning(cfg):
     cfg_finetune = cfg["finetuning"]
+
+    # Load pretrained model
+    pretrained_model = cfg_finetune["pretrained_model"]
+    pretrained_predictor = PredictorModule.load_from_checkpoint(
+        GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model]
+    )
+
+    # Inherit architecture from pretrained
+    pretrained_architecture = pretrained_predictor.model_kwargs
+    arch_keys = pretrained_architecture.keys()
+    arch_keys = [key[:-7] for key in arch_keys]
+    cfg["architecture"] = {
+        arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())
+    }
+
     finetuning_module = cfg_finetune["finetuning_module"]
     task = cfg_finetune["task"]
     level = cfg_finetune["level"]
@@ -15,7 +34,7 @@ def modify_cfg_for_finetuning(cfg):
         new_module_kwargs = deepcopy(cfg["architecture"][finetuning_module][level])
     elif finetuning_module == "task_heads":
         new_module_kwargs = deepcopy(cfg["architecture"][finetuning_module][task_head_from_pretrained])
-    elif finetuning_module in ["pre_nn", "pre_nn_edges"]:
+    elif finetuning_module in ["pe_encoders", "pre_nn", "pre_nn_edges"]:
         raise NotImplementedError(f"Finetune from (edge) pre-NNs is not supported")
     else:
         raise NotImplementedError(f"This is an unknown module type")
@@ -44,20 +63,23 @@ def modify_cfg_for_finetuning(cfg):
     for module in module_list[cutoff_idx:]:
         cfg["architecture"][module] = None
 
-    finetuning_overwriting_kwargs = deepcopy(cfg["finetuning"])
-    finetuning_overwriting_kwargs.pop("pretrained_model")
-    finetuning_overwriting_kwargs.pop("level")
-    finetuning_overwriting_kwargs.pop("added_finetuning_depth", None)
-    finetuning_overwriting_kwargs.pop("epoch_unfreeze_all")
-    # cfg["finetuning"]["overwriting_kwargs"] = finetuning_overwriting_kwargs
+    # Change architecture to FullGraphFinetuningNetwork
+    cfg["architecture"]["model_type"] = "FullGraphFinetuningNetwork"
+
+    pretrained_overwriting_kwargs = deepcopy(cfg["finetuning"])
+    pretrained_overwriting_kwargs.pop("pretrained_model")
+    pretrained_overwriting_kwargs.pop("level")
+    pretrained_overwriting_kwargs.pop("finetuning_head")
+    pretrained_overwriting_kwargs.pop("unfreeze_pretrained_depth", None)
+    pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
     finetuning_training_kwargs.pop("pretrained_model")
     finetuning_training_kwargs.pop("task_head_from_pretrained")
-    # cfg["finetuning"]["training_kwargs"] = finetuning_training_kwargs
+    finetuning_training_kwargs.pop("finetuning_head")
 
     cfg["finetuning"].update(
-        {"overwriting_kwargs": finetuning_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}
+        {"overwriting_kwargs": pretrained_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}
     )
 
     return cfg

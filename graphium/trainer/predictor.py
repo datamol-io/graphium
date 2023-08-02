@@ -18,11 +18,7 @@ from graphium.trainer.predictor_summaries import TaskSummaries
 from graphium.data.datamodule import BaseDataModule
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 
-GRAPHIUM_PRETRAINED_MODELS = {
-    "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt",
-    "dummy-pretrained-model-cpu": "tests/dummy-pretrained-model-cpu.ckpt",  # dummy model (to be deleted later),
-    "dummy-pretrained-model-gpu": "tests/dummy-pretrained-model-gpu.ckpt",  # dummy model (to be deleted later)
-}
+from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 
 
 class PredictorModule(lightning.LightningModule):
@@ -99,10 +95,20 @@ class PredictorModule(lightning.LightningModule):
             )
             eval_options[task].check_metrics_validity()
 
+        # Work-around to retain task level when model_kwargs are modified for FullGraphFinetuningNetwork
+        if "task_heads_kwargs" in model_kwargs.keys():
+            task_heads_kwargs = model_kwargs["task_heads_kwargs"]
+        elif "pretrained_model_kwargs" in model_kwargs.keys():
+            # This covers finetuning cases where we finetune from the task_heads
+            task_heads_kwargs = model_kwargs["pretrained_model_kwargs"]["task_heads_kwargs"]
+        else:
+            raise "incorrect model_kwargs"
+        
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         self._eval_options_dict = {
             self._get_task_key(
-                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+                task_level=task_heads_kwargs[key]["task_level"], task=key
+                # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in self._eval_options_dict.items()
         }
@@ -112,18 +118,20 @@ class PredictorModule(lightning.LightningModule):
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
 
         # Maintain module map to easily select modules
-        self._module_map = OrderedDict(
-            pe_encoders=self.model.encoder_manager,
-            pre_nn=self.model.pre_nn,
-            pre_nn_edges=self.model.pre_nn_edges,
-            gnn=self.model.gnn,
-            graph_output_nn=self.model.task_heads.graph_output_nn,
-            task_heads=self.model.task_heads.task_heads,
-        )
+        # We now need to define the module_map in pretrained_model in FinetuningNetwork
+        # self._module_map = OrderedDict(
+        #     pe_encoders=self.model.encoder_manager,
+        #     pre_nn=self.model.pre_nn,
+        #     pre_nn_edges=self.model.pre_nn_edges,
+        #     gnn=self.model.gnn,
+        #     graph_output_nn=self.model.task_heads.graph_output_nn,
+        #     task_heads=self.model.task_heads.task_heads,
+        # )
 
         loss_fun = {
             self._get_task_key(
-                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+                task_level=task_heads_kwargs[key]["task_level"], task=key
+                # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in loss_fun.items()
         }
@@ -677,7 +685,7 @@ class PredictorModule(lightning.LightningModule):
     @staticmethod
     def list_pretrained_models():
         """List available pretrained models."""
-        return GRAPHIUM_PRETRAINED_MODELS
+        return GRAPHIUM_PRETRAINED_MODELS_DICT
 
     @staticmethod
     def load_pretrained_models(name: str):
@@ -688,12 +696,12 @@ class PredictorModule(lightning.LightningModule):
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        if name not in GRAPHIUM_PRETRAINED_MODELS:
+        if name not in GRAPHIUM_PRETRAINED_MODELS_DICT:
             raise ValueError(
-                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS.keys())}."
+                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS_DICT.keys())}."
             )
 
-        return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS[name])
+        return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS_DICT[name])
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()
