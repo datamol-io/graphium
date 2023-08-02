@@ -48,36 +48,31 @@ class Test_Multitask_DataModule(ut.TestCase):
             in_dims=datamodule.in_dims,
         )
 
-        # datamodule.prepare_data()
-
         metrics = load_metrics(cfg)
 
         predictor = load_predictor(
             cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
         )
 
-        self.assertEqual(len(predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].layers), 3)
-        self.assertEqual(predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].out_dim, 8)
-        self.assertEqual(predictor.model.finetuning_head.finetuning_head.in_dim, 8)
-        self.assertEqual(len(predictor.model.finetuning_head.finetuning_head.layers), 2)
-        self.assertEqual(predictor.model.finetuning_head.finetuning_head.out_dim, 1)
+        self.assertEqual(len(predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].layers), 3)
+        self.assertEqual(predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].out_dim, 8)
+        self.assertEqual(predictor.model.finetuning_head.net.in_dim, 8)
+        self.assertEqual(len(predictor.model.finetuning_head.net.layers), 2)
+        self.assertEqual(predictor.model.finetuning_head.net.out_dim, 1)
 
         # Load pretrained & replace in predictor
         pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
 
-        pretrained_overwriting_kwargs = cfg["finetuning"]["overwriting_kwargs"]
-        predictor.model.overwrite_with_pretrained(pretrained_model, **pretrained_overwriting_kwargs)
-
         # GNN layers need to be the same
-        pretrained_layers = predictor.model.gnn.layers
-        overwritten_layers = predictor.model.gnn.layers
+        pretrained_layers = pretrained_model.gnn.layers
+        overwritten_layers = predictor.model.pretrained_model.net.gnn.layers
 
         for pretrained, overwritten in zip(pretrained_layers, overwritten_layers):
             assert pretrained == overwritten
 
         # Task head has only been partially overwritten
         pretrained_layers = pretrained_model.task_heads.task_heads["zinc"].layers
-        overwritten_layers = predictor.model.task_heads.task_heads["lipophilicity_astrazeneca"].layers
+        overwritten_layers = predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].layers
 
         for idx, (pretrained, overwritten) in enumerate(zip(pretrained_layers, overwritten_layers)):
             if idx < 1:

@@ -17,8 +17,8 @@ def modify_cfg_for_finetuning(cfg):
     # Inherit architecture from pretrained
     pretrained_architecture = pretrained_predictor.model_kwargs
     arch_keys = pretrained_architecture.keys()
-    arch_keys = [key[:-7] for key in arch_keys]
-    cfg["architecture"] = {
+    arch_keys = [key.replace("_kwargs", "") for key in arch_keys]
+    cfg_arch = {
         arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())
     }
 
@@ -27,13 +27,14 @@ def modify_cfg_for_finetuning(cfg):
     level = cfg_finetune["level"]
     task_head_from_pretrained = cfg_finetune.get("task_head_from_pretrained", None)
 
-    # Find part of config of module to finetune from
+    # Find part of config of module to finetune from        # not sure how to make the code below more general;
+                                                            # it is specific to FullGraphMultitaskNetwork
     if finetuning_module == "gnn":
-        new_module_kwargs = deepcopy(cfg["architecture"][finetuning_module])
+        new_module_kwargs = deepcopy(cfg_arch[finetuning_module])
     elif finetuning_module == "graph_output_nn":
-        new_module_kwargs = deepcopy(cfg["architecture"][finetuning_module][level])
+        new_module_kwargs = deepcopy(cfg_arch[finetuning_module][level])
     elif finetuning_module == "task_heads":
-        new_module_kwargs = deepcopy(cfg["architecture"][finetuning_module][task_head_from_pretrained])
+        new_module_kwargs = deepcopy(cfg_arch[finetuning_module][task_head_from_pretrained])
     elif finetuning_module in ["pe_encoders", "pre_nn", "pre_nn_edges"]:
         raise NotImplementedError(f"Finetune from (edge) pre-NNs is not supported")
     else:
@@ -51,32 +52,40 @@ def modify_cfg_for_finetuning(cfg):
     new_module_kwargs.update(upd_kwargs)
 
     if finetuning_module == "gnn":
-        cfg["architecture"][finetuning_module] = new_module_kwargs
+        cfg_arch[finetuning_module] = new_module_kwargs
     elif finetuning_module == "graph_output_nn":
-        cfg["architecture"][finetuning_module] = {level: new_module_kwargs}
+        cfg_arch[finetuning_module] = {level: new_module_kwargs}
     elif finetuning_module == "task_heads":
-        cfg["architecture"][finetuning_module] = {task: new_module_kwargs}
+        cfg_arch[finetuning_module] = {task: new_module_kwargs}
 
     # Remove modules of pretrained model after module to finetune from
     module_list = ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]
     cutoff_idx = module_list.index(finetuning_module) + 1  # Index of module after module to finetune from
     for module in module_list[cutoff_idx:]:
-        cfg["architecture"][module] = None
+        cfg_arch[module] = None
 
     # Change architecture to FullGraphFinetuningNetwork
-    cfg["architecture"]["model_type"] = "FullGraphFinetuningNetwork"
+    cfg_arch["model_type"] = "FullGraphFinetuningNetwork"
+
+    cfg["architecture"] = cfg_arch
 
     pretrained_overwriting_kwargs = deepcopy(cfg["finetuning"])
-    pretrained_overwriting_kwargs.pop("pretrained_model")
-    pretrained_overwriting_kwargs.pop("level")
-    pretrained_overwriting_kwargs.pop("finetuning_head")
-    pretrained_overwriting_kwargs.pop("unfreeze_pretrained_depth", None)
-    pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
+    drop_keys = ["pretrained_model", "level", "finetuning_head", "unfreeze_pretrained_depth", "epoch_unfreeze_all"]
+    for key in drop_keys:
+        pretrained_overwriting_kwargs.pop(key)
+    # pretrained_overwriting_kwargs.pop("pretrained_model")
+    # pretrained_overwriting_kwargs.pop("level")
+    # pretrained_overwriting_kwargs.pop("finetuning_head")
+    # pretrained_overwriting_kwargs.pop("unfreeze_pretrained_depth", None)
+    # pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
-    finetuning_training_kwargs.pop("pretrained_model")
-    finetuning_training_kwargs.pop("task_head_from_pretrained")
-    finetuning_training_kwargs.pop("finetuning_head")
+    drop_keys = ["pretrained_model", "task_head_from_pretrained", "finetuning_head"]
+    for key in drop_keys:
+        finetuning_training_kwargs.pop(key)
+    # finetuning_training_kwargs.pop("pretrained_model")
+    # finetuning_training_kwargs.pop("task_head_from_pretrained")
+    # finetuning_training_kwargs.pop("finetuning_head")
 
     cfg["finetuning"].update(
         {"overwriting_kwargs": pretrained_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}

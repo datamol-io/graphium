@@ -103,6 +103,7 @@ class PredictorModule(lightning.LightningModule):
             task_heads_kwargs = model_kwargs["pretrained_model_kwargs"]["task_heads_kwargs"]
         else:
             raise "incorrect model_kwargs"
+        self.task_heads_kwargs = task_heads_kwargs
         
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         self._eval_options_dict = {
@@ -336,7 +337,7 @@ class PredictorModule(lightning.LightningModule):
 
         preds = {
             self._get_task_key(
-                task_level=self.model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+                task_level=self.task_heads_kwargs[key]["task_level"], task=key
             ): value
             for key, value in preds.items()
         }

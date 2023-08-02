@@ -40,7 +40,7 @@ finetuning:
   added_depth: 2
 
   # Training
-  # unfreeze_pretrained_depth: 1
+  unfreeze_pretrained_depth: 0
   epoch_unfreeze_all: none
 
   # # Finetuning network

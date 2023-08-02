@@ -75,6 +75,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
+        self.pretrained_overwriting_kwargs = pretrained_overwriting_kwargs
         self.finetuning_head_kwargs = finetuning_head_kwargs
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
@@ -146,13 +147,15 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         )
 
         kwargs["pretrained_model_kwargs"] = self.pretrained_model.make_mup_base_kwargs(
-            divide_factor=divide_factor, factor_in_dim=True
+            divide_factor=divide_factor
         )
 
         if self.finetuning_head is not None:
             kwargs["finetuning_head_kwargs"] = self.finetuning_head.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=True
             )
+
+        kwargs["pretrained_overwriting_kwargs"] = self.pretrained_overwriting_kwargs
 
         return kwargs
 
@@ -167,19 +170,21 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
-        self.max_num_nodes_per_graph = max_nodes
-        self.max_num_edges_per_graph = max_edges
-        if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
-            for encoder in self.encoder_manager.pe_encoders.values():
-                encoder.max_num_nodes_per_graph = max_nodes
-                encoder.max_num_edges_per_graph = max_edges
-        if self.gnn is not None:
-            for layer in self.gnn.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
+        # self.max_num_nodes_per_graph = max_nodes
+        # self.max_num_edges_per_graph = max_edges
+        # if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
+        #     for encoder in self.encoder_manager.pe_encoders.values():
+        #         encoder.max_num_nodes_per_graph = max_nodes
+        #         encoder.max_num_edges_per_graph = max_edges
+        # if self.gnn is not None:
+        #     for layer in self.gnn.layers:
+        #         if isinstance(layer, BaseGraphStructure):
+        #             layer.max_num_nodes_per_graph = max_nodes
+        #             layer.max_num_edges_per_graph = max_edges
 
-        self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+        # self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+
+        self.pretrained_model.net.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
     # @property
     # def in_dim(self) -> int:
@@ -252,6 +257,7 @@ class PretrainedModel(nn.Module, MupMixin):
         # Initialize new model with architecture after
         net = type(pretrained_model)
         self.net = net(**pretrained_model_kwargs)
+        self.net._create_module_map()
 
         # Overwrite shared parameters with pretrained model
         self.overwrite_with_pretrained(pretrained_model, **pretrained_overwriting_kwargs)
@@ -270,7 +276,6 @@ class PretrainedModel(nn.Module, MupMixin):
         added_depth: int,
         task_head_from_pretrained: str = None,
     ):
-        self.net._create_module_map()
         module_map = self.net._module_map
 
         # Below list should also come from pretrained model (like module_map)
@@ -357,7 +362,7 @@ class PretrainedModel(nn.Module, MupMixin):
         else:
             raise NotImplementedError(f"This is an unknown module type")
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -372,9 +377,7 @@ class PretrainedModel(nn.Module, MupMixin):
         """
         # For the post-nn network, all the dimension are divided
 
-        return self.net.make_mup_base_kwargs(
-            divide_factor=divide_factor, factor_in_dim=factor_in_dim
-        )
+        return self.net.make_mup_base_kwargs(divide_factor=divide_factor)
 
 
 class FinetuningHead(nn.Module, MupMixin):

@@ -110,25 +110,6 @@ def main(cfg: DictConfig) -> None:
         cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
     )
 
-    ########################
-    # Changes for finetuning
-
-    # Load pretrained & replace in predictor
-    pretrained_model = predictor.load_pretrained_models(
-        cfg["finetuning"]["pretrained_model"]
-    ).model  # make pretrained model part of config  # use latest or best available checkpoint
-
-    # Adapt pretrained model to new task
-    # We need to overwrite shared weights with pretrained
-
-    finetuning_overwriting_kwargs = cfg["finetuning"]["overwriting_kwargs"]
-    predictor.model.overwrite_with_pretrained(pretrained_model, **finetuning_overwriting_kwargs)
-
-    # (Un)freezing will be handled by finetuning callback added to trainer
-
-    predictor.model = set_base_shapes(predictor.model, base=None)  # how do we deal with muP for finetuning
-    ########################
-
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
 
