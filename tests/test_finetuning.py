@@ -29,6 +29,12 @@ os.chdir(MAIN_DIR)
 
 class Test_Multitask_DataModule(ut.TestCase):
     def test_cfg_modification(self):
+        try:
+            import tdc
+        except ImportError:
+            self.skipTest("PyTDC needs to be installed to run this test. Use `pip install PyTDC`.")
+            raise
+        
         cfg = graphium.load_config(name="dummy_finetuning")
         cfg = OmegaConf.to_container(cfg, resolve=True)
         # cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR)

@@ -1,11 +1,15 @@
 # @package _global_
 
 constants:
-  name: neurips2023_small_data_gcn
-  entity: "multitask-gnn"
+  name: finetuning_lipophilicity_gcn
+  # wandb:
+  #   name: ${constants.name}
+  #   project: lipophilicity
+  #   entity: multitask-gnn
+  #   save_dir: logs/lipophilicity
   seed: 42
   max_epochs: 100
-  data_dir: expts/data/neurips2023/small-dataset
+  data_dir: expts/data/admet/lipophilicity
   raise_train_error: true
 
 trainer:

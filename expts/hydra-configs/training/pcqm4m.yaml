@@ -22,10 +22,6 @@ predictor:
 
 trainer:
   seed: ${constants.seed}
-  logger:
-    save_dir: logs/PCQMv2
-    name: ${constants.name}
-    project: PCQMv2_mpnn
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0

@@ -18,7 +18,7 @@ from graphium.nn.architectures.global_architectures import FeedForwardGraph
 from graphium.trainer.predictor_options import ModelOptions
 from graphium.nn.utils import MupMixin
 
-from graphium.trainer import PredictorModule
+from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT, FINETUNING_HEADS_DICT
 
 

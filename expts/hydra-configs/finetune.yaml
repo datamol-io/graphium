@@ -1,9 +1,16 @@
 defaults:
-  - accelerator: gpu
-  - dataset: toymix
+
+  # Accelerators
+  - accelerator: cpu
+
+  # Pre-training/fine-tuning
+  - architecture: toymix
+  - tasks: lipophilicity
+  - training: lipophilicity
+
+  # Benchmarking
   - model: gcn
 
   # Specializations
-  - experiment: ${dataset}_${model}
-  - dataset/accelerator: ${dataset}_${accelerator}
+  - training/model: ${training}_${model}
   - finetuning: finetuning
