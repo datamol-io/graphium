@@ -37,9 +37,11 @@ class GraphFinetuning(BaseFinetuning):
     def freeze_before_training(self, pl_module: pl.LightningModule):
         # Freeze everything up to finetuning module (and potentially parts of finetuning module)
         self.module_map = pl_module.model.pretrained_model.net._module_map
-        
+
         # Remove modules that are not in pretrained model (and hence neither in FullGraphFinetuningNetwork)
-        self.drop_modules = [module_name for module_name in self.module_map.keys() if self.module_map[module_name] is None]
+        self.drop_modules = [
+            module_name for module_name in self.module_map.keys() if self.module_map[module_name] is None
+        ]
         for module_name in self.drop_modules:
             self.module_map.pop(module_name)
 

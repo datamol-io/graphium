@@ -18,9 +18,7 @@ def modify_cfg_for_finetuning(cfg):
     pretrained_architecture = pretrained_predictor.model_kwargs
     arch_keys = pretrained_architecture.keys()
     arch_keys = [key.replace("_kwargs", "") for key in arch_keys]
-    cfg_arch = {
-        arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())
-    }
+    cfg_arch = {arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())}
 
     finetuning_module = cfg_finetune["finetuning_module"]
     task = cfg_finetune["task"]
@@ -28,7 +26,7 @@ def modify_cfg_for_finetuning(cfg):
     task_head_from_pretrained = cfg_finetune.get("task_head_from_pretrained", None)
 
     # Find part of config of module to finetune from        # not sure how to make the code below more general;
-                                                            # it is specific to FullGraphMultitaskNetwork
+    # it is specific to FullGraphMultitaskNetwork
     if finetuning_module == "gnn":
         new_module_kwargs = deepcopy(cfg_arch[finetuning_module])
     elif finetuning_module == "graph_output_nn":
@@ -70,7 +68,13 @@ def modify_cfg_for_finetuning(cfg):
     cfg["architecture"] = cfg_arch
 
     pretrained_overwriting_kwargs = deepcopy(cfg["finetuning"])
-    drop_keys = ["pretrained_model", "level", "finetuning_head", "unfreeze_pretrained_depth", "epoch_unfreeze_all"]
+    drop_keys = [
+        "pretrained_model",
+        "level",
+        "finetuning_head",
+        "unfreeze_pretrained_depth",
+        "epoch_unfreeze_all",
+    ]
     for key in drop_keys:
         pretrained_overwriting_kwargs.pop(key)
     # pretrained_overwriting_kwargs.pop("pretrained_model")

@@ -54,8 +54,15 @@ class Test_Multitask_DataModule(ut.TestCase):
             cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
         )
 
-        self.assertEqual(len(predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].layers), 3)
-        self.assertEqual(predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].out_dim, 8)
+        self.assertEqual(
+            len(
+                predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].layers
+            ),
+            3,
+        )
+        self.assertEqual(
+            predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].out_dim, 8
+        )
         self.assertEqual(predictor.model.finetuning_head.net.in_dim, 8)
         self.assertEqual(len(predictor.model.finetuning_head.net.layers), 2)
         self.assertEqual(predictor.model.finetuning_head.net.out_dim, 1)
@@ -72,7 +79,9 @@ class Test_Multitask_DataModule(ut.TestCase):
 
         # Task head has only been partially overwritten
         pretrained_layers = pretrained_model.task_heads.task_heads["zinc"].layers
-        overwritten_layers = predictor.model.pretrained_model.net.task_heads.task_heads["lipophilicity_astrazeneca"].layers
+        overwritten_layers = predictor.model.pretrained_model.net.task_heads.task_heads[
+            "lipophilicity_astrazeneca"
+        ].layers
 
         for idx, (pretrained, overwritten) in enumerate(zip(pretrained_layers, overwritten_layers)):
             if idx < 1:

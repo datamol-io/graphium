@@ -226,7 +226,7 @@ class PretrainedModel(nn.Module, MupMixin):
         self,
         pretrained_model_kwargs: Dict[str, Any],
         pretrained_overwriting_kwargs: Dict[str, Any],
-        pretrained_model: str = 'dummy-pretrained-model-cpu'
+        pretrained_model: str = "dummy-pretrained-model-cpu",
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -262,7 +262,6 @@ class PretrainedModel(nn.Module, MupMixin):
         # Overwrite shared parameters with pretrained model
         self.overwrite_with_pretrained(pretrained_model, **pretrained_overwriting_kwargs)
 
-
     def forward(self, g: Union[torch.Tensor, Batch]):
         g = self.net.forward(g)
 
@@ -285,7 +284,9 @@ class PretrainedModel(nn.Module, MupMixin):
 
             self.overwrite_complete_module(pretrained_model, module, module_map)
 
-        self.overwrite_partial_module(pretrained_model, module, module_map, task, added_depth, task_head_from_pretrained)
+        self.overwrite_partial_module(
+            pretrained_model, module, module_map, task, added_depth, task_head_from_pretrained
+        )
 
     def overwrite_partial_module(
         self, pretrained_model, module, module_map, task, added_depth, task_head_from_pretrained
@@ -301,9 +302,7 @@ class PretrainedModel(nn.Module, MupMixin):
 
         elif module == "graph_output_nn":
             for task_level in module_map[module].keys():
-                shared_depth = (
-                    len(module_map[module][task_level].graph_output_nn.layers) - added_depth
-                )
+                shared_depth = len(module_map[module][task_level].graph_output_nn.layers) - added_depth
                 assert shared_depth >= 0
                 if shared_depth > 0:
                     module_map[module][task_level].graph_output_nn.layers = (
@@ -331,7 +330,7 @@ class PretrainedModel(nn.Module, MupMixin):
     def overwrite_complete_module(self, pretrained_model, module, module_map):
         """
         Completely overwrite the specified module
-         """
+        """
         if module == "pre_nn":
             try:
                 module_map[module] = pretrained_model.pre_nn.layers
@@ -355,9 +354,7 @@ class PretrainedModel(nn.Module, MupMixin):
 
         elif module == "graph_output_nn":
             for task_level in module_map[module].keys():
-                module_map[module][task_level] = pretrained_model.task_heads.graph_output_nn[
-                    task_level
-                ]
+                module_map[module][task_level] = pretrained_model.task_heads.graph_output_nn[task_level]
 
         else:
             raise NotImplementedError(f"This is an unknown module type")
@@ -429,6 +426,4 @@ class FinetuningHead(nn.Module, MupMixin):
         """
         # For the post-nn network, all the dimension are divided
 
-        return self.net.make_mup_base_kwargs(
-            divide_factor=divide_factor, factor_in_dim=factor_in_dim
-        )
+        return self.net.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)

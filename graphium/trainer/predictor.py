@@ -104,11 +104,12 @@ class PredictorModule(lightning.LightningModule):
         else:
             raise "incorrect model_kwargs"
         self.task_heads_kwargs = task_heads_kwargs
-        
+
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         self._eval_options_dict = {
             self._get_task_key(
-                task_level=task_heads_kwargs[key]["task_level"], task=key
+                task_level=task_heads_kwargs[key]["task_level"],
+                task=key
                 # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in self._eval_options_dict.items()
@@ -131,7 +132,8 @@ class PredictorModule(lightning.LightningModule):
 
         loss_fun = {
             self._get_task_key(
-                task_level=task_heads_kwargs[key]["task_level"], task=key
+                task_level=task_heads_kwargs[key]["task_level"],
+                task=key
                 # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in loss_fun.items()
@@ -336,9 +338,7 @@ class PredictorModule(lightning.LightningModule):
             preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
 
         preds = {
-            self._get_task_key(
-                task_level=self.task_heads_kwargs[key]["task_level"], task=key
-            ): value
+            self._get_task_key(task_level=self.task_heads_kwargs[key]["task_level"], task=key): value
             for key, value in preds.items()
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}

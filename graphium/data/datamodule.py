@@ -1964,7 +1964,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
         for task_key, task_args in self.task_specific_args.items():
-            this_args = task_args.__dict__ # Convert the class to a dictionary
+            this_args = task_args.__dict__  # Convert the class to a dictionary
 
             # Keep only first 5 rows of a dataframe
             if this_args["df"] is not None:
