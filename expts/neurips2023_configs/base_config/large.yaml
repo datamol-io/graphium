@@ -1,9 +1,10 @@
-# Testing the gcn model with the PCQMv2 dataset on IPU.
+# @package _global_
+
 constants:
-  name: &name neurips2023_large_data_gcn_debug
-  seed: &seed 100
+  seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   entity: multitask-gnn
+  datacache_path: "/localdata/neurips2023-large/"
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -13,16 +14,16 @@ accelerator:
         ipu_dataloader_training_opts:
           mode: async
           max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 80
+          max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 80
+          max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 40
-        batch_size_inference: 40
+        batch_size_training: 30
+        batch_size_inference: 30
     predictor:
-      metrics_every_n_train_steps: 100
+      metrics_every_n_train_steps: 1000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
@@ -31,17 +32,18 @@ accelerator:
         accumulate_grad_batches: 2
 
   ipu_config:
-    - deviceIterations(2) # IPU would require large batches to be ready for the model.
+    - deviceIterations(30) # IPU would require large batches to be ready for the model.
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
+    # - Precision.enableFloatingPointExceptions(True)
 
   ipu_inference_config:
   # set device iteration and replication factor to 1 during inference
-  # gradient accumulation was set to be 1 in the code
+  # gradient accumulation was set to 1 in the code
     - deviceIterations(1)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
@@ -51,7 +53,7 @@ accelerator:
 #   config_override:
 #     datamodule:
 #       args:
-#         batch_size_training: 320
+#         batch_size_training: 64
 #         batch_size_inference: 256
 #     trainer:
 #       trainer:
@@ -70,7 +72,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -82,7 +84,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -94,7 +96,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
         epoch_sampling_fraction: 1.0
@@ -106,7 +108,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
@@ -121,10 +123,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
-        sample_size: 2000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
-        seed: *seed
+        seed: ${constants.seed}
         label_normalization:
           normalize_val_test: True
           method: "normal"
@@ -135,7 +137,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-large/"
+    processed_graph_data_path: ${constants.datacache_path}
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -167,8 +169,8 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch.
+    num_workers: 32 # -1 to use all
+    persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
 
@@ -181,7 +183,7 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
@@ -229,7 +231,6 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
 
 
 
@@ -286,7 +287,7 @@ architecture:
       hidden_dims: 64
       depth: 2
       activation: relu
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -327,26 +328,26 @@ predictor:
     l1000_mcf7: []
     pcba_1328: []
     pcqm4m_g25: []
-    pcqm4m_n4: [] 
+    pcqm4m_n4: []
   loss_fun:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.9
+      alpha: 0.5
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.9
-    pcba_1328: bce_ipu
+      alpha: 0.5
+    pcba_1328: bce_logits_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
-  random_seed: *seed
+  random_seed: ${constants.seed}
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 10
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -379,6 +380,7 @@ metrics:
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
+  # use auroc and averageprecision (non_ipu version) so tha nans are handled correctly
     - name: auroc
       metric: auroc
       task: binary
@@ -395,7 +397,7 @@ metrics:
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
@@ -410,25 +412,19 @@ metrics:
   pcqm4m_n4: *pcqm_metrics
 
 trainer:
-  seed: *seed
+  seed: ${constants.seed}
   logger:
     save_dir: logs/neurips2023-large/
-    name: *name
-    project: *name
-  #early_stopping:
-  #  monitor: *monitor
-  #  min_delta: 0
-  #  patience: 10
-  #  mode: &mode min
+    name: ${constants.name}
+    project: ${constants.name}
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large-gcn-debug/
-    filename: *name
+    dirpath: models_checkpoints/${constants.name}/
+    filename: ${constants.name}
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    every_n_epochs: 20
     save_last: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 20

@@ -9,7 +9,7 @@ on:
       - "*"
       - "!gh-pages"
   schedule:
-    - cron: "0 4 * * MON"
+    - cron: "0 4 * * *"
 
 jobs:
   test:
