@@ -18,7 +18,7 @@ from graphium.nn.architectures.global_architectures import FeedForwardGraph
 from graphium.trainer.predictor_options import ModelOptions
 from graphium.nn.utils import MupMixin
 
-from graphium.trainer import PredictorModule
+from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT, FINETUNING_HEADS_DICT
 
 
@@ -257,7 +257,7 @@ class PretrainedModel(nn.Module, MupMixin):
                         "".join([module_name.split("/")[0], "/", sub_module_from_pretrained])
                     ][idx]
             else:
-                raise "Mismatch between loaded pretrained model and model to be overwritten."
+                raise RuntimeError("Mismatch between loaded pretrained model and model to be overwritten.")
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """

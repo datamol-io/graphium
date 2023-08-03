@@ -1,9 +1,0 @@
-defaults:
-  - accelerator: gpu
-  - dataset: toymix
-  - model: gcn
-
-  # Specializations
-  - experiment: ${dataset}_${model}
-  - dataset/accelerator: ${dataset}_${accelerator}
-  - finetuning: finetuning

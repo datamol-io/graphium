@@ -1,11 +1,53 @@
 from copy import deepcopy
-
+from loguru import logger
+from typing import Union, List
 from graphium.trainer import PredictorModule
 
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 
 
+def filter_cfg_based_on_admet_benchmark_name(config, names: Union[List[str], str]):
+    """
+    Filter a base config for the full TDC ADMET benchmarking group to only
+    have settings related to a subset of the endpoints
+    """
+
+    if config["datamodule"]["module_type"] != "ADMETBenchmarkDataModule":
+        # NOTE (cwognum): For now, this implies we only support the ADMET benchmark from TDC.
+        #    It is easy to extend this in the future to support more datasets.
+        raise ValueError("You can only use this method for the `ADMETBenchmarkDataModule`")
+
+    if isinstance(names, str):
+        names = [names]
+
+    def _filter(d):
+        return {k: v for k, v in d.items() if k in names}
+
+    cfg = deepcopy(config)
+
+    # Update the datamodule arguments
+    cfg["datamodule"]["args"]["tdc_benchmark_names"] = names
+
+    # Filter the relevant config sections
+    if "architecture" in cfg and "task_heads" in cfg["architecture"]:
+        cfg["architecture"]["task_heads"] = _filter(cfg["architecture"]["task_heads"])
+    if "predictor" in cfg and "metrics_on_progress_bar" in cfg["predictor"]:
+        cfg["predictor"]["metrics_on_progress_bar"] = _filter(cfg["predictor"]["metrics_on_progress_bar"])
+    if "predictor" in cfg and "loss_fun" in cfg["predictor"]:
+        cfg["predictor"]["loss_fun"] = _filter(cfg["predictor"]["loss_fun"])
+    if "metrics" in cfg:
+        cfg["metrics"] = _filter(cfg["metrics"])
+
+    return cfg
+
+
 def modify_cfg_for_finetuning(cfg):
+    task = cfg["finetuning"]["task"]
+
+    # Filter the config based on the task name
+    # NOTE (cwognum): This prevents the need for having many different files for each of the tasks
+    #    with lots and lots of config repetition.
+    cfg = filter_cfg_based_on_admet_benchmark_name(cfg, task)
     cfg_finetune = cfg["finetuning"]
 
     # Load pretrained model
@@ -21,7 +63,6 @@ def modify_cfg_for_finetuning(cfg):
     cfg_arch = {arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())}
 
     finetuning_module = cfg_finetune["finetuning_module"]
-    task = cfg_finetune["task"]
     level = cfg_finetune["level"]
     sub_module_from_pretrained = cfg_finetune.get("sub_module_from_pretrained", None)
 
@@ -78,19 +119,11 @@ def modify_cfg_for_finetuning(cfg):
     ]
     for key in drop_keys:
         pretrained_overwriting_kwargs.pop(key)
-    # pretrained_overwriting_kwargs.pop("pretrained_model")
-    # pretrained_overwriting_kwargs.pop("level")
-    # pretrained_overwriting_kwargs.pop("finetuning_head")
-    # pretrained_overwriting_kwargs.pop("unfreeze_pretrained_depth", None)
-    # pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
     drop_keys = ["pretrained_model", "sub_module_from_pretrained", "finetuning_head"]
     for key in drop_keys:
         finetuning_training_kwargs.pop(key)
-    # finetuning_training_kwargs.pop("pretrained_model")
-    # finetuning_training_kwargs.pop("sub_module_from_pretrained")
-    # finetuning_training_kwargs.pop("finetuning_head")
 
     cfg["finetuning"].update(
         {"overwriting_kwargs": pretrained_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}

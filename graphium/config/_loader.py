@@ -24,7 +24,7 @@ from graphium.utils.mup import set_base_shapes
 from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
 from graphium.trainer.metrics import MetricWrapper
 from graphium.nn.architectures import FullGraphMultiTaskNetwork
-from graphium.finetuning import FullGraphFinetuningNetwork
+from graphium.finetuning.finetuning_architecture import FullGraphFinetuningNetwork
 from graphium.nn.utils import MupMixin
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import DATAMODULE_DICT
@@ -350,7 +350,6 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
 
 def load_trainer(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    run_name: str,
     accelerator_type: str,
     date_time_suffix: str = "",
 ) -> Trainer:
@@ -358,7 +357,6 @@ def load_trainer(
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
-        run_name: The name of the current run. To be used for logging.
         accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
         date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
@@ -405,12 +403,12 @@ def load_trainer(
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
-    logger = cfg_trainer.pop("logger", None)
-    if logger is not None:
-        name = logger.pop("name", run_name)
+    wandb_cfg = config["constants"].get("wandb")
+    if wandb_cfg is not None:
+        name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:
             name += f"_{date_time_suffix}"
-        trainer_kwargs["logger"] = WandbLogger(name=name, **logger)
+        trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
 
     trainer_kwargs["callbacks"] = callbacks
     trainer = Trainer(
