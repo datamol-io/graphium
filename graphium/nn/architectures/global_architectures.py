@@ -1143,14 +1143,45 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )
 
     def _create_module_map(self):
-        self._module_map = OrderedDict(
-            pe_encoders=self.encoder_manager,
-            pre_nn=self.pre_nn,
-            pre_nn_edges=self.pre_nn_edges,
-            gnn=self.gnn,
-            graph_output_nn=self.task_heads.graph_output_nn,
-            task_heads=self.task_heads.task_heads,
-        )
+        self._module_map = OrderedDict()
+
+        if self.encoder_manager is not None:
+            self._module_map.update({"pe_encoders": self.encoder_manager})
+
+        if self.pre_nn is not None:
+            self._module_map.update({"pre_nn": self.pre_nn.layers})
+
+        if self.pre_nn_edges is not None:
+            self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
+
+        self._module_map.update({"gnn": self.gnn.layers})
+
+        if self.task_heads is not None:
+            self._module_map.update(
+                {
+                    "graph_output_nn/"
+                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn.layers
+                    for output_level in self.task_heads.graph_output_nn.keys()
+                }
+            )
+
+            self._module_map.update(
+                {
+                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name].layers
+                    for task_head_name in self.task_heads.task_heads.keys()
+                }
+            )
+
+        pass
+
+        # self._module_map = OrderedDict(
+        #     pe_encoders=self.encoder_manager,
+        #     pre_nn=self.pre_nn,
+        #     pre_nn_edges=self.pre_nn_edges,
+        #     gnn=self.gnn,
+        #     graph_output_nn=self.task_heads.graph_output_nn,
+        #     task_heads=self.task_heads.task_heads,
+        # )
 
     def forward(self, g: Batch) -> Tensor:
         r"""
