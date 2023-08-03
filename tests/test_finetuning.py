@@ -128,7 +128,7 @@ class Test_Finetuning(ut.TestCase):
 
                 # TODO: Implement testing of correct (un)freezing here.
 
-        trainer = load_trainer(cfg, "test-finetuning", accelerator_type)
+        trainer = load_trainer(cfg, accelerator_type)
 
         # Add test callback to trainer
         trainer.callbacks.append(TestCallback())

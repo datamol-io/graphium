@@ -91,7 +91,7 @@ metrics:
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: auprc
-      metric: average_precision
+      metric: averageprecision
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null

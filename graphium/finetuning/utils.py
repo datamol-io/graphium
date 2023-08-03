@@ -29,10 +29,14 @@ def filter_cfg_based_on_admet_benchmark_name(config, names: Union[List[str], str
     cfg["datamodule"]["args"]["tdc_benchmark_names"] = names
 
     # Filter the relevant config sections
-    cfg["architecture"]["task_heads"] = _filter(cfg["architecture"]["task_heads"])
-    cfg["predictor"]["metrics_on_progress_bar"] = _filter(cfg["predictor"]["metrics_on_progress_bar"])
-    cfg["predictor"]["loss_fun"] = _filter(cfg["predictor"]["loss_fun"])
-    cfg["metrics"] = _filter(cfg["metrics"])
+    if "architecture" in cfg and "task_heads" in cfg["architecture"]:
+        cfg["architecture"]["task_heads"] = _filter(cfg["architecture"]["task_heads"])
+    if "predictor" in cfg and "metrics_on_progress_bar" in cfg["predictor"]:
+        cfg["predictor"]["metrics_on_progress_bar"] = _filter(cfg["predictor"]["metrics_on_progress_bar"])
+    if "predictor" in cfg and "loss_fun" in cfg["predictor"]:
+        cfg["predictor"]["loss_fun"] = _filter(cfg["predictor"]["loss_fun"])
+    if "metrics" in cfg:
+        cfg["metrics"] = _filter(cfg["metrics"])
 
     return cfg
 

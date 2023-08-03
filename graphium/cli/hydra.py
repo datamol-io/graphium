@@ -28,6 +28,13 @@ def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training and fine-tuning Graphium models.
     """
+    run_training_finetuning(cfg)
+
+
+def run_training_finetuning(cfg: DictConfig) -> None:
+    """
+    The main (pre-)training and fine-tuning loop.
+    """
 
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
