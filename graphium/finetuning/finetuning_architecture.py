@@ -309,7 +309,7 @@ class PretrainedModel(nn.Module, MupMixin):
                         module_name.split("/")[0] + "/" + sub_module_from_pretrained
                     ][idx]
             else:
-                raise "Mismatch between loaded pretrained model and model to be overwritten."
+                raise RuntimeError("Mismatch between loaded pretrained model and model to be overwritten.")
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """

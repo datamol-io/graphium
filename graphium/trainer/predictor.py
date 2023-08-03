@@ -102,7 +102,7 @@ class PredictorModule(lightning.LightningModule):
             # This covers finetuning cases where we finetune from the task_heads
             task_heads_kwargs = model_kwargs["pretrained_model_kwargs"]["task_heads_kwargs"]
         else:
-            raise "incorrect model_kwargs"
+            raise ValueError("incorrect model_kwargs")
         self.task_heads_kwargs = task_heads_kwargs
 
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options

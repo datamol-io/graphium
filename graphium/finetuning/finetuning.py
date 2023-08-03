@@ -71,7 +71,7 @@ class GraphFinetuning(BaseFinetuning):
         elif module_name == "task_heads":
             modules = self.module_map[module_name][self.task].layers
         else:
-            raise "Wrong module"
+            raise KeyError(f"{module_name} is not a valid module")
 
         modules = modules[: -self.training_depth]
 

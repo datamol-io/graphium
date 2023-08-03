@@ -403,7 +403,7 @@ def load_trainer(
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
-    wandb_cfg = cfg_trainer.pop("wandb")
+    wandb_cfg = cfg_trainer.pop("wandb", None)
     if wandb_cfg is not None:
         name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:

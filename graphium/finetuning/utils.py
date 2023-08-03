@@ -38,13 +38,13 @@ def filter_cfg_based_on_admet_benchmark_name(config, names: Union[List[str], str
 
 
 def modify_cfg_for_finetuning(cfg):
-    cfg_finetune = cfg["finetuning"]
-    task = cfg_finetune["task"]
+    task = cfg["finetuning"]["task"]
 
     # Filter the config based on the task name
     # NOTE (cwognum): This prevents the need for having many different files for each of the tasks
     #    with lots and lots of config repetition.
     cfg = filter_cfg_based_on_admet_benchmark_name(cfg, task)
+    cfg_finetune = cfg["finetuning"]
 
     # Load pretrained model
     pretrained_model = cfg_finetune["pretrained_model"]
@@ -115,19 +115,11 @@ def modify_cfg_for_finetuning(cfg):
     ]
     for key in drop_keys:
         pretrained_overwriting_kwargs.pop(key)
-    # pretrained_overwriting_kwargs.pop("pretrained_model")
-    # pretrained_overwriting_kwargs.pop("level")
-    # pretrained_overwriting_kwargs.pop("finetuning_head")
-    # pretrained_overwriting_kwargs.pop("unfreeze_pretrained_depth", None)
-    # pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
     drop_keys = ["pretrained_model", "sub_module_from_pretrained", "finetuning_head"]
     for key in drop_keys:
         finetuning_training_kwargs.pop(key)
-    # finetuning_training_kwargs.pop("pretrained_model")
-    # finetuning_training_kwargs.pop("sub_module_from_pretrained")
-    # finetuning_training_kwargs.pop("finetuning_head")
 
     cfg["finetuning"].update(
         {"overwriting_kwargs": pretrained_overwriting_kwargs, "training_kwargs": finetuning_training_kwargs}
