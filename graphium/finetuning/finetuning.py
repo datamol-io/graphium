@@ -11,7 +11,6 @@ from pytorch_lightning.callbacks import BaseFinetuning
 class GraphFinetuning(BaseFinetuning):
     def __init__(
         self,
-        cfg_arch: Dict[str, Any],
         task: str,
         level: str,
         finetuning_module: str,
@@ -35,45 +34,20 @@ class GraphFinetuning(BaseFinetuning):
         self.train_bn = train_bn
 
     def freeze_before_training(self, pl_module: pl.LightningModule):
-        # Freeze everything up to finetuning module (and potentially parts of finetuning module)
+        # Freeze everything up to finetuning module (and parts of finetuning module)
         self.module_map = pl_module.model.pretrained_model.net._module_map
 
-        # Remove modules that are not in pretrained model (and hence neither in FullGraphFinetuningNetwork)
-        self.drop_modules = [
-            module_name for module_name in self.module_map.keys() if self.module_map[module_name] is None
-        ]
-        for module_name in self.drop_modules:
-            self.module_map.pop(module_name)
+        for module_name in self.module_map.keys():
+            self.freeze_module(pl_module, module_name)
 
-        for module_name, module in self.module_map.items():
-            if module_name == self.finetuning_module:
+            if module_name.startswith(self.finetuning_module):
                 break
 
-            # We need to filter out optional modules in case they are not present, e.g., pre-nn(-edges)
-            if module is not None:
-                self.freeze_complete_module(pl_module, module_name)
-
-        self.freeze_partial_module(pl_module, module_name)
-
-    def freeze_complete_module(self, pl_module: pl.LightningModule, module_name: str):
+    def freeze_module(self, pl_module: pl.LightningModule, module_name: str):
         modules = self.module_map[module_name]
-        self.freeze(modules=modules, train_bn=self.train_bn)
 
-    def freeze_partial_module(self, pl_module: pl.LightningModule, module_name: str):
-        # Below code is still specific to finetuning a FullGraphMultitaskNetwork
-        # A solution would be to create a second module_map_layers that maps to nn.ModuleDict
-        if module_name in self.drop_modules:
-            raise NotImplementedError(f"Finetune from pos. encoders or (edge) pre-NNs is not supported")
-        elif module_name == "gnn":
-            modules = self.module_map[module_name].layers
-        elif module_name == "graph_output_nn":
-            modules = self.module_map[module_name][self.level].graph_output_nn.layers
-        elif module_name == "task_heads":
-            modules = self.module_map[module_name][self.task].layers
-        else:
-            raise "Wrong module"
-
-        modules = modules[: -self.training_depth]
+        if module_name.startswith(self.finetuning_module):
+            modules = modules[: -self.training_depth]
 
         self.freeze(modules=modules, train_bn=self.train_bn)
 

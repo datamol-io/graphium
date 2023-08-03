@@ -38,35 +38,6 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
 
 
-def filter_cfg_based_on_benchmark_name(config, names: Union[List[str], str]):
-    """
-    Filter a base config for the full TDC ADMET benchmarking group to only
-    have settings related to a subset of the endpoints
-    """
-
-    if config["datamodule"]["module_type"] != "ADMETBenchmarkDataModule":
-        raise ValueError("You can only use this method for the `ADMETBenchmarkDataModule`")
-
-    if isinstance(names, str):
-        names = [names]
-
-    def _filter(d):
-        return {k: v for k, v in d.items() if k in names}
-
-    cfg = deepcopy(config)
-
-    # Update the datamodule arguments
-    cfg["datamodule"]["args"]["tdc_benchmark_names"] = names
-
-    # Filter the relevant config sections
-    cfg["architecture"]["task_heads"] = _filter(cfg["architecture"]["task_heads"])
-    cfg["predictor"]["metrics_on_progress_bar"] = _filter(cfg["predictor"]["metrics_on_progress_bar"])
-    cfg["predictor"]["loss_fun"] = _filter(cfg["predictor"]["loss_fun"])
-    cfg["metrics"] = _filter(cfg["metrics"])
-
-    return cfg
-
-
 @hydra.main(version_base=None, config_path="hydra-configs", config_name="finetune")
 def main(cfg: DictConfig) -> None:
     names = cfg["datamodule"]["args"]["tdc_benchmark_names"]
@@ -119,8 +90,8 @@ def main(cfg: DictConfig) -> None:
     # Changes for finetuning
 
     # Add the pl.BaseFinetuning callback to trainer
-    cfg_arch, finetuning_training_kwargs = cfg["architecture"], cfg["finetuning"]["training_kwargs"]
-    trainer.callbacks.append(GraphFinetuning(cfg_arch, **finetuning_training_kwargs))
+    finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
+    trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
     ########################
 
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)

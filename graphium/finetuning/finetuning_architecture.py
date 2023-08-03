@@ -28,7 +28,6 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         pretrained_model_kwargs: Dict[str, Any],
         pretrained_overwriting_kwargs: Dict[str, Any],
         finetuning_head_kwargs: Optional[Dict[str, Any]] = None,
-        # accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
         name: str = "FullFinetuningGNN",
@@ -170,55 +169,8 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
-        # self.max_num_nodes_per_graph = max_nodes
-        # self.max_num_edges_per_graph = max_edges
-        # if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
-        #     for encoder in self.encoder_manager.pe_encoders.values():
-        #         encoder.max_num_nodes_per_graph = max_nodes
-        #         encoder.max_num_edges_per_graph = max_edges
-        # if self.gnn is not None:
-        #     for layer in self.gnn.layers:
-        #         if isinstance(layer, BaseGraphStructure):
-        #             layer.max_num_nodes_per_graph = max_nodes
-        #             layer.max_num_edges_per_graph = max_edges
-
-        # self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
         self.pretrained_model.net.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
-
-    # @property
-    # def in_dim(self) -> int:
-    #     r"""
-    #     Returns the input dimension of the network
-    #     """
-    #     if self.pre_nn is not None:
-    #         return self.pre_nn.in_dim
-    #     else:
-    #         return self.gnn.in_dim
-
-    # @property
-    # def out_dim(self) -> int:
-    #     r"""
-    #     Returns the output dimension of the network
-    #     """
-    #     return self.gnn.out_dim
-
-    # @property
-    # def out_dim_edges(self) -> int:
-    #     r"""
-    #     Returns the output dimension of the edges
-    #     of the network.
-    #     """
-    #     if self.gnn.full_dims_edges is not None:
-    #         return self.gnn.full_dims_edges[-1]
-    #     return self.gnn.in_dim_edges
-
-    # @property
-    # def in_dim_edges(self) -> int:
-    #     r"""
-    #     Returns the input edge dimension of the network
-    #     """
-    #     return self.gnn.in_dim_edges
 
 
 class PretrainedModel(nn.Module, MupMixin):
@@ -253,12 +205,12 @@ class PretrainedModel(nn.Module, MupMixin):
         pretrained_model = PredictorModule.load_from_checkpoint(
             GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model]
         ).model
-        pretrained_model._create_module_map()
+        pretrained_model.create_module_map()
 
         # Initialize new model with architecture after
         net = type(pretrained_model)
         self.net = net(**pretrained_model_kwargs)
-        self.net._create_module_map()
+        self.net.create_module_map()
 
         # Overwrite shared parameters with pretrained model
         self.overwrite_with_pretrained(pretrained_model, **pretrained_overwriting_kwargs)
@@ -278,10 +230,6 @@ class PretrainedModel(nn.Module, MupMixin):
     ):
         module_map = self.net._module_map
         module_map_from_pretrained = pretrained_model._module_map
-
-        # module_from_pretrained = finetuning_module
-        # if module_from_pretrained is not None:
-        #     finetuning_module += "/" + sub_module_from_pretrained
 
         module_names_from_pretrained = module_map_from_pretrained.keys()
         super_module_names_from_pretrained = set(
@@ -306,7 +254,7 @@ class PretrainedModel(nn.Module, MupMixin):
             elif module_name.split("/")[0] in super_module_names_from_pretrained:
                 for idx in range(shared_depth):
                     module_map[module_name][idx] = module_map_from_pretrained[
-                        module_name.split("/")[0] + "/" + sub_module_from_pretrained
+                        "".join([module_name.split("/")[0], "/", sub_module_from_pretrained])
                     ][idx]
             else:
                 raise "Mismatch between loaded pretrained model and model to be overwritten."

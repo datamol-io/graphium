@@ -5,11 +5,15 @@ import unittest as ut
 
 import torch
 
+from lightning.pytorch.callbacks import Callback
+
 from omegaconf import OmegaConf
 import graphium
 
 from graphium.finetuning import modify_cfg_for_finetuning
 from graphium.trainer import PredictorModule
+
+from graphium.finetuning import GraphFinetuning
 
 from graphium.config._loader import (
     load_datamodule,
@@ -29,14 +33,12 @@ os.chdir(MAIN_DIR)
 
 
 class Test_Finetuning(ut.TestCase):
-    
     def test_finetuning_pipeline(self):
         # Skip test if PyTDC package not installed
         try:
             import tdc
         except ImportError:
             self.skipTest("PyTDC needs to be installed to run this test. Use `pip install PyTDC`.")
-
 
         ##################################################
         ### Test modification of config for finetuning ###
@@ -59,6 +61,8 @@ class Test_Finetuning(ut.TestCase):
             in_dims=datamodule.in_dims,
         )
 
+        datamodule.prepare_data()
+
         metrics = load_metrics(cfg)
 
         predictor = load_predictor(
@@ -78,7 +82,6 @@ class Test_Finetuning(ut.TestCase):
         self.assertEqual(len(predictor.model.finetuning_head.net.layers), 2)
         self.assertEqual(predictor.model.finetuning_head.net.out_dim, 1)
 
-        
         ################################################
         ### Test overwriting with pretrained weights ###
         ################################################
@@ -114,12 +117,29 @@ class Test_Finetuning(ut.TestCase):
             if idx + 1 == min(len(pretrained_layers), len(overwritten_layers)):
                 break
 
-        
         #################################################
         ### Test correct (un)freezing during training ###
         #################################################
 
-        pass
+        # Define test callback that checks for correct (un)freezing
+        class TestCallback(Callback):
+            def on_train_start(self, trainer, pl_module):
+                print("Training is starting")
+
+                # TODO: Implement testing of correct (un)freezing here.
+
+        trainer = load_trainer(cfg, "test-finetuning", accelerator_type)
+
+        # Add test callback to trainer
+        trainer.callbacks.append(TestCallback())
+
+        finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
+        trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
+
+        predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+
+        # Run the model training
+        trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":
