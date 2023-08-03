@@ -1,128 +1,6 @@
-# Testing the gcn model with the PCQMv2 dataset on IPU.
-constants:
-  name: &name tdc_admet_demo
-  seed: &seed 42
-  raise_train_error: true   # Whether the code should raise an error if it crashes during training
-
-accelerator:
-  type: gpu  # cpu or ipu or gpu
-
-datamodule:
-  module_type: "ADMETBenchmarkDataModule"
-  args:
-    # TDC specific
-    tdc_benchmark_names: null
-    tdc_train_val_seed: *seed
-    # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/tdc-admet-demo/"
-    featurization:
-      atom_property_list_onehot: [atomic-number, group, period, total-valence]
-      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      edge_property_list: [bond-type-onehot, stereo, in-ring]
-      add_self_loop: False
-      explicit_H: False # if H is included
-      use_bonds_weights: False
-      pos_encoding_as_features:
-        pos_types:
-          lap_eigvec:
-            pos_level: node
-            pos_type: laplacian_eigvec
-            num_pos: 8
-            normalization: "none" # nomrlization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          lap_eigval:
-            pos_level: node
-            pos_type: laplacian_eigval
-            num_pos: 8
-            normalization: "none" # nomrlization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          rw_pos: # use same name as pe_encoder
-            pos_level: node
-            pos_type: rw_return_probs
-            ksteps: 16
-
-    num_workers: -1 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch.
-
+# @package _global_
 
 architecture:
-  model_type: FullGraphMultiTaskNetwork
-  mup_base_path: null
-  pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 64
-    hidden_dims: 256
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: &dropout 0.18
-    normalization: &normalization layer_norm
-    last_normalization: *normalization
-    residual_type: none
-
-  pre_nn_edges: null   # Set as null to avoid a pre-nn network
-
-  pe_encoders:
-    out_dim: 32
-    pool: "sum" #"mean" "max"
-    last_norm: None #"batch_norm", "layer_norm"
-    encoders: #la_pos |  rw_pos
-      la_pos:  # Set as null to avoid a pre-nn network
-        encoder_type: "laplacian_pe"
-        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
-        output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
-        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
-        num_layers: 2
-        num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.1
-        first_normalization: "none" #"batch_norm" or "layer_norm"
-      rw_pos:
-        encoder_type: "mlp"
-        input_keys: ["rw_return_probs"]
-        output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
-        num_layers: 2
-        dropout: 0.1
-        normalization: "layer_norm" #"batch_norm" or "layer_norm"
-        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-
-
-
-  gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 96
-    hidden_dims: *gnn_dim
-    depth: 4
-    activation: gelu
-    last_activation: none
-    dropout: 0.1
-    normalization: "layer_norm"
-    last_normalization: *normalization
-    residual_type: simple
-    virtual_node: 'none'
-    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    layer_kwargs: null # Parameters for the model itself. You could define dropout_attn: 0.1
-
-
-  graph_output_nn:
-    graph:
-      pooling: [sum]
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-      depth: 1
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-
   task_heads:
     caco2_wang: &regression_head
       task_level: graph
@@ -131,8 +9,8 @@ architecture:
       depth: 2
       activation: relu
       last_activation: none
-      dropout: *dropout
-      normalization: *normalization
+      dropout: &dropout 0.5
+      normalization: &normalization "layer_norm"
       last_normalization: "none"
       residual_type: none
     hia_hou: &classification_head
@@ -217,7 +95,7 @@ predictor:
     ames: bce
     dili: bce
     ld50_zhu: mae
-  random_seed: *seed
+  random_seed: ${constants.seed}
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
   torch_scheduler_kwargs:
@@ -299,17 +177,10 @@ metrics:
   ames: *classification_metrics
   dili: *classification_metrics
   ld50_zhu: *regression_metrics
-trainer:
-  seed: *seed
-  logger:
-    save_dir: logs/tdc-admet-demo/
-    name: *name
-    project: *name
-  model_checkpoint:
-    dirpath: models_checkpoints/tdc-admet-demo/
-    filename: *name
-    save_last: True
-  trainer:
-    max_epochs: *max_epochs
-    min_epochs: 1
-    check_val_every_n_epoch: 20
+
+datamodule:
+  module_type: "ADMETBenchmarkDataModule"
+  args:
+    # TDC specific
+    tdc_benchmark_names: null
+    tdc_train_val_seed: ${constants.seed}

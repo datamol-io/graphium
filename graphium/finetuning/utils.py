@@ -1,12 +1,50 @@
 from copy import deepcopy
-
+from loguru import logger
+from typing import Union, List
 from graphium.trainer import PredictorModule
 
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 
 
+def filter_cfg_based_on_admet_benchmark_name(config, names: Union[List[str], str]):
+    """
+    Filter a base config for the full TDC ADMET benchmarking group to only
+    have settings related to a subset of the endpoints
+    """
+
+    if config["datamodule"]["module_type"] != "ADMETBenchmarkDataModule":
+        # NOTE (cwognum): For now, this implies we only support the ADMET benchmark from TDC.
+        #    It is easy to extend this in the future to support more datasets.
+        raise ValueError("You can only use this method for the `ADMETBenchmarkDataModule`")
+
+    if isinstance(names, str):
+        names = [names]
+
+    def _filter(d):
+        return {k: v for k, v in d.items() if k in names}
+
+    cfg = deepcopy(config)
+
+    # Update the datamodule arguments
+    cfg["datamodule"]["args"]["tdc_benchmark_names"] = names
+
+    # Filter the relevant config sections
+    cfg["architecture"]["task_heads"] = _filter(cfg["architecture"]["task_heads"])
+    cfg["predictor"]["metrics_on_progress_bar"] = _filter(cfg["predictor"]["metrics_on_progress_bar"])
+    cfg["predictor"]["loss_fun"] = _filter(cfg["predictor"]["loss_fun"])
+    cfg["metrics"] = _filter(cfg["metrics"])
+
+    return cfg
+
+
 def modify_cfg_for_finetuning(cfg):
     cfg_finetune = cfg["finetuning"]
+    task = cfg_finetune["task"]
+
+    # Filter the config based on the task name
+    # NOTE (cwognum): This prevents the need for having many different files for each of the tasks
+    #    with lots and lots of config repetition.
+    cfg = filter_cfg_based_on_admet_benchmark_name(cfg, task)
 
     # Load pretrained model
     pretrained_model = cfg_finetune["pretrained_model"]
@@ -21,7 +59,6 @@ def modify_cfg_for_finetuning(cfg):
     cfg_arch = {arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())}
 
     finetuning_module = cfg_finetune["finetuning_module"]
-    task = cfg_finetune["task"]
     level = cfg_finetune["level"]
     task_head_from_pretrained = cfg_finetune.get("task_head_from_pretrained", None)
 

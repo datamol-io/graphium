@@ -1,7 +1,7 @@
 defaults:
 
   # Accelerators
-  - accelerator: ipu
+  - accelerator: cpu
 
   # Pre-training/fine-tuning
   - architecture: toymix
@@ -14,3 +14,6 @@ defaults:
   # Specializations
   - training/accelerator: ${training}_${accelerator}
   - training/model: ${training}_${model}
+
+  # Fine-tuning
+  - finetuning: admet
