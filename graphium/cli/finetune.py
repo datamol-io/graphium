@@ -1,5 +1,10 @@
+import yaml
 import click
+import fsspec
+
+from loguru import logger
 from hydra import compose, initialize
+from datamol.utils import fs
 
 from .main import main_cli
 from .hydra import run_training_finetuning
@@ -11,6 +16,7 @@ def finetune_cli():
 
 
 @finetune_cli.command(name="admet")
+@click.argument("save_dir")
 @click.option("--wandb/--no-wandb", default=True, help="Whether to log to Weights & Biases.")
 @click.option(
     "--name",
@@ -23,9 +29,10 @@ def finetune_cli():
     default=True,
     help="Whether to include or exclude the benchmarks specified by `--name`.",
 )
-def benchmark_tdc_admet_cli(wandb, name, inclusive_filter):
+def benchmark_tdc_admet_cli(save_dir, wandb, name, inclusive_filter):
     """
     Utility CLI to easily fine-tune a model on (a subset of) the benchmarks in the TDC ADMET group.
+    The results are saved to the SAVE_DIR.
     """
 
     try:
@@ -38,6 +45,8 @@ def benchmark_tdc_admet_cli(wandb, name, inclusive_filter):
         name = retrieve_benchmark_names("admet_group")
     elif not inclusive_filter:
         name = [n for n in name if n not in retrieve_benchmark_names("admet_group")]
+
+    results = {}
 
     # Use the Compose API to construct the config
     for n in name:
@@ -57,7 +66,13 @@ def benchmark_tdc_admet_cli(wandb, name, inclusive_filter):
             )
 
         # Run the training loop
-        results = run_training_finetuning(cfg)
-        print(results)
+        ret = run_training_finetuning(cfg)
+        ret = {k: v.item() for k, v in ret.items()}
+        results[n] = ret
 
-    print("Done!")
+    fs.mkdir(save_dir, exist_ok=True)
+    path = fs.join(save_dir, "results.yaml")
+    logger.info(f"Saving results to {path}")
+
+    with fsspec.open(path, "w") as f:
+        yaml.dump(results, f)
