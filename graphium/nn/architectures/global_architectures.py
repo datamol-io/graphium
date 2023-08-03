@@ -1155,11 +1155,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         # Apply the positional encoders
         g = self.encoder_manager(g)
 
-        g["feat"] = g["feat"]
         e = None
-
-        if "edge_feat" in get_keys(g):
-            g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
