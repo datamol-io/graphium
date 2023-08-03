@@ -1968,8 +1968,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_args = task_args.__dict__  # Convert the class to a dictionary
 
             # Keep only first 5 rows of a dataframe
-            if task_args["df"] is not None:
-                task_args["df"] = task_args["df"].iloc[:5]
+            if "df" in task_args.keys():
+                if task_args["df"] is not None:
+                    task_args["df"] = task_args["df"].iloc[:5]
 
             # Remove the `epoch_sampling_fraction`
             task_args.pop("epoch_sampling_fraction", None)
