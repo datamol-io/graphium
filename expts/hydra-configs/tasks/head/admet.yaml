@@ -1,0 +1,47 @@
+# @package _global_
+
+architecture:
+  task_heads:
+    caco2_wang: &regression_head
+      task_level: graph
+      out_dim: 1
+      hidden_dims: 64
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: &dropout 0.5
+      normalization: &normalization "layer_norm"
+      last_normalization: "none"
+      residual_type: none
+    hia_hou: &classification_head
+      task_level: graph
+      out_dim: 1
+      hidden_dims: 64
+      depth: 2
+      activation: relu
+      last_activation: sigmoid
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    pgp_broccatelli: *classification_head
+    bioavailability_ma: *classification_head
+    lipophilicity_astrazeneca: *regression_head
+    solubility_aqsoldb: *regression_head
+    bbb_martins: *classification_head
+    ppbr_az: *regression_head
+    vdss_lombardo: *regression_head
+    cyp2d6_veith: *classification_head
+    cyp3a4_veith: *classification_head
+    cyp2c9_veith: *classification_head
+    cyp2d6_substrate_carbonmangels: *classification_head
+    cyp3a4_substrate_carbonmangels: *classification_head
+    cyp2c9_substrate_carbonmangels: *classification_head
+    half_life_obach: *regression_head
+    clearance_microsome_az: *regression_head
+    clearance_hepatocyte_az: *regression_head
+    herg: *classification_head
+    ames: *classification_head
+    dili: *classification_head
+    ld50_zhu: *regression_head
+    

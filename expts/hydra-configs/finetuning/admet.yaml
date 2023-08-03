@@ -16,7 +16,7 @@
 ## == Overrides == 
 
 defaults: 
-  - override /tasks: admet
+  - override /tasks/data: admet
 
 constants:
   name: finetuning_lipophilicity_gcn
@@ -26,7 +26,7 @@ constants:
     entity: multitask-gnn
     save_dir: logs/lipophilicity
   seed: 42
-  max_epochs: 100
+  max_epochs: 10
   data_dir: expts/data/admet/lipophilicity
   raise_train_error: true
 
@@ -39,7 +39,7 @@ predictor:
 finetuning:
 
   # For now, we assume a model is always fine-tuned on a single task at a time.
-  task: lipophilicity_astrazeneca
+  task: &task lipophilicity_astrazeneca
   level: graph
 
   # Pretrained model
@@ -58,7 +58,7 @@ finetuning:
 
   # Optional finetuning head appended to model after finetuning_module
   finetuning_head:
-    task: lipophilicity_astrazeneca
+    task: *task
     previous_module: task_heads
     incoming_level: graph
     model_type: mlp
