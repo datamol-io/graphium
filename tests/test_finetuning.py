@@ -5,11 +5,15 @@ import unittest as ut
 
 import torch
 
+from lightning.pytorch.callbacks import Callback
+
 from omegaconf import OmegaConf
 import graphium
 
 from graphium.finetuning import modify_cfg_for_finetuning
 from graphium.trainer import PredictorModule
+
+from graphium.finetuning import GraphFinetuning
 
 from graphium.config._loader import (
     load_datamodule,
@@ -56,6 +60,8 @@ class Test_Finetuning(ut.TestCase):
             cfg,
             in_dims=datamodule.in_dims,
         )
+
+        datamodule.prepare_data()
 
         metrics = load_metrics(cfg)
 
@@ -115,7 +121,25 @@ class Test_Finetuning(ut.TestCase):
         ### Test correct (un)freezing during training ###
         #################################################
 
-        pass
+        # Define test callback that checks for correct (un)freezing
+        class TestCallback(Callback):
+            def on_train_start(self, trainer, pl_module):
+                print("Training is starting")
+
+                # TODO: Implement testing of correct (un)freezing here.
+
+        trainer = load_trainer(cfg, "test-finetuning", accelerator_type)
+
+        # Add test callback to trainer
+        trainer.callbacks.append(TestCallback())
+
+        finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
+        trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
+
+        predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+
+        # Run the model training
+        trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":

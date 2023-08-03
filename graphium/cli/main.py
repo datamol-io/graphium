@@ -79,8 +79,8 @@ def cli(cfg: DictConfig) -> None:
 
     # Add the fine-tuning callback to trainer
     if FINETUNING_CONFIG_KEY in cfg:
-        cfg_arch, finetuning_training_kwargs = cfg["architecture"], cfg["finetuning"]["training_kwargs"]
-        trainer.callbacks.append(GraphFinetuning(cfg_arch, **finetuning_training_kwargs))
+        finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
+        trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
     if wandb_cfg is not None:
         save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)

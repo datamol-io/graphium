@@ -1142,7 +1142,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
 
-    def _create_module_map(self):
+    def create_module_map(self):
         self._module_map = OrderedDict()
 
         if self.encoder_manager is not None:
@@ -1171,17 +1171,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )
-
-        pass
-
-        # self._module_map = OrderedDict(
-        #     pe_encoders=self.encoder_manager,
-        #     pre_nn=self.pre_nn,
-        #     pre_nn_edges=self.pre_nn_edges,
-        #     gnn=self.gnn,
-        #     graph_output_nn=self.task_heads.graph_output_nn,
-        #     task_heads=self.task_heads.task_heads,
-        # )
 
     def forward(self, g: Batch) -> Tensor:
         r"""
