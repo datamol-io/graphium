@@ -4,23 +4,15 @@ import unittest as ut
 import numpy as np
 from copy import deepcopy
 from warnings import warn
+from unittest.mock import patch
 from lightning import Trainer, LightningModule
-from lightning_graphcore import IPUStrategy
 from functools import partial
 import pytest
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+
 import torch
 from torch.utils.data.dataloader import default_collate
-
-# Current library imports
-from graphium.config._loader import (
-    load_datamodule,
-    load_metrics,
-    load_architecture,
-    load_accelerator,
-    load_predictor,
-    load_trainer,
-)
-from graphium.utils.safe_run import SafeRun
+from lightning_graphcore import IPUStrategy
 
 
 def random_packing(num_nodes, batch_size):
@@ -40,7 +32,6 @@ def global_batch_collator(batch_size, batches):
     return global_batch
 
 
-@pytest.mark.skip_ipu
 @pytest.mark.ipu
 class test_DataLoading(ut.TestCase):
     class TestSimpleLightning(LightningModule):
@@ -108,108 +99,135 @@ class test_DataLoading(ut.TestCase):
             # [label, [feat1, feat2]]
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
         """
         Test a simple version of the device-iterations and gradient accumulation
         to make sure that the dataloader and models handle them correcly.
         """
 
-        # Run this test only if poptorch is available
-        try:
-            import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-            return
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
+                import poptorch
 
-        # Initialize constants
-        gradient_accumulation = 2
-        device_iterations = 3
-        batch_size = 5
-        num_replicate = 7
-        node_feat_size = 11
-        edge_feat_size = 13
+                assert poptorch.ipuHardwareIsAvailable()
+                from lightning_graphcore.accelerator import _IPU_AVAILABLE
 
-        # Initialize the batch info and poptorch options
-        opts = poptorch.Options()
-        opts.useIpuModel(True)
-        opts.deviceIterations(device_iterations)
-        training_opts = deepcopy(opts)
-        training_opts.Training.gradientAccumulation(gradient_accumulation)
-        inference_opts = deepcopy(opts)
+                assert _IPU_AVAILABLE is True
 
-        # Initialize the dataset
-        num_batch = device_iterations * gradient_accumulation * num_replicate
-        data_size = num_batch * batch_size
-        dataset = self.TestDataset(
-            labels=np.random.rand(data_size).astype(np.float32),
-            node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
-            edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
-        )
+                # Initialize constants
+                gradient_accumulation = 2
+                device_iterations = 3
+                batch_size = 5
+                num_replicate = 7
+                node_feat_size = 11
+                edge_feat_size = 13
 
-        # Initialize the dataloader
-        train_dataloader = poptorch.DataLoader(
-            options=training_opts,
-            dataset=deepcopy(dataset),
-            batch_size=batch_size,
-            collate_fn=partial(global_batch_collator, batch_size),
-        )
+                # Initialize the batch info and poptorch options
+                opts = poptorch.Options()
+                opts.useIpuModel(True)
+                opts.deviceIterations(device_iterations)
+                training_opts = deepcopy(opts)
+                training_opts.Training.gradientAccumulation(gradient_accumulation)
+                inference_opts = deepcopy(opts)
 
-        val_dataloader = poptorch.DataLoader(
-            options=inference_opts,
-            dataset=deepcopy(dataset),
-            batch_size=batch_size,
-            collate_fn=partial(global_batch_collator, batch_size),
-        )
+                # Initialize the dataset
+                num_batch = device_iterations * gradient_accumulation * num_replicate
+                data_size = num_batch * batch_size
+                dataset = self.TestDataset(
+                    labels=np.random.rand(data_size).astype(np.float32),
+                    node_features=[
+                        np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)
+                    ],
+                    edge_features=[
+                        np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)
+                    ],
+                )
 
-        # Build the model, and run it on IPU
-        model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
-        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
-        trainer = Trainer(
-            logger=False,
-            enable_checkpointing=False,
-            max_epochs=2,
-            strategy=strategy,
-            num_sanity_val_steps=0,
-            accelerator="ipu",
-            devices=1,
-        )
-        trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+                # Initialize the dataloader
+                train_dataloader = poptorch.DataLoader(
+                    options=training_opts,
+                    dataset=deepcopy(dataset),
+                    batch_size=batch_size,
+                    collate_fn=partial(global_batch_collator, batch_size),
+                )
+
+                val_dataloader = poptorch.DataLoader(
+                    options=inference_opts,
+                    dataset=deepcopy(dataset),
+                    batch_size=batch_size,
+                    collate_fn=partial(global_batch_collator, batch_size),
+                )
+
+                # Build the model, and run it on "IPU"
+                model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
+
+                strategy = IPUStrategy(
+                    training_opts=training_opts, inference_opts=inference_opts, autoreport=True
+                )
+                trainer = Trainer(
+                    logger=True,
+                    enable_checkpointing=False,
+                    max_epochs=2,
+                    strategy=strategy,
+                    num_sanity_val_steps=0,
+                    accelerator="ipu",
+                    devices=1,
+                )
+                trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
     @pytest.mark.skip
-    def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
+    def test_poptorch_graphium_deviceiterations_gradient_accumulation_full(self):
         """
         Test the device-iterations and gradient accumulation in a way
         that is very similar to the Graphium code
         to make sure that the dataloader and models handle them correcly.
         """
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
+                try:
+                    import poptorch
+                except Exception as e:
+                    warn(f"Skipping this test because poptorch is not available.\n{e}")
+                    return
 
-        try:
-            import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-            return
+                from lightning_graphcore import IPUStrategy
+                import lightning_graphcore
 
-        # Simplified testing config - reflecting the toymix requirements
-        # CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
-        CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
-        with open(CONFIG_FILE, "r") as f:
-            cfg = yaml.safe_load(f)
-        cfg, accelerator = load_accelerator(cfg)
+                # Current library imports
+                from graphium.config._loader import (
+                    load_datamodule,
+                    load_metrics,
+                    load_architecture,
+                    load_accelerator,
+                    load_predictor,
+                    load_trainer,
+                )
+                from graphium.utils.safe_run import SafeRun
 
-        # Load the datamodule, and prepare the data
-        datamodule = load_datamodule(cfg, accelerator_type=accelerator)
-        datamodule.prepare_data()
-        metrics = load_metrics(cfg)
-        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
-        # datamodule.setup()
-        predictor = load_predictor(
-            cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
-        )
-        trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
-        # Run the model training
-        with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-            trainer.fit(model=predictor, datamodule=datamodule)
+                # Simplified testing config - reflecting the toymix requirements
+                CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
+                with open(CONFIG_FILE, "r") as f:
+                    cfg = yaml.safe_load(f)
+
+                cfg, accelerator = load_accelerator(cfg)
+
+                # Load the datamodule, and prepare the data
+                datamodule = load_datamodule(cfg, accelerator_type=accelerator)
+                datamodule.prepare_data()
+                metrics = load_metrics(cfg)
+                model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+                # datamodule.setup()
+                predictor = load_predictor(
+                    cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
+                )
+                assert poptorch.ipuHardwareIsAvailable()
+                trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
+                # Run the model training
+                with SafeRun(
+                    name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
+                ):
+                    trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":

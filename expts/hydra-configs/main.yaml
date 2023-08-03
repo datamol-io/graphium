@@ -1,8 +1,16 @@
 defaults:
+
+  # Accelerators
   - accelerator: ipu
-  - dataset: toymix
+
+  # Pre-training/fine-tuning
+  - architecture: toymix
+  - tasks: toymix
+  - training: toymix
+
+  # Benchmarking
   - model: gcn
 
   # Specializations
-  - experiment: ${dataset}_${model}
-  - dataset/accelerator: ${dataset}_${accelerator}
+  - training/accelerator: ${training}_${accelerator}
+  - training/model: ${training}_${model}

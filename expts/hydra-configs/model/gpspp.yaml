@@ -1,0 +1,43 @@
+# @package _global_
+
+datamodule:
+  args:
+    batch_size_training: 32
+    featurization:
+      conformer_property_list: [positions_3d]
+
+trainer:
+  trainer:
+    accumulate_grad_batches: 2
+
+architecture:
+  pe_encoders:
+    encoders:
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
+        num_heads: 32
+        num_layers: 1 #2
+        embed_dim: 32
+        out_dim: 32 # need num of gaussian kernels 128
+        # but currently it checks pe_out_dim == pe_out_dim in encoder_manager.py, line 128
+        use_input_keys_prefix: False
+
+  gnn:
+    layer_type: 'pyg:gps'
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 256
+        out_dim: 256
+        in_dim_edges: 128
+        out_dim_edges: 128
+      attn_type: "full-attention" # "full-attention", "none"
+      precision: &precision 16-true
+      biased_attention_key: "nodepair_gaussian_bias_3d" # 3D_bias
+      attn_kwargs:
+        num_heads: 32
+      droppath_rate_attn: 0.0
+      droppath_rate_ffn: 0.0

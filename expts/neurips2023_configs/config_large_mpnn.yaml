@@ -1,45 +1,56 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Running the mpnn model with the largemix dataset on IPU.
+
+defaults:
+ - base_config: large
+
 constants:
-  name: &name neurips2023_large_data_mpnn
-  config_override: "expts/neurips2023_configs/config_large_gcn.yaml"
+  name: neurips2023_large_data_mpnn
 
 architecture:
-  model_type: FullGraphMultiTaskNetwork
-  mup_base_path: null
 
-  pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 32
+  pre_nn:
+    out_dim: 160
+    hidden_dims: 256
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.1
+    normalization: &normalization layer_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges:
+    out_dim: 64
     hidden_dims: 128
     depth: 2
     activation: relu
     last_activation: none
     dropout: 0.18
-    normalization: layer_norm
-    last_normalization: layer_norm
+    normalization: ${architecture.pre_nn.normalization}
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &gnn_dim 64
-    hidden_dims: *gnn_dim
-    layer_type: 'pyg:mpnnplus' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+    in_dim: 160 # should be consistent with pre_nn.out_dim
+    out_dim: 256
+    hidden_dims: &gnn_dim 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
+    depth: 4
+    activation: gelu
+    last_activation: none
+    dropout: 0.1
+    normalization: "layer_norm"
+    last_normalization: *normalization
+    residual_type: simple
+    virtual_node: 'none'
+    layer_type: 'pyg:gps'
+    layer_kwargs:
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
-      in_dim_edges: 32
-      out_dim_edges: 32
-
-  graph_output_nn:
-    graph:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-    node:
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-
-trainer:
-  logger:
-    name: *name
-    project: *name
-  model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large-mpnn/
-    filename: *name
+      mpnn_kwargs:
+        in_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        out_dim: 160 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        in_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+        out_dim_edges: 64 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null

@@ -3,6 +3,7 @@ constants:
   name: &name neurips2023_small_data_gcn
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  entity: multitask-gnn
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -122,7 +123,6 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
 
 architecture:

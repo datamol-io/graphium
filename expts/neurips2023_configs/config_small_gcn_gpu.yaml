@@ -1,7 +1,15 @@
 # Testing GCN on ToyMix with FP16/32 on GPU
+
+defaults:
+  - base_config: small
+  - _self_
+
 constants:
-  name: &name neurips2023_small_data_gcn_gpu
-  config_override: "expts/neurips2023_configs/config_small_gcn.yaml"
+  name: neurips2023_small_data_gcn_gpu
+
+architecture:
+  gnn:  # Set as null to avoid a post-nn network
+    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
 
 accelerator:
   type: gpu  # cpu or ipu or gpu

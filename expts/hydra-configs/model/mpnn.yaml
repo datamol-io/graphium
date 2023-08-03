@@ -1,0 +1,24 @@
+# @package _global_
+
+datamodule:
+  args:
+    batch_size_training: 64
+
+trainer:
+  trainer:
+    accumulate_grad_batches: 1
+
+architecture:
+  gnn:
+    layer_type: 'pyg:gps'
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 256
+        out_dim: 256
+        in_dim_edges: 128
+        out_dim_edges: 128
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null

@@ -93,7 +93,7 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --durations=10 -n auto --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
+addopts = "--verbose --durations=10 -n 1 --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",
