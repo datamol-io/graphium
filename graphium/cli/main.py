@@ -37,7 +37,7 @@ def cli(cfg: DictConfig) -> None:
 
     st = timeit.default_timer()
 
-    wandb_cfg = cfg.get("wandb")
+    wandb_cfg = cfg["constants"].get("wandb")
     if wandb_cfg is not None:
         wandb.init(
             entity=wandb_cfg["entity"],

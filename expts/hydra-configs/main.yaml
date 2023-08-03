@@ -14,6 +14,3 @@ defaults:
   # Specializations
   - training/accelerator: ${training}_${accelerator}
   - training/model: ${training}_${model}
-
-  # Fine-tuning
-  - finetuning: admet
