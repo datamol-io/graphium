@@ -23,7 +23,7 @@ def modify_cfg_for_finetuning(cfg):
     finetuning_module = cfg_finetune["finetuning_module"]
     task = cfg_finetune["task"]
     level = cfg_finetune["level"]
-    task_head_from_pretrained = cfg_finetune.get("task_head_from_pretrained", None)
+    sub_module_from_pretrained = cfg_finetune.get("sub_module_from_pretrained", None)
 
     # Find part of config of module to finetune from        # not sure how to make the code below more general;
     # it is specific to FullGraphMultitaskNetwork
@@ -32,7 +32,7 @@ def modify_cfg_for_finetuning(cfg):
     elif finetuning_module == "graph_output_nn":
         new_module_kwargs = deepcopy(cfg_arch[finetuning_module][level])
     elif finetuning_module == "task_heads":
-        new_module_kwargs = deepcopy(cfg_arch[finetuning_module][task_head_from_pretrained])
+        new_module_kwargs = deepcopy(cfg_arch[finetuning_module][sub_module_from_pretrained])
     elif finetuning_module in ["pe_encoders", "pre_nn", "pre_nn_edges"]:
         raise NotImplementedError(f"Finetune from (edge) pre-NNs is not supported")
     else:
@@ -70,6 +70,7 @@ def modify_cfg_for_finetuning(cfg):
     pretrained_overwriting_kwargs = deepcopy(cfg["finetuning"])
     drop_keys = [
         "pretrained_model",
+        "task",
         "level",
         "finetuning_head",
         "unfreeze_pretrained_depth",
@@ -84,11 +85,11 @@ def modify_cfg_for_finetuning(cfg):
     # pretrained_overwriting_kwargs.pop("epoch_unfreeze_all")
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
-    drop_keys = ["pretrained_model", "task_head_from_pretrained", "finetuning_head"]
+    drop_keys = ["pretrained_model", "sub_module_from_pretrained", "finetuning_head"]
     for key in drop_keys:
         finetuning_training_kwargs.pop(key)
     # finetuning_training_kwargs.pop("pretrained_model")
-    # finetuning_training_kwargs.pop("task_head_from_pretrained")
+    # finetuning_training_kwargs.pop("sub_module_from_pretrained")
     # finetuning_training_kwargs.pop("finetuning_head")
 
     cfg["finetuning"].update(

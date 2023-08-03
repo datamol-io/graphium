@@ -253,6 +253,7 @@ class PretrainedModel(nn.Module, MupMixin):
         pretrained_model = PredictorModule.load_from_checkpoint(
             GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model]
         ).model
+        pretrained_model._create_module_map()
 
         # Initialize new model with architecture after
         net = type(pretrained_model)
@@ -270,94 +271,45 @@ class PretrainedModel(nn.Module, MupMixin):
     def overwrite_with_pretrained(
         self,
         pretrained_model: str,
-        task: str,
+        # task: str,
         finetuning_module: str,
         added_depth: int,
-        task_head_from_pretrained: str = None,
+        sub_module_from_pretrained: str = None,
     ):
         module_map = self.net._module_map
+        module_map_from_pretrained = pretrained_model._module_map
 
-        # Below list should also come from pretrained model (like module_map)
-        for module in ["pre_nn", "pre_nn_edges", "gnn", "graph_output_nn", "task_heads"]:
-            if module == finetuning_module:
-                break
+        # module_from_pretrained = finetuning_module
+        # if module_from_pretrained is not None:
+        #     finetuning_module += "/" + sub_module_from_pretrained
 
-            self.overwrite_complete_module(pretrained_model, module, module_map)
-
-        self.overwrite_partial_module(
-            pretrained_model, module, module_map, task, added_depth, task_head_from_pretrained
+        module_names_from_pretrained = module_map_from_pretrained.keys()
+        super_module_names_from_pretrained = set(
+            [module_name.split("/")[0] for module_name in module_names_from_pretrained]
         )
 
-    def overwrite_partial_module(
-        self, pretrained_model, module, module_map, task, added_depth, task_head_from_pretrained
-    ):
-        """
-        Completely overwrite the specified module
-        """
-        if module == "gnn":
-            shared_depth = len(module_map[module].layers) - added_depth
-            assert shared_depth >= 0
-            if shared_depth > 0:
-                module_map[module].layers[:shared_depth] = pretrained_model.gnn.layers[:shared_depth]
-
-        elif module == "graph_output_nn":
-            for task_level in module_map[module].keys():
-                shared_depth = len(module_map[module][task_level].graph_output_nn.layers) - added_depth
-                assert shared_depth >= 0
-                if shared_depth > 0:
-                    module_map[module][task_level].graph_output_nn.layers = (
-                        pretrained_model.task_heads.graph_output_nn[task_level].graph_output_nn.layers[
-                            :shared_depth
-                        ]
-                        + module_map[module][task_level].graph_output_nn.layers[shared_depth:]
-                    )
-
-        elif module == "task_heads":
-            shared_depth = len(module_map[module][task].layers) - added_depth
-            assert shared_depth >= 0
-            if shared_depth > 0:
-                module_map[module][task].layers = (
-                    pretrained_model.task_heads.task_heads[task_head_from_pretrained].layers[:shared_depth]
-                    + module_map[module][task].layers[shared_depth:]
-                )
-
-        elif module in ["pre_nn", "pre_nn_edges"]:
-            raise NotImplementedError(f"Finetune from (edge) pre-NNs is not supported")
-
-        else:
-            raise NotImplementedError(f"This is an unknown module type")
-
-    def overwrite_complete_module(self, pretrained_model, module, module_map):
-        """
-        Completely overwrite the specified module
-        """
-        if module == "pre_nn":
+        for module_name in module_map.keys():
+            # Below exception handles some modules (e.g., pe_encoders in FullGraphMultitaskNetwork) that do not support len());
+            # They can always be replaced entirely
             try:
-                module_map[module] = pretrained_model.pre_nn.layers
+                shared_depth = len(module_map[module_name])
             except:
-                pass
-                # logger.warning(
-                #     f"Pretrained ({pretrained_model.pre_nn}) and/or finetune model ({self.pre_nn}) do not use a pre-NN."
-                # )
+                module_map[module_name] = module_map_from_pretrained[module_name]
+                continue
 
-        elif module == "pre_nn_edges":
-            try:
-                module_map[module] = pretrained_model.pre_nn_edges.layers
-            except:
-                pass
-                # logger.warning(
-                #     f"Pretrained ({pretrained_model.pre_nn_edges}) and/or finetune model ({self.pre_nn_edges}) do not use a pre-NN-edges."
-                # )
+            if module_name.startswith(finetuning_module):
+                shared_depth -= added_depth
 
-        elif module == "gnn":
-            module_map[module] = pretrained_model.gnn.layers
-
-        elif module == "graph_output_nn":
-            for task_level in module_map[module].keys():
-                module_map[module][task_level] = pretrained_model.task_heads.graph_output_nn[task_level]
-
-        else:
-            raise NotImplementedError(f"This is an unknown module type")
+            if module_name in module_map_from_pretrained.keys():
+                for idx in range(shared_depth):
+                    module_map[module_name][idx] = module_map_from_pretrained[module_name][idx]
+            elif module_name.split("/")[0] in super_module_names_from_pretrained:
+                for idx in range(shared_depth):
+                    module_map[module_name][idx] = module_map_from_pretrained[
+                        module_name.split("/")[0] + "/" + sub_module_from_pretrained
+                    ][idx]
+            else:
+                raise "Mismatch between loaded pretrained model and model to be overwritten."
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """

@@ -5,7 +5,7 @@ level: graph
 # Pretrained model
 pretrained_model: dummy-pretrained-model-gpu
 finetuning_module: task_heads                # options are (pre_nn, pre_nn_edges) gnn, graph_output_nn, task_heads, finetunehead
-task_head_from_pretrained: zinc # none            # (only needed when finetuning from task_heads)
+sub_module_from_pretrained: zinc # none            # (only needed when finetuning from task_heads)
                                                   # choose one from pretrained model (here qm9, tox12 or zinc)
 drop_depth: 1                                     # how many layers to drop at the end:
                                                   # must be smaller than pretrained model's depth

@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 import graphium
 
 from graphium.finetuning import modify_cfg_for_finetuning
+from graphium.trainer import PredictorModule
 
 from graphium.config._loader import (
     load_datamodule,
@@ -68,14 +69,18 @@ class Test_Multitask_DataModule(ut.TestCase):
         self.assertEqual(predictor.model.finetuning_head.net.out_dim, 1)
 
         # Load pretrained & replace in predictor
-        pretrained_model = predictor.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
+        pretrained_model = PredictorModule.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
+
+        pretrained_model._create_module_map()
+        module_map_from_pretrained = pretrained_model._module_map
+        module_map = predictor.model.pretrained_model.net._module_map
 
         # GNN layers need to be the same
-        pretrained_layers = pretrained_model.gnn.layers
-        overwritten_layers = predictor.model.pretrained_model.net.gnn.layers
+        pretrained_layers = module_map_from_pretrained["gnn"]
+        overwritten_layers = module_map["gnn"]
 
         for pretrained, overwritten in zip(pretrained_layers, overwritten_layers):
-            assert pretrained == overwritten
+            assert torch.equal(pretrained.model.lin.weight, overwritten.model.lin.weight)
 
         # Task head has only been partially overwritten
         pretrained_layers = pretrained_model.task_heads.task_heads["zinc"].layers
