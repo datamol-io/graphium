@@ -230,10 +230,10 @@ class PretrainedModel(nn.Module, MupMixin):
         Overwrite parameters shared between loaded and modified pretrained model
 
         Parameters:
-            pretrained_model:
+            pretrained_model: Model from GRAPHIUM_PRETRAINED_MODELS_DICT
             finetuning_module: Module to finetune from
             added_depth: Number of modified layers at the end of finetuning module
-            sub_module_from_pretrained: Optional submodule to finetune from FINETUNING_HEADS_DICT
+            sub_module_from_pretrained: Optional submodule to finetune from
         """
         module_map = self.net._module_map
         module_map_from_pretrained = pretrained_model._module_map
@@ -292,7 +292,7 @@ class FinetuningHead(nn.Module, MupMixin):
 
         Parameters:
 
-            finetuning_head_kwargs: Key-word arguments needed to instantiate a custom (or existing) finetuning head from
+            finetuning_head_kwargs: Key-word arguments needed to instantiate a custom (or existing) finetuning head from FINETUNING_HEADS_DICT
 
         """
 
