@@ -53,7 +53,7 @@ def read_file(filepath, as_ext=None, **kwargs):
     else:
         file_ext = as_ext
         if not isinstance(file_ext, str):
-            raise "`file_type` must be a `str`. Provided: {}".format(file_ext)
+            raise TypeError("`file_type` must be a `str`. Provided: {}".format(file_ext))
 
     open_mode = "r"
 

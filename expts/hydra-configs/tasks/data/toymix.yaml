@@ -1,0 +1,102 @@
+# @package _global_
+
+predictor:
+  metrics_on_progress_bar:
+    qm9: ["mae"]
+    tox21: ["auroc"]
+    zinc: ["mae"]
+  loss_fun:
+    qm9: mae_ipu
+    tox21: bce_logits_ipu
+    zinc: mae_ipu
+
+metrics:
+  qm9: &qm9_metrics
+    - name: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: flatten
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+  tox21:
+    - name: auroc
+      metric: auroc_ipu
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: avpr
+      metric: average_precision_ipu
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: f1 > 0.5
+      metric: f1
+      multitask_handling: mean-per-label
+      target_to_int: True
+      num_classes: 2
+      average: micro
+      threshold_kwargs: &threshold_05
+        operator: greater
+        threshold: 0.5
+        th_on_preds: True
+        th_on_target: True
+    - name: precision > 0.5
+      metric: precision
+      multitask_handling: mean-per-label
+      average: micro
+      threshold_kwargs: *threshold_05
+  zinc: *qm9_metrics
+
+datamodule:
+  args:
+    task_specific_args:
+      qm9:
+        df: null
+        df_path: ${constants.data_dir}/qm9.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        seed: ${constants.seed} #*seed
+        task_level: graph
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"
+
+      tox21:
+        df: null
+        df_path: ${constants.data_dir}/Tox21-7k-12-labels.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        seed: ${constants.seed}
+        task_level: graph
+
+      zinc:
+        df: null
+        df_path: ${constants.data_dir}/ZINC12k.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # or set path as the URL directly
+        smiles_col: "smiles"
+        label_cols: ["SA", "logp", "score"]
+        # sample_size: 2000 # use sample_size for test
+        splits_path: ${constants.data_dir}/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        seed: ${constants.seed}
+        task_level: graph
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"

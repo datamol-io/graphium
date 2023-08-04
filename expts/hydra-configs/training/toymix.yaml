@@ -7,7 +7,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: ${constants.max_epochs}
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs: null
@@ -16,15 +16,11 @@ predictor:
 
 trainer:
   seed: ${constants.seed}
-  logger:
-    save_dir: logs/neurips2023-small/
-    name: ${constants.name}
-    project: ${constants.name}
   model_checkpoint:
     filename: ${constants.name}
     save_last: True
   trainer:
     precision: 16
-    max_epochs: *max_epochs
+    max_epochs: ${constants.max_epochs}
     min_epochs: 1
     check_val_every_n_epoch: 20

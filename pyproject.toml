@@ -63,7 +63,8 @@ dependencies = [
 ]
 
 [project.scripts]
-graphium = "graphium.cli:main_cli"
+graphium = "graphium.cli.main:main_cli"
+graphium-hydra = "graphium.cli.hydra:cli"
 
 [project.urls]
 Website = "https://graphium.datamol.io/"
@@ -79,7 +80,7 @@ fallback_version = "dev"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["graphium", "graphium.*"]
+include = ["graphium", "graphium.*", "expts", "expts.*"]
 exclude = []
 namespaces = true
 
