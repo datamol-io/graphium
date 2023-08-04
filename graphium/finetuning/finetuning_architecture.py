@@ -33,26 +33,27 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         name: str = "FullFinetuningGNN",
     ):
         r"""
-        Class that allows to implement a full graph finetuning network architecture,
-        including the pre-processing MLP and the post processing MLP.
+        Flexible class that allows to implement an end-to-end graph finetuning network architecture, supporting flexible pretrained models and finetuning heads.
+        The network decomposes into two parts of class PretrainedModel and FinetuningHead. The PretrainedModel class allows basic finetuning such as
+        finetuning from a specified module of the pretrained model and dropping/adding layers in this module. The (optional) FinetuningHead class allows more
+        flexible finetuning with a custom network applied after the pretrained model. If not specified, we fall back to basic finetuning integrated in PretrainedModel.
 
         Parameters:
 
-            pretrained_model_kwargs
+            pretrained_model_kwargs:
+                Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
+
+            pretrained_overwriting_kwargs:
+                Key-word arguments indicating which parameters of loaded model are shared with the pretrained part of FullGraphFinetuningNetwork
 
             finetuning_head_kwargs:
-                key-word arguments to use for the finetuning head.
+                Key-word arguments to use for the finetuning head.
                 It must respect the following criteria:
-
-                - [last_used_module]_kwarg["out_level"] must be equal to finetuning_head_kwargs["in_level"]
-                - [last_used_module]_kwarg["out_dim"] must be equal to finetuning_head_kwargs["in_dim"]
+                - pretrained_model_kwargs[last_used_module]["out_level"] must be equal to finetuning_head_kwargs["in_level"]
+                - pretrained_model_kwargs[last_used_module]["out_dim"] must be equal to finetuning_head_kwargs["in_dim"]
 
                 Here, [last_used_module] represents the module that is finetuned from,
                 e.g., gnn, graph_output or (one of the) task_heads
-
-            accelerator_kwargs:
-                key-word arguments specific to the accelerator being used,
-                e.g. pipeline split points
 
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
@@ -159,7 +160,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         return kwargs
 
     def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
-        """
+        r"""
         Set the maximum number of nodes and edges for all gnn layers and encoder layers
 
         Parameters:
@@ -181,21 +182,19 @@ class PretrainedModel(nn.Module, MupMixin):
         pretrained_model: str = "dummy-pretrained-model-cpu",
     ):
         r"""
-        A flexible neural network architecture, with variable hidden dimensions,
-        support for multiple layer types, and support for different residual
-        connections.
-
-        This class is meant to work with different graph neural networks
-        layers. Any layer must inherit from `graphium.nn.base_graph_layer.BaseGraphStructure`
-        or `graphium.nn.base_graph_layer.BaseGraphLayer`.
+        Flexible class allowing to finetune pretrained models from GRAPHIUM_PRETRAINED_MODELS_DICT.
+        Can be any model that inherits from nn.Module, MupMixin and comes with a module map (e.g., FullGraphMultitaskNetwork)
 
         Parameters:
 
             pretrained_model_kwargs:
+                Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
 
             pretrained_overwriting_kwargs:
+                Key-word arguments indicating which parameters of loaded model are shared with the pretrained part of FullGraphFinetuningNetwork
 
             pretrained_model:
+                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
 
         """
 
@@ -207,12 +206,12 @@ class PretrainedModel(nn.Module, MupMixin):
         ).model
         pretrained_model.create_module_map()
 
-        # Initialize new model with architecture after
+        # Initialize new model with architecture after desired modifications to architecture.
         net = type(pretrained_model)
         self.net = net(**pretrained_model_kwargs)
         self.net.create_module_map()
 
-        # Overwrite shared parameters with pretrained model
+        # Overwrite parameters shared between loaded and modified pretrained model
         self.overwrite_with_pretrained(pretrained_model, **pretrained_overwriting_kwargs)
 
     def forward(self, g: Union[torch.Tensor, Batch]):
@@ -222,12 +221,20 @@ class PretrainedModel(nn.Module, MupMixin):
 
     def overwrite_with_pretrained(
         self,
-        pretrained_model: str,
-        # task: str,
+        pretrained_model,
         finetuning_module: str,
         added_depth: int,
         sub_module_from_pretrained: str = None,
     ):
+        """
+        Overwrite parameters shared between loaded and modified pretrained model
+
+        Parameters:
+            pretrained_model:
+            finetuning_module: Module to finetune from
+            added_depth: Number of modified layers at the end of finetuning module
+            sub_module_from_pretrained: Optional submodule to finetune from FINETUNING_HEADS_DICT
+        """
         module_map = self.net._module_map
         module_map_from_pretrained = pretrained_model._module_map
 
@@ -280,17 +287,12 @@ class PretrainedModel(nn.Module, MupMixin):
 class FinetuningHead(nn.Module, MupMixin):
     def __init__(self, finetuning_head_kwargs: Dict[str, Any]):
         r"""
-        A flexible neural network architecture, with variable hidden dimensions,
-        support for multiple layer types, and support for different residual
-        connections.
-
-        This class is meant to work with different graph neural networks
-        layers. Any layer must inherit from `graphium.nn.base_graph_layer.BaseGraphStructure`
-        or `graphium.nn.base_graph_layer.BaseGraphLayer`.
+        Flexible class allowing to use a custom finetuning head on top of the pretrained model.
+        Can be any model that inherits from nn.Module, MupMixin.
 
         Parameters:
 
-            ...
+            finetuning_head_kwargs: Key-word arguments needed to instantiate a custom (or existing) finetuning head from
 
         """
 

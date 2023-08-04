@@ -4,6 +4,7 @@ from os.path import dirname, abspath
 import unittest as ut
 
 import torch
+from copy import deepcopy
 
 from lightning.pytorch.callbacks import Callback
 
@@ -90,8 +91,8 @@ class Test_Finetuning(ut.TestCase):
         pretrained_model = PredictorModule.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
 
         pretrained_model.create_module_map()
-        module_map_from_pretrained = pretrained_model._module_map
-        module_map = predictor.model.pretrained_model.net._module_map
+        module_map_from_pretrained = deepcopy(pretrained_model._module_map)
+        module_map = deepcopy(predictor.model.pretrained_model.net._module_map)
 
         # Finetuning module has only been partially overwritten
         cfg_finetune = cfg["finetuning"]

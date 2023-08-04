@@ -32,22 +32,15 @@ finetuning:
   # Pretrained model
   pretrained_model: dummy-pretrained-model-cpu
   finetuning_module: task_heads                
-  sub_module_from_pretrained: zinc # none       # could be more general      
+  sub_module_from_pretrained: zinc # none
 
   # Changes to finetuning_module                                                  
   drop_depth: 1 
   new_out_dim: 8
   added_depth: 2
 
-  # Training
-  unfreeze_pretrained_depth: 0
-  epoch_unfreeze_all: 2
-
-  # # Finetuning network
-  # model_type: FullGraphFinetuningNetwork
-
   # Optional finetuning head appended to model after finetuning_module
-  finetuning_head:
+  finetuning_head: # none
     task: lipophilicity_astrazeneca
     previous_module: task_heads
     incoming_level: graph
@@ -57,6 +50,10 @@ finetuning:
     hidden_dims: 8
     depth: 2
     last_layer_is_readout: true
+
+  # Finetuning training
+  unfreeze_pretrained_depth: 0
+  epoch_unfreeze_all: 2
 
 constants:
   seed: 42
@@ -110,13 +107,6 @@ metrics:
 
 trainer:
   seed: ${constants.seed}
-  # logger:
-  #   save_dir: logs/neurips2023-small/
-  #   name: ${constants.name}
-  #   project: ${constants.name}
-  # model_checkpoint:
-  #   filename: ${constants.name}
-  #   save_last: True
   trainer:
     precision: 32
     max_epochs: 3
@@ -130,7 +120,7 @@ trainer:
 
 datamodule:
 
-### FINETUNING ###
+### FROM FINETUNING ###
 
   module_type: "ADMETBenchmarkDataModule"
   args:
@@ -149,7 +139,7 @@ datamodule:
     processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
 
-### PRETRAINING ###
+### fROM PRETRAINING ###
 
     featurization:
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
