@@ -2,6 +2,13 @@
 Unit tests for the metrics and wrappers of graphium/utils/...
 """
 
+import torch
+import numpy as np
+import scipy as sp
+import unittest as ut
+import gzip
+
+from graphium.utils.read_file import file_opener
 from graphium.utils.tensor import (
     nan_mad,
     nan_mean,
@@ -12,12 +19,6 @@ from graphium.utils.tensor import (
     tensor_fp16_to_fp32,
 )
 from graphium.utils.safe_run import SafeRun
-import torch
-import numpy as np
-import scipy as sp
-import unittest as ut
-import gzip
-from graphium.utils.read_file import file_opener
 
 
 class test_nan_statistics(ut.TestCase):
