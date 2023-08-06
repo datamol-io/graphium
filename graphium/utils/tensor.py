@@ -385,6 +385,7 @@ def arg_in_func(fn, arg):
     fn_args = getfullargspec(fn)
     return (fn_args.varkw is not None) or (arg in fn_args[0])
 
+
 def tensor_fp16_to_fp32(tensor: Tensor) -> Tensor:
     r"""Cast a tensor from fp16 to fp32 if it is in fp16
 
@@ -398,7 +399,10 @@ def tensor_fp16_to_fp32(tensor: Tensor) -> Tensor:
         return tensor.to(dtype=torch.float32)
     return tensor
 
-def dict_tensor_fp16_to_fp32(dict_tensor: Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]) -> Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]:
+
+def dict_tensor_fp16_to_fp32(
+    dict_tensor: Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]
+) -> Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]:
     r"""Recursively Cast a dictionary of tensors from fp16 to fp32 if it is in fp16
 
     Parameters:

@@ -239,15 +239,9 @@ class Summary(SummaryInterface):
         targets = self.targets.to(dtype=preds.dtype, device=preds.device)
         # Compute the metrics always used in regression tasks
         metric_logs = {}
-        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(
-            preds
-        )
-        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(
-            preds
-        )
-        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(
-            preds
-        )
+        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(preds)
+        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(preds)
+        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(preds)
         metric_logs[self.metric_log_name(self.task_name, "mean_target", self.step_name)] = nan_mean(targets)
         metric_logs[self.metric_log_name(self.task_name, "std_target", self.step_name)] = nan_std(targets)
         metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(

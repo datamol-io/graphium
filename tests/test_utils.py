@@ -2,7 +2,15 @@
 Unit tests for the metrics and wrappers of graphium/utils/...
 """
 
-from graphium.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median, dict_tensor_fp16_to_fp32, tensor_fp16_to_fp32
+from graphium.utils.tensor import (
+    nan_mad,
+    nan_mean,
+    nan_std,
+    nan_var,
+    nan_median,
+    dict_tensor_fp16_to_fp32,
+    tensor_fp16_to_fp32,
+)
 from graphium.utils.safe_run import SafeRun
 import torch
 import numpy as np
@@ -183,7 +191,6 @@ class test_SafeRun(ut.TestCase):
 
 
 class TestTensorFp16ToFp32(ut.TestCase):
-
     def test_tensor_fp16_to_fp32(self):
         # Create a tensor
         tensor = torch.randn(10, 10).half()
@@ -202,7 +209,6 @@ class TestTensorFp16ToFp32(ut.TestCase):
         tensor_fp32 = tensor_fp16_to_fp32(tensor)
         self.assertFalse(tensor_fp32.dtype == torch.float32)
 
-
     def test_dict_tensor_fp16_to_fp32(self):
         # Create a dictionary of tensors
         tensor_dict = {
@@ -219,7 +225,7 @@ class TestTensorFp16ToFp32(ut.TestCase):
                 "h3": torch.randn(10, 10).float(),
                 "h4": torch.randn(10, 10).half(),
                 "h5": torch.randn(10, 10).int(),
-            }
+            },
         }
 
         # Convert the dictionary to fp32
