@@ -2,7 +2,7 @@
 Unit tests for the metrics and wrappers of graphium/utils/...
 """
 
-from graphium.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
+from graphium.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median, dict_tensor_fp16_to_fp32, tensor_fp16_to_fp32
 from graphium.utils.safe_run import SafeRun
 import torch
 import numpy as np
@@ -180,6 +180,63 @@ class test_SafeRun(ut.TestCase):
         # No error. Runs correctly
         with SafeRun(name="bob", raise_error=False, verbose=0):
             print("This is not an error")
+
+
+class TestTensorFp16ToFp32(ut.TestCase):
+
+    def test_tensor_fp16_to_fp32(self):
+        # Create a tensor
+        tensor = torch.randn(10, 10).half()
+
+        # Convert the tensor to fp32
+        tensor_fp32 = tensor_fp16_to_fp32(tensor)
+        self.assertTrue(tensor_fp32.dtype == torch.float32)
+
+        # Don't convert the tensor to fp32
+        tensor = torch.randn(10, 10).int()
+        tensor_fp32 = tensor_fp16_to_fp32(tensor)
+        self.assertFalse(tensor_fp32.dtype == torch.float32)
+
+        # Don't convert the tensor to fp32
+        tensor = torch.randn(10, 10).double()
+        tensor_fp32 = tensor_fp16_to_fp32(tensor)
+        self.assertFalse(tensor_fp32.dtype == torch.float32)
+
+
+    def test_dict_tensor_fp16_to_fp32(self):
+        # Create a dictionary of tensors
+        tensor_dict = {
+            "a": torch.randn(10, 10).half(),
+            "b": torch.randn(10, 10).half(),
+            "c": torch.randn(10, 10).double(),
+            "d": torch.randn(10, 10).half(),
+            "e": torch.randn(10, 10).float(),
+            "f": torch.randn(10, 10).half(),
+            "g": torch.randn(10, 10).int(),
+            "h": {
+                "h1": torch.randn(10, 10).double(),
+                "h2": torch.randn(10, 10).half(),
+                "h3": torch.randn(10, 10).float(),
+                "h4": torch.randn(10, 10).half(),
+                "h5": torch.randn(10, 10).int(),
+            }
+        }
+
+        # Convert the dictionary to fp32
+        tensor_dict_fp32 = dict_tensor_fp16_to_fp32(tensor_dict)
+
+        # Check that the dictionary is correctly converted
+        for key, tensor in tensor_dict_fp32.items():
+            if key in ["a", "b", "d", "e", "f"]:
+                self.assertEqual(tensor.dtype, torch.float32)
+            elif key in ["h"]:
+                for key2, tensor2 in tensor.items():
+                    if key2 in ["h2", "h3", "h4"]:
+                        self.assertEqual(tensor2.dtype, torch.float32)
+                    else:
+                        self.assertNotEqual(tensor2.dtype, torch.float32)
+            else:
+                self.assertNotEqual(tensor.dtype, torch.float32)
 
 
 if __name__ == "__main__":

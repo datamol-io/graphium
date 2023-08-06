@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import Iterable, List, Union, Any, Callable
+from typing import Iterable, List, Union, Any, Callable, Dict
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
@@ -384,3 +384,33 @@ def arg_in_func(fn, arg):
     """
     fn_args = getfullargspec(fn)
     return (fn_args.varkw is not None) or (arg in fn_args[0])
+
+def tensor_fp16_to_fp32(tensor: Tensor) -> Tensor:
+    r"""Cast a tensor from fp16 to fp32 if it is in fp16
+
+    Parameters:
+        tensor: A tensor. If it is in fp16, it will be casted to fp32
+
+    Returns:
+        tensor: The tensor casted to fp32 if it was in fp16
+    """
+    if tensor.dtype == torch.float16:
+        return tensor.to(dtype=torch.float32)
+    return tensor
+
+def dict_tensor_fp16_to_fp32(dict_tensor: Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]) -> Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]:
+    r"""Recursively Cast a dictionary of tensors from fp16 to fp32 if it is in fp16
+
+    Parameters:
+        dict_tensor: A recursive dictionary of tensors. To be casted to fp32 if it was in fp16.
+
+    Returns:
+        dict_tensor: The recursive dictionary of tensors casted to fp32 if it was in fp16
+    """
+    if isinstance(dict_tensor, dict):
+        for key, value in dict_tensor.items():
+            dict_tensor[key] = dict_tensor_fp16_to_fp32(value)
+    else:
+        dict_tensor = tensor_fp16_to_fp32(dict_tensor)
+
+    return dict_tensor
