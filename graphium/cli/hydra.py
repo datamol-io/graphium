@@ -73,6 +73,7 @@ def run_training_finetuning(cfg: DictConfig) -> None:
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
+        task_levels=datamodule.get_task_levels(),
         accelerator_type=accelerator_type,
         task_norms=datamodule.task_norms,
     )

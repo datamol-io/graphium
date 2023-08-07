@@ -27,6 +27,7 @@ class PredictorModule(lightning.LightningModule):
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
         loss_fun: Dict[str, Union[str, Callable]],
+        task_levels: Dict[str, str],
         random_seed: int = 42,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
@@ -69,6 +70,7 @@ class PredictorModule(lightning.LightningModule):
 
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
+        self.task_levels = task_levels
         self.task_norms = task_norms
 
         super().__init__()
@@ -95,22 +97,11 @@ class PredictorModule(lightning.LightningModule):
             )
             eval_options[task].check_metrics_validity()
 
-        # Work-around to retain task level when model_kwargs are modified for FullGraphFinetuningNetwork
-        if "task_heads_kwargs" in model_kwargs.keys():
-            task_heads_kwargs = model_kwargs["task_heads_kwargs"]
-        elif "pretrained_model_kwargs" in model_kwargs.keys():
-            # This covers finetuning cases where we finetune from the task_heads
-            task_heads_kwargs = model_kwargs["pretrained_model_kwargs"]["task_heads_kwargs"]
-        else:
-            raise ValueError("incorrect model_kwargs")
-        self.task_heads_kwargs = task_heads_kwargs
-
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         self._eval_options_dict = {
             self._get_task_key(
-                task_level=task_heads_kwargs[key]["task_level"],
+                task_level=task_levels[key],
                 task=key
-                # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in self._eval_options_dict.items()
         }
@@ -119,22 +110,10 @@ class PredictorModule(lightning.LightningModule):
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
 
-        # Maintain module map to easily select modules
-        # We now need to define the module_map in pretrained_model in FinetuningNetwork
-        # self._module_map = OrderedDict(
-        #     pe_encoders=self.model.encoder_manager,
-        #     pre_nn=self.model.pre_nn,
-        #     pre_nn_edges=self.model.pre_nn_edges,
-        #     gnn=self.model.gnn,
-        #     graph_output_nn=self.model.task_heads.graph_output_nn,
-        #     task_heads=self.model.task_heads.task_heads,
-        # )
-
         loss_fun = {
             self._get_task_key(
-                task_level=task_heads_kwargs[key]["task_level"],
+                task_level=task_levels[key],
                 task=key
-                # task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
             ): value
             for key, value in loss_fun.items()
         }
@@ -338,7 +317,7 @@ class PredictorModule(lightning.LightningModule):
             preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
 
         preds = {
-            self._get_task_key(task_level=self.task_heads_kwargs[key]["task_level"], task=key): value
+            self._get_task_key(task_level=self.task_levels[key], task=key): value
             for key, value in preds.items()
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
