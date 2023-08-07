@@ -67,7 +67,13 @@ class Test_Finetuning(ut.TestCase):
         metrics = load_metrics(cfg)
 
         predictor = load_predictor(
-            cfg, model_class, model_kwargs, metrics, datamodule.get_task_levels(), accelerator_type, datamodule.task_norms
+            cfg,
+            model_class,
+            model_kwargs,
+            metrics,
+            datamodule.get_task_levels(),
+            accelerator_type,
+            datamodule.task_norms,
         )
 
         self.assertEqual(

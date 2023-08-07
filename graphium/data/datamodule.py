@@ -938,16 +938,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def get_task_levels(self):
         task_level_map = {}
-        
+
         for task, task_args in self.task_specific_args.items():
             if isinstance(task_args, DatasetProcessingParams):
                 task_args = task_args.__dict__  # Convert the class to a dictionary
-            task_level_map.update({
-                task: task_args["task_level"]
-            })
+            task_level_map.update({task: task_args["task_level"]})
 
         return task_level_map
-    
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
