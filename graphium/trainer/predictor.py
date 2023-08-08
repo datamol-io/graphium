@@ -492,7 +492,7 @@ class PredictorModule(lightning.LightningModule):
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=outputs["targets"],
-            predictions=outputs["preds"],
+            preds=outputs["preds"],
             loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
             task_losses=outputs["task_losses"],
             n_epochs=self.current_epoch,
@@ -565,7 +565,7 @@ class PredictorModule(lightning.LightningModule):
 
         self.task_epoch_summary.update_predictor_state(
             step_name=step_name,
-            predictions=preds,
+            preds=preds,
             targets=targets,
             loss=loss,
             task_losses=task_losses,

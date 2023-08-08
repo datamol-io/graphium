@@ -233,10 +233,11 @@ class Summary(SummaryInterface):
             A dictionary of metrics to log.
         """
 
-        targets = tensor_fp16_to_fp32(targets)
-        preds = tensor_fp16_to_fp32(preds)
+        targets = tensor_fp16_to_fp32(self.targets)
+        preds = tensor_fp16_to_fp32(self.preds)
 
-        targets = self.targets.to(dtype=preds.dtype, device=preds.device)
+        targets = targets.to(dtype=preds.dtype, device=preds.device)
+
         # Compute the metrics always used in regression tasks
         metric_logs = {}
         metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(preds)
