@@ -85,21 +85,26 @@ If you are not familiar with [PyTorch](https://pytorch.org/docs) or [PyTorch-Lig
 ## Running an experiment
 We have setup Graphium with `hydra` for managing config files. To run an experiment go to the `expts/` folder. For example, to benchmark a GCN on the ToyMix dataset run
 ```bash
-python main_run_multitask.py dataset=toymix model=gcn
+graphium-train dataset=toymix model=gcn
 ```
 To change parameters specific to this experiment like switching from `fp16` to `fp32` precision, you can either override them directly in the CLI via
 ```bash
-python main_run_multitask.py dataset=toymix model=gcn trainer.trainer.precision=32
+graphium-train dataset=toymix model=gcn trainer.trainer.precision=32
 ```
 or change them permamently in the dedicated experiment config under `expts/hydra-configs/toymix_gcn.yaml`.
 Integrating `hydra` also allows you to quickly switch between accelerators. E.g., running
 ```bash
-python main_run_multitask.py dataset=toymix model=gcn accelerator=gpu
+graphium-train dataset=toymix model=gcn accelerator=gpu
 ```
 automatically selects the correct configs to run the experiment on GPU.
+Finally, you can also run a fine-tuning loop: 
+```bash
+graphium-train +finetuning=admet
+```
+
 To use a config file you built from scratch you can run
 ```bash
-python main_run_multitask.py --config-path [PATH] --config-name [CONFIG]
+graphium-train --config-path [PATH] --config-name [CONFIG]
 ```
 Thanks to the modular nature of `hydra` you can reuse many of our config settings for your own experiments with Graphium.
 

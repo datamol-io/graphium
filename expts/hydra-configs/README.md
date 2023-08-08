@@ -38,18 +38,32 @@ trainer:
 We can now utilize `hydra` to e.g., run a sweep over our models on the ToyMix dataset via
 
 ```bash
-python main_run_multitask.py -m model=gcn,gin
+graphium-train -m model=gcn,gin
 ```
 where the ToyMix dataset is pre-configured in `main.yaml`. Read on to find out how to define new datasets and architectures for pre-training and fine-tuning.
 
 ## Pre-training / Fine-tuning
-From a configuration point-of-view, fine-tuning requires us to load a pre-trained model and attach new task heads. However, in a highly configurable library such as ours changing the task heads also requires changes to the logged metrics, loss functions and the source of the fine-tuning data. To allow a quick switch between pre-training and fine-tuning, by default, we configure models and the corresponding tasks in a separate manner. More specifically,
+Say you trained a model with the following command: 
+```bash
+graphium-train --config-name "main"
+```
+
+Fine-tuning this model on downstream tasks is then as simple as:
+```bash
+graphium-train --config-name "main" +finetuning=...
+```
+
+From a configuration point-of-view, fine-tuning requires us to load a pre-trained model and override part of the training configuration to fine-tune it on downstream tasks. To allow a quick switch between pre-training and fine-tuning, by default, we configure models and the corresponding tasks in a separate manner. More specifically,
 
 - under `architecture/` we store architecture related configurations such as the definition of the GNN/Transformer layers or positional/structural encoders
 - under `tasks/` we store configurations specific to one task set, such as the multi-task dataset ToyMix
+  - under `tasks/task_heads` we specify the task-specific heads to add on top of the base architecture.
+  - under `tasks/loss_metrics_datamodule` we specify the data-module to use and the task-specific loss functions and metrics
 - under `training/` we store configurations specific to training models which could be different for each combination of `architecture` and `tasks`
+- under `finetuning/` we store configurations with overrides
 
 Since architecture and tasks are logically separated it now becomes very easy to e.g., use an existing architecture backbone on a new set of tasks or a new dataset altogether. Additionally, separating training allows us to specify different training parameters for e.g., pre-training and fine-tuning of the same architecture and task set.
+
 We will now detail how you can add new architectures, tasks and training configurations.
 
 ### Adding an architecture
@@ -88,7 +102,7 @@ datamodule:
 ```
 You can then select your new architecture during training, e.g., by running
 ```bash
-python main_run_multitask.py architecture=my_architecture
+graphium-train architecture=my_architecture
 ```
 
 ### Adding tasks
@@ -125,7 +139,7 @@ predictor:
 ```
 You can then select your new dataset during training, e.g., by running
 ```bash
-python main_run_multitask.py tasks=my_tasks
+graphium-train tasks=my_tasks
 ```
 
 ### Adding training configs

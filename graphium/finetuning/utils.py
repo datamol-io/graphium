@@ -74,7 +74,8 @@ def modify_cfg_for_finetuning(cfg):
     sub_module_from_pretrained = cfg_finetune.get("sub_module_from_pretrained", None)
 
     # Find part of config of module to finetune from
-    # Specific to FullGraphMultitaskNetwork for now        # could be made independent from pretrained model by using module map
+    # Specific to FullGraphMultitaskNetwork for now
+    # could be made independent from pretrained model by using module map
     if finetuning_module == "gnn":
         new_module_kwargs = deepcopy(cfg_arch[finetuning_module])
     elif finetuning_module == "graph_output_nn":

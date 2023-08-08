@@ -36,8 +36,7 @@ nav:
           - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
       - model_training:
           - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
-          - Training on IPU: tutorials/model_training/ipu_training.ipynb
-          - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
+          - Training on IPU: tutorials/model_training/running-multitask-ipu.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
