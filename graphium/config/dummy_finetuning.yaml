@@ -139,34 +139,6 @@ datamodule:
     processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
 
-### fROM PRETRAINING ###
-
-    featurization:
-      atom_property_list_onehot: [atomic-number, group, period, total-valence]
-      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      edge_property_list: [bond-type-onehot, stereo, in-ring]
-      add_self_loop: False
-      explicit_H: False # if H is included
-      use_bonds_weights: False
-      pos_encoding_as_features:
-        pos_types:
-          lap_eigvec:
-            pos_level: node
-            pos_type: laplacian_eigvec
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          lap_eigval:
-            pos_level: node
-            pos_type: laplacian_eigval
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          rw_pos: # use same name as pe_encoder
-            pos_level: node
-            pos_type: rw_return_probs
-            ksteps: 16
-
 
 
 

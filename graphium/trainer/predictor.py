@@ -29,6 +29,7 @@ class PredictorModule(lightning.LightningModule):
         loss_fun: Dict[str, Union[str, Callable]],
         task_levels: Dict[str, str],
         random_seed: int = 42,
+        featurization: Dict[str, str] = None,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
@@ -71,6 +72,7 @@ class PredictorModule(lightning.LightningModule):
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
         self.task_levels = task_levels
+        self.featurization = featurization
         self.task_norms = task_norms
 
         super().__init__()

@@ -73,6 +73,7 @@ class Test_Finetuning(ut.TestCase):
             metrics,
             datamodule.get_task_levels(),
             accelerator_type,
+            datamodule.featurization,
             datamodule.task_norms,
         )
 

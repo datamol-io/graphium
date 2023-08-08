@@ -919,6 +919,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if featurization is None:
             featurization = {}
 
+        self.featurization = featurization
+
         # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
         if prepare_dict_or_graph == "pyg:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)

@@ -280,6 +280,7 @@ def load_predictor(
     metrics: Dict[str, MetricWrapper],
     task_levels: Dict[str, str],
     accelerator_type: str,
+    featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
@@ -304,6 +305,7 @@ def load_predictor(
         model_kwargs=model_kwargs,
         metrics=metrics,
         task_levels=task_levels,
+        featurization=featurization,
         task_norms=task_norms,
         **cfg_pred,
     )

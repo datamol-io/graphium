@@ -60,11 +60,14 @@ def modify_cfg_for_finetuning(cfg):
         GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model]
     )
 
-    # Inherit architecture from pretrained
+    # Inherit shared configuration from pretrained
+    # Architecture
     pretrained_architecture = pretrained_predictor.model_kwargs
     arch_keys = pretrained_architecture.keys()
     arch_keys = [key.replace("_kwargs", "") for key in arch_keys]
     cfg_arch = {arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())}
+    # Featurization
+    cfg["datamodule"]["args"]["featurization"] = pretrained_predictor.featurization
 
     finetuning_module = cfg_finetune["finetuning_module"]
     level = cfg_finetune["level"]
