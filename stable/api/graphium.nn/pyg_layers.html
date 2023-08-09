@@ -19,7 +19,7 @@
         <link rel="next" href="../graphium.features.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -1573,22 +1573,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
+      <a href="../../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
   
@@ -2651,7 +2637,7 @@ of heads.</p>
 
 
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2763,6 +2749,21 @@ An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and
           </td>
           <td>
                 <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>eps</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Epsilon value for the normalization <code>sum(gate_weights * messages) / (sum(gate_weights) + eps)</code>,
+where <code>gate_weights</code> are the weights of the gates and follow a sigmoid function.</p>
+            </div>
+          </td>
+          <td>
+                <code>1e-05</code>
           </td>
         </tr>
     </tbody>

@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.data.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -1379,22 +1379,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
+      <a href="../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
   
@@ -2110,7 +2096,7 @@
 
 
 <h5 id="graphium.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_train_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">task_levels</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_train_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2647,7 +2633,7 @@ Essential to estimate throughput in graphs/s.</p>
 
 
 <h5 id="graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -3097,7 +3083,7 @@ kwargs:
 
 
 <h6 id="graphium.trainer.predictor_summaries.Summary.Results.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="headerlink" title="Permanent link">&para;</a></h6>
 
@@ -3134,7 +3120,7 @@ kwargs:
           </td>
         </tr>
         <tr>
-          <td><code>predictions</code></td>
+          <td><code>preds</code></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
@@ -3775,7 +3761,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 <h5 id="graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3828,7 +3814,6 @@ Note: This function requires that self.update_predictor_state() be called before
         <tr>
           <td><code>predictions</code></td>
           <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4546,7 +4531,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4597,7 +4582,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           </td>
         </tr>
         <tr>
-          <td><code>predictions</code></td>
+          <td><code>preds</code></td>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>

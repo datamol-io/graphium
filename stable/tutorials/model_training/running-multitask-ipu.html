@@ -13,9 +13,13 @@
         <link rel="canonical" href="https://github.com/datamol-io/graphium/stable/tutorials/model_training/running-multitask-ipu.html">
       
       
+        <link rel="prev" href="simple-molecular-model.html">
+      
+      
+        <link rel="next" href="../../design.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -222,6 +226,8 @@
         
   
   
+    
+  
 
 
   
@@ -233,7 +239,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+      <a href="../feature_processing/add_new_positional_encoding.html" class="md-tabs__link md-tabs__link--active">
         Tutorials
       </a>
     </li>
@@ -620,16 +626,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
       
       
       
@@ -638,7 +644,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Tutorials
@@ -805,16 +811,16 @@
               
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
       
       
       
@@ -823,7 +829,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_4_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
@@ -848,25 +854,108 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Multitask Molecular Modelling with Graphium on the IPU
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="running-multitask-ipu.html" class="md-nav__link md-nav__link--active">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
-    </li>
-  
+      
+        
 
-            
-          
-            
-              
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
-    <li class="md-nav__item">
-      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
-      </a>
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary-table" class="md-nav__link">
+    Summary table
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-outcomes" class="md-nav__link">
+    Learning outcomes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#links-to-other-resources" class="md-nav__link">
+    Links to other resources
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    Dependencies
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-on-paperspace" class="md-nav__link">
+    Running on Paperspace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataset-toymix-benchmark" class="md-nav__link">
+    Dataset: ToyMix Benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multitask-learning" class="md-nav__link">
+    Multitask learning
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-the-dataset-and-splits" class="md-nav__link">
+    Download the dataset and splits
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graphium-model-configuration" class="md-nav__link">
+    Graphium model configuration
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2832,7 +2921,14 @@ model_class, model_kwargs = load_architecture(
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">load_predictor</span><span class="p">(</span>
-    <span class="n">cfg</span><span class="p">,</span> <span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">accelerator_type</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">.</span><span class="n">task_norms</span>
+    <span class="n">cfg</span><span class="p">,</span>
+    <span class="n">model_class</span><span class="p">,</span>
+    <span class="n">model_kwargs</span><span class="p">,</span>
+    <span class="n">metrics</span><span class="p">,</span>
+    <span class="n">datamodule</span><span class="o">.</span><span class="n">get_task_levels</span><span class="p">(),</span>
+    <span class="n">accelerator_type</span><span class="p">,</span>
+    <span class="n">datamodule</span><span class="o">.</span><span class="n">featurization</span><span class="p">,</span>
+    <span class="n">datamodule</span><span class="o">.</span><span class="n">task_norms</span>
 <span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ModelSummary</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
@@ -2843,7 +2939,14 @@ metrics = load_metrics(cfg)
 logger.info(metrics)
 
 predictor = load_predictor(
-    cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
+    cfg,
+    model_class,
+    model_kwargs,
+    metrics,
+    datamodule.get_task_levels(),
+    accelerator_type,
+    datamodule.featurization,
+    datamodule.task_norms
 )
 logger.info(predictor.model)
 logger.info(ModelSummary(predictor, max_depth=4))</div>
