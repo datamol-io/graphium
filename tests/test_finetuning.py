@@ -95,7 +95,9 @@ class Test_Finetuning(ut.TestCase):
         ################################################
 
         # Load pretrained & replace in predictor
-        pretrained_model = PredictorModule.load_pretrained_models(cfg["finetuning"]["pretrained_model_name"], device="cpu").model
+        pretrained_model = PredictorModule.load_pretrained_models(
+            cfg["finetuning"]["pretrained_model_name"], device="cpu"
+        ).model
 
         pretrained_model.create_module_map()
         module_map_from_pretrained = deepcopy(pretrained_model._module_map)

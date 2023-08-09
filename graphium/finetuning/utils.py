@@ -58,8 +58,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     # Load pretrained model
     pretrained_model_name = cfg_finetune["pretrained_model_name"]
     pretrained_predictor = PredictorModule.load_from_checkpoint(
-        GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name],
-        device='cpu'
+        GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name], device="cpu"
     )
 
     # Inherit shared configuration from pretrained
@@ -89,7 +88,11 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         new_module_kwargs = deepcopy(cfg_arch[finetuning_module][sub_module_from_pretrained])
 
     # Modify config according to desired finetuning architecture
-    out_dim = cfg_arch[finetuning_module].get("out_dim") if sub_module_from_pretrained is None else cfg_arch[finetuning_module][sub_module_from_pretrained].get("out_dim")
+    out_dim = (
+        cfg_arch[finetuning_module].get("out_dim")
+        if sub_module_from_pretrained is None
+        else cfg_arch[finetuning_module][sub_module_from_pretrained].get("out_dim")
+    )
 
     upd_kwargs = {
         "out_dim": cfg_finetune.pop("new_out_dim", out_dim),
@@ -110,11 +113,13 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     module_list = list(module_map_from_pretrained.keys())
     super_module_list = []
     for module in module_list:
-        if module.split("/")[0] not in super_module_list:   # Only add each supermodule once
+        if module.split("/")[0] not in super_module_list:  # Only add each supermodule once
             super_module_list.append(module.split("/")[0])
-    
+
     # Set configuration of modules after finetuning module to None
-    cutoff_idx = super_module_list.index(finetuning_module) + 1  # Index of module after module to finetune from
+    cutoff_idx = (
+        super_module_list.index(finetuning_module) + 1
+    )  # Index of module after module to finetune from
     for module in super_module_list[cutoff_idx:]:
         cfg_arch[module] = None
 
@@ -141,12 +146,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         pretrained_overwriting_kwargs.pop(key, None)
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
-    drop_keys = [
-        "task",
-        "level",
-        "pretrained_model_name",
-        "sub_module_from_pretrained",
-        "finetuning_head"]
+    drop_keys = ["task", "level", "pretrained_model_name", "sub_module_from_pretrained", "finetuning_head"]
     for key in drop_keys:
         finetuning_training_kwargs.pop(key, None)
 
@@ -155,6 +155,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     )
 
     return cfg
+
 
 def update_cfg_arch_for_module(
     cfg_arch: Dict[str, Any],
@@ -172,33 +173,24 @@ def update_cfg_arch_for_module(
         updates: Changes to apply to key-work arguments of selected module
     """
     # We need to distinguish between modules with & without submodules
-    if "/" not in module_name:   
-
+    if "/" not in module_name:
         if cfg_arch[module_name] is None:
             cfg_arch[module_name] = {}
 
-        cfg_arch_from_pretrained[module_name].update({
-            key: value
-            for key, value in updates.items()
-        })
+        cfg_arch_from_pretrained[module_name].update({key: value for key, value in updates.items()})
 
-        cfg_arch.update({
-            module_name, cfg_arch_from_pretrained
-        })
+        cfg_arch.update({module_name, cfg_arch_from_pretrained})
 
     else:
         module_name, sub_module = module_name.split("/")
         new_sub_module = updates.pop("new_sub_module", sub_module)
-        
+
         if cfg_arch[module_name] is None:
             cfg_arch[module_name] = {}
 
-        cfg_arch_from_pretrained[module_name][sub_module].update({
-            key: value
-            for key, value in updates.items()
-        })
-        cfg_arch[module_name].update({
-            new_sub_module: cfg_arch_from_pretrained[module_name][sub_module]
-        })
-    
+        cfg_arch_from_pretrained[module_name][sub_module].update(
+            {key: value for key, value in updates.items()}
+        )
+        cfg_arch[module_name].update({new_sub_module: cfg_arch_from_pretrained[module_name][sub_module]})
+
     return cfg_arch

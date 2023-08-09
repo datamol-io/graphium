@@ -79,14 +79,16 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
-        self.pretrained_model_name  = pretrained_model_name
+        self.pretrained_model_name = pretrained_model_name
         self.pretrained_overwriting_kwargs = pretrained_overwriting_kwargs
         self.finetuning_head_kwargs = finetuning_head_kwargs
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
         self.finetuning_head = None
 
-        self.pretrained_model = PretrainedModel(pretrained_model_name, pretrained_model_kwargs, pretrained_overwriting_kwargs)
+        self.pretrained_model = PretrainedModel(
+            pretrained_model_name, pretrained_model_kwargs, pretrained_overwriting_kwargs
+        )
 
         if finetuning_head_kwargs is not None:
             self.finetuning_head = FinetuningHead(finetuning_head_kwargs)
@@ -145,7 +147,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
             Dictionary with the kwargs to create the base model.
         """
         kwargs = dict(
-            pretrained_model_name = self.pretrained_model_name,
+            pretrained_model_name=self.pretrained_model_name,
             pretrained_model_kwargs=None,
             finetuning_head_kwargs=None,
             num_inference_to_average=self.num_inference_to_average,
@@ -272,7 +274,7 @@ class PretrainedModel(nn.Module, MupMixin):
                     ][idx]
             else:
                 raise RuntimeError("Mismatch between loaded pretrained model and model to be overwritten.")
-            
+
             if module_name.startswith(finetuning_module):
                 break
 
