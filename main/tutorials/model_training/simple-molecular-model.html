@@ -16,10 +16,10 @@
         <link rel="prev" href="../gnn/using_gnn_layers.html">
       
       
-        <link rel="next" href="../../design.html">
+        <link rel="next" href="running-multitask-ipu.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.5.1, mkdocs-material-9.1.21">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -952,22 +952,8 @@
   
   
     <li class="md-nav__item">
-      <a href="ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
+      <a href="running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
   
@@ -2240,12 +2226,11 @@ Licensed under the Apache License, Version 2.0.
 <h1 id="building-and-training-a-simple-model-from-configurations">Building and training a simple model from configurations<a class="anchor-link" href="#building-and-training-a-simple-model-from-configurations">¶</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
 <p>The work flow of testing your code on the entire pipeline is as follows:</p>
 <ol>
-<li>select a corresponding yaml file in the <a href="https://github.com/datamol-io/graphium/blob/master/expts/main_run_multitask.py">expts/main_run_multitask.py</a> i.e. by <code>CONFIG_FILE = "expts/configs/config_gps_10M_pcqm4m_mod.yaml"</code></li>
-<li>modify the yaml config file</li>
-<li><code>python expts/main_run_multitask.py</code></li>
+<li>Select a subset of the <a href="https://github.com/datamol-io/graphium/tree/main/expts/hydra-configs">available configs</a> as a starting point.</li>
+<li>Create additional configs or modify the existing configs to suit your needs.</li>
+<li>Train or fine-tune a model with the <code>graphium-train</code> CLI.</li>
 </ol>
-<p>There are multiple examples of YAML files located in the folder <code>graphium/expts/configs</code> that one can refer to when training a new model. The file <code>config_gps_10M_pcqm4m_mod.yaml</code> shows an example of running the GPS model on the pcqm4m dataset.</p>
-<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">¶</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>graphium/expts/config_gps_10M_pcqm4m_mod.yaml</code>. We will go through each part of the configurations.</p>
+<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">¶</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>graphium/expts/hydra-configs/main.yaml</code>. We will go through each part of the configurations. See also the README <a href="https://github.com/datamol-io/graphium/tree/main/expts/hydra-configs">here</a>.</p>
 </div>
 </div>
 </div>
@@ -2255,7 +2240,7 @@ Licensed under the Apache License, Version 2.0.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [19]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-1">
@@ -2270,9 +2255,13 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span> <span class="nn">yaml</span>
 <span class="kn">import</span> <span class="nn">omegaconf</span>
+
+<span class="kn">from</span> <span class="nn">hydra</span> <span class="kn">import</span> <span class="n">compose</span><span class="p">,</span> <span class="n">initialize</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-1">import yaml
-import omegaconf</div>
+import omegaconf
+
+from hydra import compose, initialize</div>
 </div>
 </div>
 </div>
@@ -2284,7 +2273,7 @@ import omegaconf</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [20]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-2">
@@ -2315,7 +2304,7 @@ import omegaconf</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [21]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-3">
@@ -2329,14 +2318,14 @@ import omegaconf</div>
 </clipboard-copy>
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># First, let's read the yaml configuration file</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"../../../expts/configs/config_gps_10M_pcqm4m_mod.yaml"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-    <span class="n">yaml_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">initialize</span><span class="p">(</span><span class="n">version_base</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config_path</span><span class="o">=</span><span class="s2">"../../../expts/hydra-configs"</span><span class="p">):</span>
+    <span class="n">yaml_config</span> <span class="o">=</span> <span class="n">compose</span><span class="p">(</span><span class="n">config_name</span><span class="o">=</span><span class="s2">"main"</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Yaml file loaded"</span><span class="p">)</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-3"># First, let's read the yaml configuration file
-with open("../../../expts/configs/config_gps_10M_pcqm4m_mod.yaml", "r") as file:
-    yaml_config = yaml.load(file, Loader=yaml.FullLoader)
+with initialize(version_base=None, config_path="../../../expts/hydra-configs"):
+    yaml_config = compose(config_name="main")
 
 print("Yaml file loaded")</div>
 </div>
@@ -2374,7 +2363,7 @@ print("Yaml file loaded")</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [22]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-4">
@@ -2402,11 +2391,11 @@ print("Yaml file loaded")</div>
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>constants:
-  name: pcqm4mv2_mpnn_4layer
+  name: neurips2023_small_data_gcn
   seed: 42
+  max_epochs: 100
+  data_dir: expts/data/neurips2023/small-dataset
   raise_train_error: true
-  accelerator:
-    type: gpu
 
 </pre>
 </div>
@@ -2432,7 +2421,7 @@ print("Yaml file loaded")</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-5">
@@ -2462,22 +2451,14 @@ print("Yaml file loaded")</div>
 <pre>datamodule:
   module_type: MultitaskFromSmilesDataModule
   args:
-    task_specific_args:
-      homolumo:
-        df: null
-        task_level: graph
-        df_path: ~/scratch/data/graphium/data/PCQM4M/pcqm4mv2-20k.csv
-        smiles_col: cxsmiles
-        label_cols:
-        - homo_lumo_gap
-        split_val: 0.1
-        split_test: 0.1
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
+    featurization_n_jobs: 4
     featurization_progress: true
     featurization_backend: loky
+    processed_graph_data_path: ../datacache/neurips2023-small/
+    num_workers: 4
+    persistent_workers: false
     featurization:
-      mask_nan: 0
       atom_property_list_onehot:
       - atomic-number
       - group
@@ -2493,55 +2474,94 @@ print("Yaml file loaded")</div>
       - bond-type-onehot
       - stereo
       - in-ring
-      conformer_property_list:
-      - positions_3d
       add_self_loop: false
       explicit_H: false
       use_bonds_weights: false
       pos_encoding_as_features:
         pos_types:
-          node_laplacian_eigvec:
+          lap_eigvec:
+            pos_level: node
             pos_type: laplacian_eigvec
-            pos_level: node
             num_pos: 8
             normalization: none
             disconnected_comp: true
-          node_laplacian_eigval:
+          lap_eigval:
+            pos_level: node
             pos_type: laplacian_eigval
-            pos_level: node
             num_pos: 8
             normalization: none
             disconnected_comp: true
-          rw_return_probs:
-            pos_type: rw_return_probs
+          rw_pos:
             pos_level: node
-            ksteps:
-            - 4
-            - 8
-          nodepair_rw_transition_probs:
-            pos_type: rw_transition_probs
-            pos_level: edge
-            ksteps:
-            - 2
-            - 4
-          nodepair_rw_return_probs:
             pos_type: rw_return_probs
-            pos_level: nodepair
-            ksteps:
-            - 4
-          electrostatic:
-            pos_type: electrostatic
-            pos_level: node
-          edge_commute:
-            pos_type: commute
-            pos_level: edge
-          nodepair_graphormer:
-            pos_type: graphormer
-            pos_level: nodepair
-    batch_size_training: 64
-    batch_size_inference: 16
-    num_workers: 0
-    persistent_workers: false
+            ksteps: 16
+    task_specific_args:
+      qm9:
+        df: null
+        df_path: ${constants.data_dir}/qm9.csv.gz
+        smiles_col: smiles
+        label_cols:
+        - A
+        - B
+        - C
+        - mu
+        - alpha
+        - homo
+        - lumo
+        - gap
+        - r2
+        - zpve
+        - u0
+        - u298
+        - h298
+        - g298
+        - cv
+        - u0_atom
+        - u298_atom
+        - h298_atom
+        - g298_atom
+        splits_path: ${constants.data_dir}/qm9_random_splits.pt
+        seed: ${constants.seed}
+        task_level: graph
+        label_normalization:
+          normalize_val_test: true
+          method: normal
+      tox21:
+        df: null
+        df_path: ${constants.data_dir}/Tox21-7k-12-labels.csv.gz
+        smiles_col: smiles
+        label_cols:
+        - NR-AR
+        - NR-AR-LBD
+        - NR-AhR
+        - NR-Aromatase
+        - NR-ER
+        - NR-ER-LBD
+        - NR-PPAR-gamma
+        - SR-ARE
+        - SR-ATAD5
+        - SR-HSE
+        - SR-MMP
+        - SR-p53
+        splits_path: ${constants.data_dir}/Tox21_random_splits.pt
+        seed: ${constants.seed}
+        task_level: graph
+      zinc:
+        df: null
+        df_path: ${constants.data_dir}/ZINC12k.csv.gz
+        smiles_col: smiles
+        label_cols:
+        - SA
+        - logp
+        - score
+        splits_path: ${constants.data_dir}/ZINC12k_random_splits.pt
+        seed: ${constants.seed}
+        task_level: graph
+        label_normalization:
+          normalize_val_test: true
+          method: normal
+    batch_size_training: 200
+    batch_size_inference: 200
 
 </pre>
 </div>
@@ -2575,7 +2595,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [24]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-6">
@@ -2606,134 +2626,106 @@ Here, we define all the layers for the model, including the layers for the pre-p
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:
-    out_dim: 32
-    hidden_dims: 64
+    out_dim: 64
+    hidden_dims: 256
     depth: 2
     activation: relu
     last_activation: none
-    dropout: 0.1
+    dropout: 0.18
     normalization: layer_norm
-    last_normalization: layer_norm
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: none
-  pre_nn_edges:
-    out_dim: 16
-    hidden_dims: 32
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: 0.1
-    normalization: layer_norm
-    last_normalization: layer_norm
-    residual_type: none
+  pre_nn_edges: null
   pe_encoders:
     out_dim: 32
-    edge_out_dim: 16
     pool: sum
     last_norm: None
     encoders:
-      emb_la_pos:
+      la_pos:
         encoder_type: laplacian_pe
         input_keys:
         - laplacian_eigvec
         - laplacian_eigval
         output_keys:
         - feat
-        hidden_dim: 32
+        hidden_dim: 64
+        out_dim: 32
         model_type: DeepSet
         num_layers: 2
         num_layers_post: 1
         dropout: 0.1
         first_normalization: none
-      emb_rwse:
+      rw_pos:
         encoder_type: mlp
         input_keys:
         - rw_return_probs
         output_keys:
         - feat
-        hidden_dim: 32
+        hidden_dim: 64
+        out_dim: 32
         num_layers: 2
         dropout: 0.1
         normalization: layer_norm
         first_normalization: layer_norm
-      emb_electrostatic:
-        encoder_type: mlp
-        input_keys:
-        - electrostatic
-        output_keys:
-        - feat
-        hidden_dim: 32
-        num_layers: 1
-        dropout: 0.1
-        normalization: layer_norm
-        first_normalization: layer_norm
-      emb_edge_rwse:
-        encoder_type: mlp
-        input_keys:
-        - edge_rw_transition_probs
-        output_keys:
-        - edge_feat
-        hidden_dim: 32
-        num_layers: 1
-        dropout: 0.1
-        normalization: layer_norm
-      emb_edge_pes:
-        encoder_type: cat_mlp
-        input_keys:
-        - edge_rw_transition_probs
-        - edge_commute
-        output_keys:
-        - edge_feat
-        hidden_dim: 32
-        num_layers: 1
-        dropout: 0.1
-        normalization: layer_norm
-      gaussian_pos:
-        encoder_type: gaussian_kernel
-        input_keys:
-        - positions_3d
-        output_keys:
-        - feat
-        - nodepair_gaussian_bias_3d
-        num_heads: 2
-        num_layers: 2
-        embed_dim: 32
-        use_input_keys_prefix: false
   gnn:
-    out_dim: 32
-    hidden_dims: 32
+    in_dim: 64
+    out_dim: 96
+    hidden_dims: 96
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.0
+    dropout: 0.1
     normalization: layer_norm
-    last_normalization: layer_norm
+    last_normalization: ${architecture.pre_nn.normalization}
     residual_type: simple
-    pooling:
-    - sum
     virtual_node: none
-    layer_type: pyg:gps
-    layer_kwargs:
-      node_residual: false
-      mpnn_type: pyg:mpnnplus
-      mpnn_kwargs:
-        in_dim: 32
-        out_dim: 32
-        in_dim_edges: 16
-        out_dim_edges: 16
-      attn_type: full-attention
-      attn_kwargs:
-        num_heads: 2
-      biased_attention_key: nodepair_gaussian_bias_3d
-  post_nn: null
+    layer_type: pyg:gcn
+    layer_kwargs: null
+  graph_output_nn:
+    graph:
+      pooling:
+      - sum
+      out_dim: 96
+      hidden_dims: 96
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: none
+      residual_type: none
   task_heads:
-    homolumo:
-      out_dim: 1
-      hidden_dims: 256
+    qm9:
+      task_level: graph
+      out_dim: 19
+      hidden_dims: 128
       depth: 2
       activation: relu
       last_activation: none
-      dropout: 0.1
-      normalization: layer_norm
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: none
+      residual_type: none
+    tox21:
+      task_level: graph
+      out_dim: 12
+      hidden_dims: 64
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: none
+      residual_type: none
+    zinc:
+      task_level: graph
+      out_dim: 3
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
       last_normalization: none
       residual_type: none
 
@@ -2760,7 +2752,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [25]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-7">
@@ -2789,24 +2781,28 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>predictor:
   metrics_on_progress_bar:
-    homolumo:
+    qm9:
     - mae
-    - pearsonr
+    tox21:
+    - auroc
+    zinc:
+    - mae
   loss_fun:
-    homolumo: mse_ipu
-  random_seed: 42
+    qm9: mae_ipu
+    tox21: bce_logits_ipu
+    zinc: mae_ipu
+  random_seed: ${constants.seed}
   optim_kwargs:
-    lr: 0.0004
+    lr: 4.0e-05
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 5
+    max_num_epochs: ${constants.max_epochs}
     warmup_epochs: 10
     verbose: false
   scheduler_kwargs: null
   target_nan_mask: null
-  flag_kwargs:
-    n_steps: 0
-    alpha: 0.0
+  multitask_handling: flatten
+  metrics_every_n_train_steps: 300
 
 </pre>
 </div>
@@ -2832,7 +2828,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [26]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-8">
@@ -2860,7 +2856,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>metrics:
-  homolumo:
+  qm9:
   - name: mae
     metric: mae_ipu
     target_nan_mask: null
@@ -2871,6 +2867,58 @@ Here, we define all the layers for the model, including the layers for the pre-p
     threshold_kwargs: null
     target_nan_mask: null
     multitask_handling: mean-per-label
+  - name: r2_score
+    metric: r2_score_ipu
+    target_nan_mask: null
+    multitask_handling: mean-per-label
+    threshold_kwargs: null
+  tox21:
+  - name: auroc
+    metric: auroc_ipu
+    task: binary
+    multitask_handling: mean-per-label
+    threshold_kwargs: null
+  - name: avpr
+    metric: average_precision_ipu
+    task: binary
+    multitask_handling: mean-per-label
+    threshold_kwargs: null
+  - name: f1 &gt; 0.5
+    metric: f1
+    multitask_handling: mean-per-label
+    target_to_int: true
+    num_classes: 2
+    average: micro
+    threshold_kwargs:
+      operator: greater
+      threshold: 0.5
+      th_on_preds: true
+      th_on_target: true
+  - name: precision &gt; 0.5
+    metric: precision
+    multitask_handling: mean-per-label
+    average: micro
+    threshold_kwargs:
+      operator: greater
+      threshold: 0.5
+      th_on_preds: true
+      th_on_target: true
+  zinc:
+  - name: mae
+    metric: mae_ipu
+    target_nan_mask: null
+    multitask_handling: flatten
+    threshold_kwargs: null
+  - name: pearsonr
+    metric: pearsonr_ipu
+    threshold_kwargs: null
+    target_nan_mask: null
+    multitask_handling: mean-per-label
+  - name: r2_score
+    metric: r2_score_ipu
+    target_nan_mask: null
+    multitask_handling: mean-per-label
+    threshold_kwargs: null
 
 </pre>
 </div>
@@ -2895,7 +2943,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [27]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy for="cell-9">
@@ -2923,21 +2971,17 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>trainer:
-  logger:
-    save_dir: logs/PCQMv2
-    name: pcqm4mv2_mpnn_4layer
-    project: PCQMv2_mpnn
+  seed: ${constants.seed}
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQv2/
-    filename: pcqm4mv2_mpnn_4layer
-    save_top_k: 1
-    every_n_epochs: 100
+    filename: ${constants.name}
+    save_last: true
+    dirpath: models_checkpoints/neurips2023-small-gcn/
   trainer:
     precision: 32
-    max_epochs: 5
+    max_epochs: ${constants.max_epochs}
     min_epochs: 1
-    accumulate_grad_batches: 2
     check_val_every_n_epoch: 20
+    accumulate_grad_batches: 1
 
 </pre>
 </div>
@@ -2953,20 +2997,11 @@ Here, we define all the layers for the model, including the layers for the pre-p
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="training-the-model">Training the model<a class="anchor-link" href="#training-the-model">¶</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
-<p>First make sure the dataset file is downloaded.
-Using <code>config_gps_10M_pcqm4m.yaml</code> as an example, if the file at <code>df_path</code> in the config is downloaded.
-In this case, we need to download <code>pcqm4mv2-20k.csv</code> into the specified directory <code>graphium/data/PCQM4M/pcqm4mv2-20k.csv</code></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>$<code>python expts/main_run_multitask.py</code></p>
+<p>First make sure the dataset file is downloaded. Using <code>config_gps_10M_pcqm4m.yaml</code> as an example, make sure the file specified by <code>df_path</code> in the config is available.
+In this case, we need to download <code>pcqm4mv2-20k.csv</code> into the specified directory <code>graphium/data/PCQM4M/pcqm4mv2-20k.csv</code>.</p>
+<p>After that, we can simply run a training through the CLI:</p>
+<div class="highlight"><pre><span></span>graphium-train
+</pre></div>
 </div>
 </div>
 </div>

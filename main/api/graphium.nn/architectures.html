@@ -19,7 +19,7 @@
         <link rel="next" href="encoders.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.5.1, mkdocs-material-9.1.21">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -593,6 +593,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="md-nav__link">
+    add_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="md-nav__link">
+    drop_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.forward" class="md-nav__link">
     forward()
   </a>
@@ -664,6 +678,13 @@
           <li class="md-nav__item">
   <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="md-nav__link">
     __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="md-nav__link">
+    create_module_map()
   </a>
   
 </li>
@@ -1347,22 +1368,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
+      <a href="../../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
   
@@ -1585,6 +1592,20 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="md-nav__link">
+    add_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="md-nav__link">
+    drop_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.forward" class="md-nav__link">
     forward()
   </a>
@@ -1656,6 +1677,13 @@
           <li class="md-nav__item">
   <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="md-nav__link">
     __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="md-nav__link">
+    create_module_map()
   </a>
   
 </li>
@@ -2970,6 +2998,44 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+<h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
+
+<a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add layers to the end of the model.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">drop_layers</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span></code>
+
+<a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove the last layers of the model part.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.forward" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
 
@@ -3418,6 +3484,26 @@ purposes.</p>
   <div class="doc doc-contents ">
   
       <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_module_map</span><span class="p">()</span></code>
+
+<a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
+Used for finetuning when (partially) loading or freezing specific modules of the pretrained model</p>
 
   </div>
 

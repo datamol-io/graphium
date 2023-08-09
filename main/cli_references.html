@@ -17,7 +17,7 @@
       
       
       <link rel="icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.5.1, mkdocs-material-9.1.21">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
@@ -854,22 +854,8 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
-        Training on IPU
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
+      <a href="tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
   
@@ -1027,33 +1013,192 @@
 
 <h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
 <p>This page provides documentation for our command line tools.</p>
-<h1 id="data">data<a class="headerlink" href="#data" title="Permanent link">&para;</a></h1>
+<h1 id="graphium">graphium<a class="headerlink" href="#graphium" title="Permanent link">&para;</a></h1>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code>graphium [OPTIONS] COMMAND [ARGS]...
+</code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--version</code></td>
+<td>boolean</td>
+<td>Show the version and exit.</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="data">data<a class="headerlink" href="#data" title="Permanent link">&para;</a></h2>
 <p>Graphium datasets.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>data [OPTIONS] COMMAND [ARGS]...
+<div class="highlight"><pre><span></span><code>graphium data [OPTIONS] COMMAND [ARGS]...
 </code></pre></div>
 <p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
-</code></pre></div>
-<h2 id="download">download<a class="headerlink" href="#download" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="download">download<a class="headerlink" href="#download" title="Permanent link">&para;</a></h3>
 <p>Download a Graphium dataset.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>data download [OPTIONS]
+<div class="highlight"><pre><span></span><code>graphium data download [OPTIONS]
 </code></pre></div>
 <p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  -n, --name TEXT    Name of the graphium dataset to download.  [required]
-  -o, --output TEXT  Where to download the Graphium dataset.  [required]
-  --progress         Whether to extract the dataset if it&#39;s a zip file.
-  --help             Show this message and exit.
-</code></pre></div>
-<h2 id="list">list<a class="headerlink" href="#list" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-n</code>, <code>--name</code></td>
+<td>text</td>
+<td>Name of the graphium dataset to download.</td>
+<td>_required</td>
+</tr>
+<tr>
+<td><code>-o</code>, <code>--output</code></td>
+<td>text</td>
+<td>Where to download the Graphium dataset.</td>
+<td>_required</td>
+</tr>
+<tr>
+<td><code>--progress</code></td>
+<td>boolean</td>
+<td>Whether to extract the dataset if it's a zip file.</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="list">list<a class="headerlink" href="#list" title="Permanent link">&para;</a></h3>
 <p>List available Graphium dataset.</p>
 <p><strong>Usage:</strong></p>
-<div class="highlight"><pre><span></span><code>data list [OPTIONS]
+<div class="highlight"><pre><span></span><code>graphium data list [OPTIONS]
 </code></pre></div>
 <p><strong>Options:</strong></p>
-<div class="highlight"><pre><span></span><code>  --help  Show this message and exit.
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="finetune">finetune<a class="headerlink" href="#finetune" title="Permanent link">&para;</a></h2>
+<p>Utility CLI for extra fine-tuning utilities.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code>graphium finetune [OPTIONS] COMMAND [ARGS]...
 </code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="admet">admet<a class="headerlink" href="#admet" title="Permanent link">&para;</a></h3>
+<p>Utility CLI to easily fine-tune a model on (a subset of) the benchmarks in the TDC ADMET group.
+The results are saved to the SAVE_DIR.</p>
+<p><strong>Usage:</strong></p>
+<div class="highlight"><pre><span></span><code>graphium finetune admet [OPTIONS] SAVE_DIR
+</code></pre></div>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--wandb</code> / <code>--no-wandb</code></td>
+<td>boolean</td>
+<td>Whether to log to Weights &amp; Biases.</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>--name</code>, <code>-n</code></td>
+<td>text</td>
+<td>One or multiple benchmarks to filter on. See also --inclusive-filter/--exclusive-filter.</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>--inclusive-filter</code> / <code>--exclusive-filter</code></td>
+<td>boolean</td>
+<td>Whether to include or exclude the benchmarks specified by <code>--name</code>.</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>boolean</td>
+<td>Show this message and exit.</td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
 
 
 
