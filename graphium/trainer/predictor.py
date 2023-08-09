@@ -16,6 +16,7 @@ from graphium.trainer.predictor_options import EvalOptions, FlagOptions, ModelOp
 from graphium.trainer.predictor_summaries import TaskSummaries
 from graphium.data.datamodule import BaseDataModule
 from graphium.utils.moving_average_tracker import MovingAverageTracker
+from graphium.utils.tensor import dict_tensor_fp16_to_fp32
 
 GRAPHIUM_PRETRAINED_MODELS = {
     "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt"
@@ -492,7 +493,7 @@ class PredictorModule(lightning.LightningModule):
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=outputs["targets"],
-            predictions=outputs["preds"],
+            preds=outputs["preds"],
             loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
             task_losses=outputs["task_losses"],
             n_epochs=self.current_epoch,
@@ -554,9 +555,12 @@ class PredictorModule(lightning.LightningModule):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
+
+        # NOTE: Computing the loss over the entire split may cause
+        # overflow issues when using fp16
         loss, task_losses = self.compute_loss(
-            preds=preds,
-            targets=targets,
+            preds=dict_tensor_fp16_to_fp32(preds),
+            targets=dict_tensor_fp16_to_fp32(targets),
             weights=weights,
             target_nan_mask=self.target_nan_mask,
             multitask_handling=self.multitask_handling,
@@ -565,7 +569,7 @@ class PredictorModule(lightning.LightningModule):
 
         self.task_epoch_summary.update_predictor_state(
             step_name=step_name,
-            predictions=preds,
+            preds=preds,
             targets=targets,
             loss=loss,
             task_losses=task_losses,

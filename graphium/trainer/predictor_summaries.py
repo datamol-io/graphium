@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from graphium.utils.tensor import nan_mean, nan_std, nan_median
+from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
 
 
 class SummaryInterface(object):
@@ -80,7 +80,7 @@ class Summary(SummaryInterface):
         # self.predictor_outputs = None
         self.step_name: str = None
         self.targets: Tensor = None
-        self.predictions: Tensor = None
+        self.preds: Tensor = None
         self.loss = None  # What type?
         self.n_epochs: int = None
 
@@ -88,7 +88,7 @@ class Summary(SummaryInterface):
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
     def update_predictor_state(
-        self, step_name: str, targets: Tensor, predictions: Tensor, loss: Tensor, n_epochs: int
+        self, step_name: str, targets: Tensor, preds: Tensor, loss: Tensor, n_epochs: int
     ):
         r"""
         update the state of the predictor
@@ -101,7 +101,7 @@ class Summary(SummaryInterface):
         """
         self.step_name = step_name
         self.targets = targets
-        self.predictions = predictions
+        self.preds = preds
         self.loss = loss
         self.n_epochs = n_epochs
 
@@ -120,7 +120,7 @@ class Summary(SummaryInterface):
         metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = self.loss
         self.summaries[self.step_name] = Summary.Results(
             targets=self.targets,
-            predictions=self.predictions,
+            preds=self.preds,
             loss=self.loss,
             metrics=metrics,  # Should include task name from get_metrics_logs()
             monitored_metric=f"{self.monitor}/{self.step_name}",  # Include task name?
@@ -232,18 +232,17 @@ class Summary(SummaryInterface):
         Returns:
             A dictionary of metrics to log.
         """
-        targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
+
+        targets = tensor_fp16_to_fp32(self.targets)
+        preds = tensor_fp16_to_fp32(self.preds)
+
+        targets = targets.to(dtype=preds.dtype, device=preds.device)
+
         # Compute the metrics always used in regression tasks
         metric_logs = {}
-        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(
-            self.predictions
-        )
-        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(
-            self.predictions
-        )
-        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(
-            self.predictions
-        )
+        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(preds)
+        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(preds)
+        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(preds)
         metric_logs[self.metric_log_name(self.task_name, "mean_target", self.step_name)] = nan_mean(targets)
         metric_logs[self.metric_log_name(self.task_name, "std_target", self.step_name)] = nan_std(targets)
         metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(
@@ -264,7 +263,7 @@ class Summary(SummaryInterface):
                 self.task_name, key, self.step_name
             )  # f"{key}/{self.step_name}"
             try:
-                metric_logs[metric_name] = metric(self.predictions, targets)
+                metric_logs[metric_name] = metric(preds, targets)
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
                 # Warn only if it's the first warning for that metric
@@ -292,7 +291,7 @@ class Summary(SummaryInterface):
         def __init__(
             self,
             targets: Tensor = None,
-            predictions: Tensor = None,
+            preds: Tensor = None,
             loss: float = None,  # Is this supposed to be a Tensor or float?
             metrics: dict = None,
             monitored_metric: str = None,
@@ -302,14 +301,14 @@ class Summary(SummaryInterface):
             This inner class is used as a container for storing the results of the summary.
             Parameters:
                 targets: the targets
-                predictions: the prediction tensor
+                preds: the prediction tensor
                 loss: the loss, float or tensor
                 metrics: the metrics
                 monitored_metric: the monitored metric
                 n_epochs: the number of epochs
             """
             self.targets = targets.detach().cpu()
-            self.predictions = predictions.detach().cpu()
+            self.preds = preds.detach().cpu()
             self.loss = loss.item() if isinstance(loss, Tensor) else loss
             self.monitored_metric = monitored_metric
             if monitored_metric in metrics.keys():
@@ -371,7 +370,7 @@ class TaskSummaries(SummaryInterface):
         self,
         step_name: str,
         targets: Dict[str, Tensor],
-        predictions: Dict[str, Tensor],
+        preds: Dict[str, Tensor],
         loss: Tensor,
         task_losses: Dict[str, Tensor],
         n_epochs: int,
@@ -381,7 +380,7 @@ class TaskSummaries(SummaryInterface):
         Parameters:
             step_name: the name of the step
             targets: the target tensors
-            predictions: the prediction tensors
+            preds: the prediction tensors
             loss: the loss tensor
             task_losses: the task losses
             n_epochs: the number of epochs
@@ -392,7 +391,7 @@ class TaskSummaries(SummaryInterface):
             self.task_summaries[task].update_predictor_state(
                 step_name,
                 targets[task],
-                predictions[task].detach(),
+                preds[task].detach(),
                 task_losses[task].detach(),
                 n_epochs,
             )
