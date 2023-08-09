@@ -25,6 +25,7 @@ from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT, FINETUNING_HE
 class FullGraphFinetuningNetwork(nn.Module, MupMixin):
     def __init__(
         self,
+        pretrained_model_name: str,
         pretrained_model_kwargs: Dict[str, Any],
         pretrained_overwriting_kwargs: Dict[str, Any],
         finetuning_head_kwargs: Optional[Dict[str, Any]] = None,
@@ -39,6 +40,9 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         flexible finetuning with a custom network applied after the pretrained model. If not specified, we fall back to basic finetuning integrated in PretrainedModel.
 
         Parameters:
+
+            pretrained_model_name:
+                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
 
             pretrained_model_kwargs:
                 Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
@@ -75,12 +79,14 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
+        self.pretrained_model_name  = pretrained_model_name
         self.pretrained_overwriting_kwargs = pretrained_overwriting_kwargs
         self.finetuning_head_kwargs = finetuning_head_kwargs
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
+        self.finetuning_head = None
 
-        self.pretrained_model = PretrainedModel(pretrained_model_kwargs, pretrained_overwriting_kwargs)
+        self.pretrained_model = PretrainedModel(pretrained_model_name, pretrained_model_kwargs, pretrained_overwriting_kwargs)
 
         if finetuning_head_kwargs is not None:
             self.finetuning_head = FinetuningHead(finetuning_head_kwargs)
@@ -139,6 +145,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
             Dictionary with the kwargs to create the base model.
         """
         kwargs = dict(
+            pretrained_model_name = self.pretrained_model_name,
             pretrained_model_kwargs=None,
             finetuning_head_kwargs=None,
             num_inference_to_average=self.num_inference_to_average,
@@ -177,9 +184,9 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 class PretrainedModel(nn.Module, MupMixin):
     def __init__(
         self,
+        pretrained_model_name: str,
         pretrained_model_kwargs: Dict[str, Any],
         pretrained_overwriting_kwargs: Dict[str, Any],
-        pretrained_model: str = "dummy-pretrained-model-cpu",
     ):
         r"""
         Flexible class allowing to finetune pretrained models from GRAPHIUM_PRETRAINED_MODELS_DICT.
@@ -187,14 +194,14 @@ class PretrainedModel(nn.Module, MupMixin):
 
         Parameters:
 
+            pretrained_model_name:
+                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
+
             pretrained_model_kwargs:
                 Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
 
             pretrained_overwriting_kwargs:
                 Key-word arguments indicating which parameters of loaded model are shared with the pretrained part of FullGraphFinetuningNetwork
-
-            pretrained_model:
-                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
 
         """
 
@@ -202,7 +209,7 @@ class PretrainedModel(nn.Module, MupMixin):
 
         # Load pretrained model
         pretrained_model = PredictorModule.load_from_checkpoint(
-            GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model]
+            GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name]
         ).model
         pretrained_model.create_module_map()
 
@@ -265,6 +272,9 @@ class PretrainedModel(nn.Module, MupMixin):
                     ][idx]
             else:
                 raise RuntimeError("Mismatch between loaded pretrained model and model to be overwritten.")
+            
+            if module_name.startswith(finetuning_module):
+                break
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
@@ -305,9 +315,13 @@ class FinetuningHead(nn.Module, MupMixin):
         net = FINETUNING_HEADS_DICT[model_type]
         self.net = net(**finetuning_head_kwargs)
 
-    def forward(self, g: Union[torch.Tensor, Batch]):
-        if self.previous_module == "task_heads":
+    def forward(self, g: Union[Dict[str, Union[torch.Tensor, Batch]], torch.Tensor, Batch]):
+        if isinstance(g, Union[torch.Tensor, Batch]):
+            pass
+        elif isinstance(g, Dict) and len(g) == 1:
             g = list(g.values())[0]
+        else:
+            raise TypeError("Output type from pretrained model not appropriate for finetuning head")
 
         g = self.net.forward(g)
 

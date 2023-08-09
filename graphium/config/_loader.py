@@ -263,10 +263,13 @@ def load_architecture(
 
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
+        pretrained_overwriting_kwargs = config["finetuning"].pop("overwriting_kwargs")
+        pretrained_model_name = pretrained_overwriting_kwargs.pop("pretrained_model_name")
 
         model_kwargs = {
             "pretrained_model_kwargs": deepcopy(model_kwargs),
-            "pretrained_overwriting_kwargs": config["finetuning"]["overwriting_kwargs"],
+            "pretrained_overwriting_kwargs": pretrained_overwriting_kwargs,
+            "pretrained_model_name": pretrained_model_name,
             "finetuning_head_kwargs": finetuning_head_kwargs,
         }
 

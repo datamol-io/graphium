@@ -30,12 +30,14 @@ finetuning:
   level: graph
 
   # Pretrained model
-  pretrained_model: dummy-pretrained-model-cpu
-  finetuning_module: task_heads                
-  sub_module_from_pretrained: zinc # none
+  pretrained_model_name: dummy-pretrained-model
+  finetuning_module: task_heads  
+  sub_module_from_pretrained: zinc # optional
+  new_sub_module: lipophilicity_astrazeneca # optional
+  # keep_modules_after_finetuning_module: # optional
 
   # Changes to finetuning_module                                                  
-  drop_depth: 1 
+  drop_depth: 1
   new_out_dim: 8
   added_depth: 2
 
