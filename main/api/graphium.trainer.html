@@ -3097,7 +3097,7 @@ kwargs:
 
 
 <h6 id="graphium.trainer.predictor_summaries.Summary.Results.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="headerlink" title="Permanent link">&para;</a></h6>
 
@@ -3134,7 +3134,7 @@ kwargs:
           </td>
         </tr>
         <tr>
-          <td><code>predictions</code></td>
+          <td><code>preds</code></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
@@ -3775,7 +3775,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 <h5 id="graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3828,7 +3828,6 @@ Note: This function requires that self.update_predictor_state() be called before
         <tr>
           <td><code>predictions</code></td>
           <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4546,7 +4545,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4597,7 +4596,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           </td>
         </tr>
         <tr>
-          <td><code>predictions</code></td>
+          <td><code>preds</code></td>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>

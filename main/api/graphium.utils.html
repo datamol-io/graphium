@@ -1170,6 +1170,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.dict_tensor_fp16_to_fp32" class="md-nav__link">
+    dict_tensor_fp16_to_fp32()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.utils.tensor.is_device_cuda" class="md-nav__link">
     is_device_cuda()
   </a>
@@ -1256,6 +1263,13 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.tensor_fp16_to_fp32" class="md-nav__link">
+    tensor_fp16_to_fp32()
+  </a>
   
 </li>
         
@@ -2286,6 +2300,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.dict_tensor_fp16_to_fp32" class="md-nav__link">
+    dict_tensor_fp16_to_fp32()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.utils.tensor.is_device_cuda" class="md-nav__link">
     is_device_cuda()
   </a>
@@ -2372,6 +2393,13 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.tensor_fp16_to_fp32" class="md-nav__link">
+    tensor_fp16_to_fp32()
+  </a>
   
 </li>
         
@@ -4425,6 +4453,79 @@ their output alongside the dimension <code>self.dim</code>.</p>
 
 
 
+<h4 id="graphium.utils.tensor.dict_tensor_fp16_to_fp32" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">dict_tensor_fp16_to_fp32</span><span class="p">(</span><span class="n">dict_tensor</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.dict_tensor_fp16_to_fp32" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Recursively Cast a dictionary of tensors from fp16 to fp32 if it is in fp16</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dict_tensor</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A recursive dictionary of tensors. To be casted to fp32 if it was in fp16.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>dict_tensor</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The recursive dictionary of tensors casted to fp32 if it was in fp16</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="graphium.utils.tensor.is_device_cuda" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">is_device_cuda</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
@@ -5410,6 +5511,79 @@ choices for val to take</p>
 <pre><code>param_dict: dict
     Valid paramter dictionary for the given fucntions.
 </code></pre>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.tensor_fp16_to_fp32" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">tensor_fp16_to_fp32</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.tensor_fp16_to_fp32" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Cast a tensor from fp16 to fp32 if it is in fp16</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>tensor</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A tensor. If it is in fp16, it will be casted to fp32</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>tensor</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The tensor casted to fp32 if it was in fp16</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
