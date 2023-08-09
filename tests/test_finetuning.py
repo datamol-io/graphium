@@ -4,6 +4,7 @@ from os.path import dirname, abspath
 import unittest as ut
 
 import torch
+from copy import deepcopy
 
 from lightning.pytorch.callbacks import Callback
 
@@ -66,7 +67,14 @@ class Test_Finetuning(ut.TestCase):
         metrics = load_metrics(cfg)
 
         predictor = load_predictor(
-            cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
+            cfg,
+            model_class,
+            model_kwargs,
+            metrics,
+            datamodule.get_task_levels(),
+            accelerator_type,
+            datamodule.featurization,
+            datamodule.task_norms,
         )
 
         self.assertEqual(
@@ -87,11 +95,13 @@ class Test_Finetuning(ut.TestCase):
         ################################################
 
         # Load pretrained & replace in predictor
-        pretrained_model = PredictorModule.load_pretrained_models(cfg["finetuning"]["pretrained_model"]).model
+        pretrained_model = PredictorModule.load_pretrained_models(
+            cfg["finetuning"]["pretrained_model_name"], device="cpu"
+        ).model
 
         pretrained_model.create_module_map()
-        module_map_from_pretrained = pretrained_model._module_map
-        module_map = predictor.model.pretrained_model.net._module_map
+        module_map_from_pretrained = deepcopy(pretrained_model._module_map)
+        module_map = deepcopy(predictor.model.pretrained_model.net._module_map)
 
         # Finetuning module has only been partially overwritten
         cfg_finetune = cfg["finetuning"]

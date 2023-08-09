@@ -1,4 +1,4 @@
-from .hydra import cli
+from .main import main_cli
 
 if __name__ == "__main__":
-    cli()
+    main_cli()

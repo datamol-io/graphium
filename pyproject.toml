@@ -64,7 +64,7 @@ dependencies = [
 
 [project.scripts]
 graphium = "graphium.cli.main:main_cli"
-graphium-hydra = "graphium.cli.hydra:cli"
+ graphium-train = "graphium.cli.train_finetune:cli"
 
 [project.urls]
 Website = "https://graphium.datamol.io/"

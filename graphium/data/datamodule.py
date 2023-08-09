@@ -919,6 +919,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if featurization is None:
             featurization = {}
 
+        self.featurization = featurization
+
         # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
         if prepare_dict_or_graph == "pyg:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
@@ -935,6 +937,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if not task.startswith(task_prefix):
             task = task_prefix + task
         return task
+
+    def get_task_levels(self):
+        task_level_map = {}
+
+        for task, task_args in self.task_specific_args.items():
+            if isinstance(task_args, DatasetProcessingParams):
+                task_args = task_args.__dict__  # Convert the class to a dictionary
+            task_level_map.update({task: task_args["task_level"]})
+
+        return task_level_map
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -1963,7 +1975,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # pop epoch_sampling_fraction out when creating hash
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
-        for task_key, task_args in self.task_specific_args.items():
+        for task_key, task_args in deepcopy(self.task_specific_args).items():
             if isinstance(task_args, DatasetProcessingParams):
                 task_args = task_args.__dict__  # Convert the class to a dictionary
 

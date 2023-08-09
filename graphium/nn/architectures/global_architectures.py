@@ -1143,10 +1143,16 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )
 
     def create_module_map(self):
+        """
+        Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
+        Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
+        """
         self._module_map = OrderedDict()
 
         if self.encoder_manager is not None:
-            self._module_map.update({"pe_encoders": self.encoder_manager})
+            self._module_map.update(
+                {"pe_encoders": self.encoder_manager}
+            )  # could be extended to submodules, e.g. pe_encoders/la_pos/linear_in/..., etc.; not necessary for current finetuning
 
         if self.pre_nn is not None:
             self._module_map.update({"pre_nn": self.pre_nn.layers})
@@ -1154,6 +1160,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         if self.pre_nn_edges is not None:
             self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
 
+        # No need to check for NoneType as GNN module is not optional in FullGraphMultitaskNetwork
         self._module_map.update({"gnn": self.gnn.layers})
 
         if self.task_heads is not None:
@@ -1209,11 +1216,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         # Apply the positional encoders
         g = self.encoder_manager(g)
 
-        g["feat"] = g["feat"]
         e = None
-
-        if "edge_feat" in get_keys(g):
-            g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:

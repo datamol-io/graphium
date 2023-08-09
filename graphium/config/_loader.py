@@ -263,10 +263,13 @@ def load_architecture(
 
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
+        pretrained_overwriting_kwargs = config["finetuning"].pop("overwriting_kwargs")
+        pretrained_model_name = pretrained_overwriting_kwargs.pop("pretrained_model_name")
 
         model_kwargs = {
             "pretrained_model_kwargs": deepcopy(model_kwargs),
-            "pretrained_overwriting_kwargs": config["finetuning"]["overwriting_kwargs"],
+            "pretrained_overwriting_kwargs": pretrained_overwriting_kwargs,
+            "pretrained_model_name": pretrained_model_name,
             "finetuning_head_kwargs": finetuning_head_kwargs,
         }
 
@@ -278,7 +281,9 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    task_levels: Dict[str, str],
     accelerator_type: str,
+    featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
@@ -302,6 +307,8 @@ def load_predictor(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
+        task_levels=task_levels,
+        featurization=featurization,
         task_norms=task_norms,
         **cfg_pred,
     )

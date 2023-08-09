@@ -219,7 +219,14 @@ class test_DataLoading(ut.TestCase):
                 model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
                 # datamodule.setup()
                 predictor = load_predictor(
-                    cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
+                    cfg,
+                    model_class,
+                    model_kwargs,
+                    metrics,
+                    datamodule.get_task_levels(),
+                    accelerator,
+                    datamodule.featurization,
+                    datamodule.task_norms,
                 )
                 assert poptorch.ipuHardwareIsAvailable()
                 trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")

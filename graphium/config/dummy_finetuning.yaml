@@ -30,24 +30,19 @@ finetuning:
   level: graph
 
   # Pretrained model
-  pretrained_model: dummy-pretrained-model-cpu
-  finetuning_module: task_heads                
-  sub_module_from_pretrained: zinc # none       # could be more general      
+  pretrained_model_name: dummy-pretrained-model
+  finetuning_module: task_heads  
+  sub_module_from_pretrained: zinc # optional
+  new_sub_module: lipophilicity_astrazeneca # optional
+  # keep_modules_after_finetuning_module: # optional
 
   # Changes to finetuning_module                                                  
-  drop_depth: 1 
+  drop_depth: 1
   new_out_dim: 8
   added_depth: 2
 
-  # Training
-  unfreeze_pretrained_depth: 0
-  epoch_unfreeze_all: 2
-
-  # # Finetuning network
-  # model_type: FullGraphFinetuningNetwork
-
   # Optional finetuning head appended to model after finetuning_module
-  finetuning_head:
+  finetuning_head: # none
     task: lipophilicity_astrazeneca
     previous_module: task_heads
     incoming_level: graph
@@ -57,6 +52,10 @@ finetuning:
     hidden_dims: 8
     depth: 2
     last_layer_is_readout: true
+
+  # Finetuning training
+  unfreeze_pretrained_depth: 0
+  epoch_unfreeze_all: 2
 
 constants:
   seed: 42
@@ -110,13 +109,6 @@ metrics:
 
 trainer:
   seed: ${constants.seed}
-  # logger:
-  #   save_dir: logs/neurips2023-small/
-  #   name: ${constants.name}
-  #   project: ${constants.name}
-  # model_checkpoint:
-  #   filename: ${constants.name}
-  #   save_last: True
   trainer:
     precision: 32
     max_epochs: 3
@@ -130,7 +122,7 @@ trainer:
 
 datamodule:
 
-### FINETUNING ###
+### FROM FINETUNING ###
 
   module_type: "ADMETBenchmarkDataModule"
   args:
@@ -148,34 +140,6 @@ datamodule:
     featurization_backend: "loky"
     processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
-
-### PRETRAINING ###
-
-    featurization:
-      atom_property_list_onehot: [atomic-number, group, period, total-valence]
-      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      edge_property_list: [bond-type-onehot, stereo, in-ring]
-      add_self_loop: False
-      explicit_H: False # if H is included
-      use_bonds_weights: False
-      pos_encoding_as_features:
-        pos_types:
-          lap_eigvec:
-            pos_level: node
-            pos_type: laplacian_eigvec
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          lap_eigval:
-            pos_level: node
-            pos_type: laplacian_eigval
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          rw_pos: # use same name as pe_encoder
-            pos_level: node
-            pos_type: rw_return_probs
-            ksteps: 16
 
 
 

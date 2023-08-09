@@ -7,10 +7,10 @@ from hydra import compose, initialize
 from datamol.utils import fs
 
 from .main import main_cli
-from .hydra import run_training_finetuning
+from .train_finetune import run_training_finetuning
 
 
-@main_cli.group(name="finetune", help="Utility CLI for easy fine-tuning.")
+@main_cli.group(name="finetune", help="Utility CLI for extra fine-tuning utilities.")
 def finetune_cli():
     pass
 
