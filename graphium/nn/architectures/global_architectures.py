@@ -1,10 +1,12 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
+from loguru import logger
 
 # Misc imports
 import inspect
 from copy import deepcopy
+from collections import OrderedDict
 
 # Torch imports
 from torch import Tensor, nn
@@ -271,6 +273,28 @@ class FeedForwardNN(nn.Module, MupMixin):
 
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
+
+    def drop_layers(self, depth: int) -> None:
+        r"""
+        Remove the last layers of the model part.
+        """
+
+        assert depth >= 0
+        assert depth <= len(self.layers)
+
+        if depth > 0:
+            self.layers = self.layers[:-depth]
+
+    def add_layers(self, layers: int) -> None:
+        r"""
+        Add layers to the end of the model.
+        """
+        assert isinstance(layers, nn.ModuleList)
+        assert len(layers) > 0
+        if len(self.layers) > 0:
+            assert layers[0].in_dim == self.layers[-1].out_dim
+
+        self.layers.extend(layers)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
@@ -1116,6 +1140,43 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         for begin_block_layer_index, ipu_id in zip(begin_block_layer_indices, range(1, pipeline_length)):
             self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
+            )
+
+    def create_module_map(self):
+        """
+        Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
+        Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
+        """
+        self._module_map = OrderedDict()
+
+        if self.encoder_manager is not None:
+            self._module_map.update(
+                {"pe_encoders": self.encoder_manager}
+            )  # could be extended to submodules, e.g. pe_encoders/la_pos/linear_in/..., etc.; not necessary for current finetuning
+
+        if self.pre_nn is not None:
+            self._module_map.update({"pre_nn": self.pre_nn.layers})
+
+        if self.pre_nn_edges is not None:
+            self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
+
+        # No need to check for NoneType as GNN module is not optional in FullGraphMultitaskNetwork
+        self._module_map.update({"gnn": self.gnn.layers})
+
+        if self.task_heads is not None:
+            self._module_map.update(
+                {
+                    "graph_output_nn/"
+                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn.layers
+                    for output_level in self.task_heads.graph_output_nn.keys()
+                }
+            )
+
+            self._module_map.update(
+                {
+                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name].layers
+                    for task_head_name in self.task_heads.task_heads.keys()
+                }
             )
 
     def forward(self, g: Batch) -> Tensor:

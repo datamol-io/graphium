@@ -47,4 +47,8 @@ class MupMixin(abc.ABC):
         try:
             return self.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=scale_in_dim)
         except TypeError as e:
-            raise "This error may have been caused by passing scale_in_dim to scale_kwargs for a class that does not support passing factor_in_dim to make_mup_base_kwargs, which cannot be done" from e
+            raise RuntimeError(
+                "This error may have been caused by passing scale_in_dim to scale_kwargs "
+                "for a class that does not support passing factor_in_dim to make_mup_base_kwargs, "
+                "which cannot be done"
+            ) from e

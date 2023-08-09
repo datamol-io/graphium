@@ -32,66 +32,9 @@ os.chdir(MAIN_DIR)
 
 @hydra.main(version_base=None, config_path="hydra-configs", config_name="main")
 def main(cfg: DictConfig) -> None:
-    cfg = OmegaConf.to_container(cfg, resolve=True)
-
-    run_name: str = "main"
-    add_date_time: bool = True
-
-    st = timeit.default_timer()
-
-    date_time_suffix = ""
-    if add_date_time:
-        date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-
-    wandb.init(entity=cfg["constants"]["entity"], project=cfg["constants"]["name"], config=cfg)
-
-    # Initialize the accelerator
-    cfg, accelerator_type = load_accelerator(cfg)
-
-    # Load and initialize the dataset
-    datamodule = load_datamodule(cfg, accelerator_type)
-
-    # Initialize the network
-    model_class, model_kwargs = load_architecture(
-        cfg,
-        in_dims=datamodule.in_dims,
+    raise DeprecationWarning(
+        "This script is deprecated. Use `python graphium/cli/train_finetune.py` (or `graphium-train`) instead!"
     )
-
-    datamodule.prepare_data()
-
-    metrics = load_metrics(cfg)
-    logger.info(metrics)
-
-    predictor = load_predictor(
-        cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
-    )
-
-    logger.info(predictor.model)
-    logger.info(ModelSummary(predictor, max_depth=4))
-
-    trainer = load_trainer(cfg, run_name, accelerator_type, date_time_suffix)
-    save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
-
-    # Determine the max num nodes and edges in training and validation
-    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
-
-    # Run the model training
-    with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.fit(model=predictor, datamodule=datamodule)
-
-    # Determine the max num nodes and edges in testing
-    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
-
-    # Run the model testing
-    with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.test(model=predictor, datamodule=datamodule)  # , ckpt_path=ckpt_path)
-
-    logger.info("--------------------------------------------")
-    logger.info("total computation used", timeit.default_timer() - st)
-    logger.info("--------------------------------------------")
-    wandb.finish()
-
-    return trainer.callback_metrics
 
 
 if __name__ == "__main__":

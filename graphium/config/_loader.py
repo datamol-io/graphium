@@ -24,6 +24,7 @@ from graphium.utils.mup import set_base_shapes
 from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
 from graphium.trainer.metrics import MetricWrapper
 from graphium.nn.architectures import FullGraphMultiTaskNetwork
+from graphium.finetuning.finetuning_architecture import FullGraphFinetuningNetwork
 from graphium.nn.utils import MupMixin
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import DATAMODULE_DICT
@@ -192,12 +193,12 @@ def load_architecture(
         config = omegaconf.OmegaConf.create(config)
     cfg_arch = config["architecture"]
 
-    kwargs = {}
-
     # Select the architecture
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
+    elif model_type == "fullgraphfinetuningnetwork":
+        model_class = FullGraphFinetuningNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
@@ -260,6 +261,18 @@ def load_architecture(
         task_heads_kwargs=task_heads_kwargs,
     )
 
+    if model_class is FullGraphFinetuningNetwork:
+        finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
+        pretrained_overwriting_kwargs = config["finetuning"].pop("overwriting_kwargs")
+        pretrained_model_name = pretrained_overwriting_kwargs.pop("pretrained_model_name")
+
+        model_kwargs = {
+            "pretrained_model_kwargs": deepcopy(model_kwargs),
+            "pretrained_overwriting_kwargs": pretrained_overwriting_kwargs,
+            "pretrained_model_name": pretrained_model_name,
+            "finetuning_head_kwargs": finetuning_head_kwargs,
+        }
+
     return model_class, model_kwargs
 
 
@@ -268,7 +281,9 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    task_levels: Dict[str, str],
     accelerator_type: str,
+    featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
@@ -292,6 +307,8 @@ def load_predictor(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
+        task_levels=task_levels,
+        featurization=featurization,
         task_norms=task_norms,
         **cfg_pred,
     )
@@ -340,7 +357,6 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
 
 def load_trainer(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    run_name: str,
     accelerator_type: str,
     date_time_suffix: str = "",
 ) -> Trainer:
@@ -348,7 +364,6 @@ def load_trainer(
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
-        run_name: The name of the current run. To be used for logging.
         accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
         date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
@@ -395,12 +410,12 @@ def load_trainer(
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
-    logger = cfg_trainer.pop("logger", None)
-    if logger is not None:
-        name = logger.pop("name", run_name)
+    wandb_cfg = config["constants"].get("wandb")
+    if wandb_cfg is not None:
+        name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:
             name += f"_{date_time_suffix}"
-        trainer_kwargs["logger"] = WandbLogger(name=name, **logger)
+        trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
 
     trainer_kwargs["callbacks"] = callbacks
     trainer = Trainer(

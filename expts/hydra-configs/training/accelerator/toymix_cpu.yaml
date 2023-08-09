@@ -11,10 +11,10 @@ predictor:
   optim_kwargs: {}
   metrics_every_n_train_steps: 300
   torch_scheduler_kwargs:
-    max_num_epochs: &max_epochs 300
+    max_num_epochs: ${constants.max_epochs}
 
 trainer:
   trainer:
     precision: 32
     accumulate_grad_batches: 1
-    max_epochs: *max_epochs
+    max_epochs: ${constants.max_epochs}

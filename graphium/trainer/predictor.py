@@ -1,5 +1,6 @@
 from graphium.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
+from collections import OrderedDict
 import numpy as np
 from copy import deepcopy
 import time
@@ -18,9 +19,7 @@ from graphium.data.datamodule import BaseDataModule
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 from graphium.utils.tensor import dict_tensor_fp16_to_fp32
 
-GRAPHIUM_PRETRAINED_MODELS = {
-    "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt"
-}
+from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 
 
 class PredictorModule(lightning.LightningModule):
@@ -29,7 +28,9 @@ class PredictorModule(lightning.LightningModule):
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
         loss_fun: Dict[str, Union[str, Callable]],
+        task_levels: Dict[str, str],
         random_seed: int = 42,
+        featurization: Dict[str, str] = None,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
@@ -71,6 +72,8 @@ class PredictorModule(lightning.LightningModule):
 
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
+        self.task_levels = task_levels
+        self.featurization = featurization
         self.task_norms = task_norms
 
         super().__init__()
@@ -99,19 +102,16 @@ class PredictorModule(lightning.LightningModule):
 
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         self._eval_options_dict = {
-            self._get_task_key(
-                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
-            ): value
+            self._get_task_key(task_level=task_levels[key], task=key): value
             for key, value in self._eval_options_dict.items()
         }
         # Setting the flag options
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
+
         loss_fun = {
-            self._get_task_key(
-                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
-            ): value
+            self._get_task_key(task_level=task_levels[key], task=key): value
             for key, value in loss_fun.items()
         }
         self.tasks = list(loss_fun.keys())
@@ -314,9 +314,7 @@ class PredictorModule(lightning.LightningModule):
             preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
 
         preds = {
-            self._get_task_key(
-                task_level=self.model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
-            ): value
+            self._get_task_key(task_level=self.task_levels[key], task=key): value
             for key, value in preds.items()
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
@@ -668,10 +666,10 @@ class PredictorModule(lightning.LightningModule):
     @staticmethod
     def list_pretrained_models():
         """List available pretrained models."""
-        return GRAPHIUM_PRETRAINED_MODELS
+        return GRAPHIUM_PRETRAINED_MODELS_DICT
 
     @staticmethod
-    def load_pretrained_models(name: str):
+    def load_pretrained_models(name: str, device: str = None):
         """Load a pretrained model from its name.
 
         Args:
@@ -679,12 +677,14 @@ class PredictorModule(lightning.LightningModule):
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        if name not in GRAPHIUM_PRETRAINED_MODELS:
+        if name not in GRAPHIUM_PRETRAINED_MODELS_DICT:
             raise ValueError(
-                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS.keys())}."
+                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS_DICT.keys())}."
             )
 
-        return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS[name])
+        return PredictorModule.load_from_checkpoint(
+            GRAPHIUM_PRETRAINED_MODELS_DICT[name], map_location=device
+        )
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()

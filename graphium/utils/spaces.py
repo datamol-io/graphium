@@ -4,6 +4,7 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as TorchMetrics
 
 import graphium.nn.base_layers as BaseLayers
+from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, TaskHeads
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
 import graphium.ipu.ipu_losses as IPULosses
@@ -123,3 +124,9 @@ DATAMODULE_DICT = {
     "ADMETBenchmarkDataModule": Datamodules.ADMETBenchmarkDataModule,
     "FakeDataModule": Datamodules.FakeDataModule,
 }
+
+GRAPHIUM_PRETRAINED_MODELS_DICT = {
+    "dummy-pretrained-model": "tests/dummy-pretrained-model.ckpt",  # dummy model (to be deleted later)
+}
+
+FINETUNING_HEADS_DICT = {"mlp": FeedForwardNN, "gnn": FeedForwardPyg, "task_head": TaskHeads}

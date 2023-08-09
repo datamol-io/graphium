@@ -3,5 +3,5 @@
 #  want to override both. 
 
 defaults:
-  - task_heads: toymix
-  - loss_metrics_datamodule: toymix
+  - task_heads: admet
+  - loss_metrics_datamodule: admet

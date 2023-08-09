@@ -2,6 +2,8 @@ import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
 
+from dataclasses import dataclass
+
 import os
 from functools import partial
 import importlib.resources
@@ -642,6 +644,7 @@ class BaseDataModule(lightning.LightningDataModule):
         return max_num_edges
 
 
+@dataclass
 class DatasetProcessingParams:
     def __init__(
         self,
@@ -916,6 +919,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if featurization is None:
             featurization = {}
 
+        self.featurization = featurization
+
         # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
         if prepare_dict_or_graph == "pyg:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
@@ -932,6 +937,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if not task.startswith(task_prefix):
             task = task_prefix + task
         return task
+
+    def get_task_levels(self):
+        task_level_map = {}
+
+        for task, task_args in self.task_specific_args.items():
+            if isinstance(task_args, DatasetProcessingParams):
+                task_args = task_args.__dict__  # Convert the class to a dictionary
+            task_level_map.update({task: task_args["task_level"]})
+
+        return task_level_map
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -1896,6 +1911,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # Split from an indices file
             file_type = self._get_data_file_type(splits_path)
 
+            train, val, test = split_names
+
             if file_type == "pt":
                 splits = torch.load(splits_path)
             elif file_type in ["csv", "tsv"]:
@@ -1954,13 +1971,23 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Get a hash specific to a dataset and smiles_transformer.
         Useful to cache the pre-processed data.
         """
-        args = deepcopy(self.task_specific_args)
+        args = {}
         # pop epoch_sampling_fraction out when creating hash
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
-        for task in self.task_specific_args.keys():
-            if "epoch_sampling_fraction" in args[task].keys():
-                args[task].pop("epoch_sampling_fraction")
+        for task_key, task_args in deepcopy(self.task_specific_args).items():
+            if isinstance(task_args, DatasetProcessingParams):
+                task_args = task_args.__dict__  # Convert the class to a dictionary
+
+            # Keep only first 5 rows of a dataframe
+            if "df" in task_args.keys():
+                if task_args["df"] is not None:
+                    task_args["df"] = task_args["df"].iloc[:5]
+
+            # Remove the `epoch_sampling_fraction`
+            task_args.pop("epoch_sampling_fraction", None)
+            args[task_key] = task_args
+
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
             "task_specific_args": args,
