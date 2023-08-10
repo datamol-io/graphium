@@ -2,6 +2,7 @@ from collections.abc import Mapping, Sequence
 
 # from pprint import pprint
 import torch
+import numpy as np
 from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
@@ -257,6 +258,14 @@ def collate_labels(
                 elif not task.startswith("graph_"):
                     labels_size_dict[task] = [1]
             label_keys_set = set(get_keys(this_label))
+            
+           # # HACK to reduce the number of classes
+           # for label_key in label_keys_set:
+           #     if '1000' in label_key: # l1000_vcap and l1000_mcf7
+           #         this_label[label_key] = this_label[label_key] - 1 # [0, 4] -> [-1, 3]
+           #         this_label[label_key] = np.minimum(this_label[label_key], np.array([2])) # [-1, 3] -> [-1, 2]
+           #         this_label[label_key] = np.maximum(this_label[label_key], np.array([0])) # [-1, 2] -> [0, 2]
+
             empty_task_labels = set(labels_size_dict.keys()) - label_keys_set
             for task in empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
