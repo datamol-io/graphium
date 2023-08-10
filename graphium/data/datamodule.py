@@ -1191,7 +1191,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            if self.processed_graph_data_path is not None:
+            if self.dataloading_from == "disk":
                 processed_train_data_path = self._path_to_load_from_file("train")
                 assert self._data_ready_at_path(
                     processed_train_data_path
