@@ -770,8 +770,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __init__(
         self,
         task_specific_args: Union[DatasetProcessingParams, Dict[str, Any]],
-        cache_data_path: Optional[Union[str, os.PathLike]] = None,
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
+        dataloading_from: str = "ram",
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -835,8 +835,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_splits_path: (value) A path a CSV file containing indices for the splits. The file must contains
                 3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
 
-            cache_data_path: path where to save or reload the cached data. The path can be
-                remote (S3, GS, etc).
+            processed_graph_data_path: path where to save or reload the cached data. Can be used
+                to avoid recomputing the featurization, or for dataloading from disk with the option `dataloader_from="disk"`.
+            dataloading_from: Whether to load the data from RAM or from disk. If set to "disk", the data
+                must have been previously cached with `processed_graph_data_path` set. If set to "ram", the data
+                will be loaded in RAM and the `processed_graph_data_path` will be ignored.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
@@ -909,10 +912,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.val_ds = None
         self.test_ds = None
 
-        self.cache_data_path = cache_data_path
-        self.processed_graph_data_path = processed_graph_data_path
-
-        self.load_from_file = processed_graph_data_path is not None
+        self._parse_caching_args(processed_graph_data_path, dataloading_from)
 
         self.task_norms = {}
 
@@ -931,6 +931,27 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
         self.data_hash = self.get_data_hash()
+
+    def _parse_caching_args(self, processed_graph_data_path, dataloading_from):
+        """
+        Parse the caching arguments, and raise errors if the arguments are invalid.
+        """
+
+        # Whether to load the data from RAM or from disk
+        dataloading_from = dataloading_from.lower()
+        if dataloading_from not in ["disk", "ram"]:
+            raise ValueError(
+                f"`dataloading_from` should be either 'disk' or 'ram', Provided: `{dataloading_from}`"
+            )
+
+        # If loading from disk, the path to the cached data must be provided
+        if dataloading_from == "disk" and processed_graph_data_path is None:
+            raise ValueError(
+                "When `dataloading_from` is 'disk', `processed_graph_data_path` must be provided."
+            )
+
+        self.processed_graph_data_path = processed_graph_data_path
+        self.dataloading_from = dataloading_from
 
     def _get_task_key(self, task_level: str, task: str):
         task_prefix = f"{task_level}_"
@@ -976,20 +997,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info("Data is already prepared. Skipping the preparation")
             return
 
-        if self.load_from_file:
+        if self.dataloading_from == "disk":
             if self._ready_to_load_all_from_file():
                 self.get_label_statistics(self.processed_graph_data_path, self.data_hash, dataset=None)
-                self._data_is_prepared = True
-                return
-
-        else:
-            # If a path for data caching is provided, try to load from the path.
-            # If successful, skip the data preparation.
-            # For next task: load the single graph files for train, val and test data
-            cache_data_exists = self.load_data_from_cache()
-            # need to check if cache exist properly
-            if cache_data_exists:
-                self.get_label_statistics(self.cache_data_path, self.data_hash, dataset=None)
                 self._data_is_prepared = True
                 return
 
@@ -1160,12 +1170,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.single_task_datasets, self.task_train_indices, self.task_val_indices, self.task_test_indices
         )
 
-        if self.load_from_file:
+        if self.processed_graph_data_path is not None:
             self._save_data_to_files()
-
-        # When a cache path is provided but no cache is found, save to cache
-        elif (self.cache_data_path is not None) and (not cache_data_exists):
-            self.save_data_to_cache()
 
         self._data_is_prepared = True
 
@@ -1185,7 +1191,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            if self.load_from_file:
+            if self.processed_graph_data_path is not None:
                 processed_train_data_path = self._path_to_load_from_file("train")
                 assert self._data_ready_at_path(
                     processed_train_data_path
@@ -1210,7 +1216,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_dtype.update(self.val_ds.labels_dtype)
 
         if stage == "test" or stage is None:
-            if self.load_from_file:
+            if self.dataloading_from == "disk":
                 processed_test_data_path = self._path_to_load_from_file("test")
                 assert self._data_ready_at_path(
                     processed_test_data_path
@@ -1237,7 +1243,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         stage: Literal["train", "val", "test"],
         save_smiles_and_ids: bool,
-        load_from_file: Optional[bool] = None,
+        processed_graph_data_path: Optional[str] = None,
     ) -> Datasets.MultitaskDataset:
         """
         Create a MultitaskDataset for the given stage using single task datasets
@@ -1246,8 +1252,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Parameters:
             stage: Stage to create multitask dataset for
             save_smiles_and_ids: Whether to save SMILES strings and unique IDs
-            data_path: path to load from if loading from file
-            load_from_file: whether to load from file. If `None`, defers to `self.load_from_file`
+            processed_graph_data_path: path to save and load processed graph data from
         """
 
         allowed_stages = ["train", "val", "test"]
@@ -1265,12 +1270,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             raise ValueError(f"Unknown stage {stage}")
 
-        if load_from_file is None:
-            load_from_file = self.load_from_file
+        if processed_graph_data_path is None:
+            processed_graph_data_path = self.processed_graph_data_path
 
         # assert singletask_datasets is not None, "Single task datasets must exist to make multitask dataset"
         if singletask_datasets is None:
-            assert load_from_file
+            assert processed_graph_data_path is not None
             assert self._data_ready_at_path(
                 self._path_to_load_from_file(stage)
             ), "Trying to create multitask dataset without single-task datasets but data not ready"
@@ -1286,8 +1291,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             progress=self.featurization_progress,
             about=about,
             save_smiles_and_ids=save_smiles_and_ids,
-            data_path=self._path_to_load_from_file(stage) if load_from_file else None,
-            load_from_file=load_from_file,
+            data_path=self._path_to_load_from_file(stage) if processed_graph_data_path else None,
+            processed_graph_data_path=processed_graph_data_path,
             files_ready=files_ready,
         )  # type: ignore
 
@@ -1296,7 +1301,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
-        if not load_from_file:
+        if self.dataloading_from == "ram":
             self.normalize_label(multitask_dataset, stage)
 
         return multitask_dataset
@@ -2004,60 +2009,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Returns:
             full path to the data cache file
         """
-        if self.cache_data_path is None:
+        if self.processed_graph_data_path is None:
             return
         ext = ".datacache"
         if compress:
             ext += ".gz"
-        data_cache_fullname = fs.join(self.cache_data_path, self.data_hash + ext)
+        data_cache_fullname = fs.join(self.processed_graph_data_path, self.data_hash + ext)
         return data_cache_fullname
-
-    def save_data_to_cache(self, verbose: bool = True, compress: bool = False) -> None:
-        """
-        Save the datasets from cache. First create a hash for the dataset, use it to
-        generate a file name. Then save to the path given by `self.cache_data_path`.
-
-        Parameters:
-            verbose: Whether to print the progress
-            compress: Whether to compress the data
-
-        """
-        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
-        if full_cache_data_path is None:
-            logger.info("No cache data path specified. Skipping saving the data to cache.")
-            return
-
-        save_params = {
-            "single_task_datasets": self.single_task_datasets,
-            "task_train_indices": self.task_train_indices,
-            "task_val_indices": self.task_val_indices,
-            "task_test_indices": self.task_test_indices,
-        }
-
-        fs.mkdir(self.cache_data_path)
-        with fsspec.open(full_cache_data_path, mode="wb", compression="infer") as file:
-            if verbose:
-                logger.info(f"Saving the data to cache at path:\n`{full_cache_data_path}`")
-            now = time.time()
-            torch.save(save_params, file)
-            elapsed = round(time.time() - now)
-            if verbose:
-                logger.info(
-                    f"Successfully saved the data to cache in {elapsed}s at path: `{full_cache_data_path}`"
-                )
-
-        # At the moment, we need to merge the `SingleTaskDataset`'s into `MultitaskDataset`s in order to save label stats
-        #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
-        temp_train_dataset = self._make_multitask_dataset(
-            stage="train", save_smiles_and_ids=False, load_from_file=False
-        )
-
-        self.get_label_statistics(self.cache_data_path, self.data_hash, temp_train_dataset, train=True)
 
     def load_data_from_cache(self, verbose: bool = True, compress: bool = False) -> bool:
         """
         Load the datasets from cache. First create a hash for the dataset, and verify if that
-        hash is available at the path given by `self.cache_data_path`.
+        hash is available at the path given by `self.processed_graph_data_path`.
 
         Parameters:
             verbose: Whether to print the progress
@@ -2193,7 +2156,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
     def __init__(
         self,
         task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
-        cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
+        dataloading_from: str = "ram",
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2220,8 +2184,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 "ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv".
               - "sample_size": The number of molecules to sample from the dataset. Default=None,
                 meaning that all molecules will be considered.
-            cache_data_path: path where to save or reload the cached data. The path can be
-                remote (S3, GS, etc).
+            processed_graph_data_path: Path to the processed graph data. If None, the data will be
+              downloaded from the OGB website.
+            dataloading_from: Whether to load the data from RAM or disk. Default is "ram".
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
@@ -2266,7 +2231,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         # Config for datamodule
         dm_args = {}
         dm_args["task_specific_args"] = new_task_specific_args
-        dm_args["cache_data_path"] = cache_data_path
+        dm_args["processed_graph_data_path"] = processed_graph_data_path
+        dm_args["dataloader_from"] = dataloading_from
         dm_args["featurization"] = featurization
         dm_args["batch_size_training"] = batch_size_training
         dm_args["batch_size_inference"] = batch_size_inference
@@ -2449,7 +2415,8 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         tdc_benchmark_names: Optional[Union[str, List[str]]] = None,
         tdc_train_val_seed: int = 0,
         # Inherited arguments from superclass
-        cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        processed_graph_data_path: Optional[Union[str, Path]] = None,
+        dataloading_from: str = "ram",
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2506,8 +2473,9 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
 
         super().__init__(
             task_specific_args=task_specific_args,
-            cache_data_path=cache_data_path,
             featurization=featurization,
+            processed_graph_data_path=processed_graph_data_path,
+            dataloading_from=dataloading_from,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
             batch_size_per_pack=batch_size_per_pack,
@@ -2591,7 +2559,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
     def __init__(
         self,
         task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
-        cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2606,7 +2573,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
     ):
         super().__init__(
             task_specific_args=task_specific_args,
-            cache_data_path=cache_data_path,
             featurization=featurization,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,

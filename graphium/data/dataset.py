@@ -146,7 +146,7 @@ class MultitaskDataset(Dataset):
         save_smiles_and_ids: bool = False,
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
-        load_from_file: bool = False,
+        dataloading_from: str = "ram",
         files_ready: bool = False,
     ):
         r"""
@@ -172,7 +172,7 @@ class MultitaskDataset(Dataset):
             progress: Whether to display the progress bar
             about: A description of the dataset
             data_path: The location of the data if saved on disk
-            load_from_file: Whether to load the data from disk
+            dataloading_from: Whether to load the data from `"disk"` or `"ram"`
             files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
@@ -183,10 +183,13 @@ class MultitaskDataset(Dataset):
         self.progress = progress
         self.about = about
         self.data_path = data_path
-        self.load_from_file = load_from_file
+        self.dataloading_from = dataloading_from
 
         if files_ready:
-            assert load_from_file
+            if dataloading_from != "disk":
+                raise ValueError(
+                    "Files are ready to be loaded from disk, but `dataloading_from` is not set to `disk`"
+                )
             self._load_metadata()
             self.features = None
             self.labels = None
@@ -210,7 +213,7 @@ class MultitaskDataset(Dataset):
             if self.features is not None:
                 self._num_nodes_list = get_num_nodes_per_graph(self.features)
                 self._num_edges_list = get_num_edges_per_graph(self.features)
-            if self.load_from_file:
+            if self.dataloading_from == "disk":
                 self.features = None
                 self.labels = None
 
@@ -377,7 +380,7 @@ class MultitaskDataset(Dataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
-        if self.load_from_file:
+        if self.dataloading_from == "disk":
             data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
             datum["labels"] = data_dict["labels"]

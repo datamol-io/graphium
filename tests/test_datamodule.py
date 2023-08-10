@@ -31,7 +31,7 @@ class Test_DataModule(ut.TestCase):
         task_specific_args = {}
         task_specific_args["task_1"] = {"task_level": "graph", "dataset_name": dataset_name}
         dm_args = {}
-        dm_args["cache_data_path"] = None
+        dm_args["processed_graph_data_path"] = None
         dm_args["featurization"] = featurization_args
         dm_args["batch_size_training"] = 16
         dm_args["batch_size_inference"] = 16
@@ -189,7 +189,7 @@ class Test_DataModule(ut.TestCase):
 
         # Prepare the data. It should create the cache there
         assert not exists(TEMP_CACHE_DATA_PATH)
-        ds = GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
         assert not ds.load_data_from_cache(verbose=False)
         ds.prepare_data()
 
