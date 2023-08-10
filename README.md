@@ -60,6 +60,9 @@ mkdir ~/.venv                               # Create the folder for the environm
 python3 -m venv ~/.venv/graphium_ipu        # Create the environment
 source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
 
+# Update pip to the latest version
+python3 -m pip install --upgrade pip
+
 # Install the PopTorch wheel
 # Make sure this is the 3.3 SDK
 # Change the link according to your operating system and the `PATH_TO_SDK`
