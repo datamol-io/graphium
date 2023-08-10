@@ -1,40 +1,28 @@
+from typing import List, Optional
 import yaml
-import click
 import fsspec
+import typer
 
 from loguru import logger
 from hydra import compose, initialize
 from datamol.utils import fs
 
-from .main import main_cli
+from .main import app
 from .train_finetune import run_training_finetuning
 
 
-@main_cli.group(name="finetune", help="Utility CLI for extra fine-tuning utilities.")
-def finetune_cli():
-    pass
+finetune_app = typer.Typer(help="Utility CLI for extra fine-tuning utilities.")
+app.add_typer(finetune_app, name="finetune")
 
 
-@finetune_cli.command(name="admet")
-@click.argument("save_dir")
-@click.option("--wandb/--no-wandb", default=True, help="Whether to log to Weights & Biases.")
-@click.option(
-    "--name",
-    "-n",
-    multiple=True,
-    help="One or multiple benchmarks to filter on. See also --inclusive-filter/--exclusive-filter.",
-)
-@click.option(
-    "--inclusive-filter/--exclusive-filter",
-    default=True,
-    help="Whether to include or exclude the benchmarks specified by `--name`.",
-)
-def benchmark_tdc_admet_cli(save_dir, wandb, name, inclusive_filter):
+@finetune_app.command(name="admet")
+def benchmark_tdc_admet_cli(
+    save_dir, wandb: bool = True, name: Optional[List[str]] = None, inclusive_filter: bool = True
+):
     """
     Utility CLI to easily fine-tune a model on (a subset of) the benchmarks in the TDC ADMET group.
     The results are saved to the SAVE_DIR.
     """
-
     try:
         from tdc.utils import retrieve_benchmark_names
     except ImportError:

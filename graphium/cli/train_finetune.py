@@ -2,6 +2,8 @@ import hydra
 import wandb
 import timeit
 
+from hydra.core.hydra_config import HydraConfig
+from hydra.types import RunMode
 from omegaconf import DictConfig, OmegaConf
 from loguru import logger
 from datetime import datetime
@@ -16,11 +18,9 @@ from graphium.config._loader import (
     load_accelerator,
     save_params_to_wandb,
 )
-from graphium.finetuning import modify_cfg_for_finetuning, GraphFinetuning
+from graphium.hyper_param_search import process_results_for_hyper_param_search, HYPER_PARAM_SEARCH_CONFIG_KEY
+from graphium.finetuning import modify_cfg_for_finetuning, GraphFinetuning, FINETUNING_CONFIG_KEY
 from graphium.utils.safe_run import SafeRun
-
-
-FINETUNING_CONFIG_KEY = "finetuning"
 
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
@@ -28,7 +28,7 @@ def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training and fine-tuning Graphium models.
     """
-    run_training_finetuning(cfg)
+    return run_training_finetuning(cfg)
 
 
 def run_training_finetuning(cfg: DictConfig) -> None:
@@ -116,7 +116,14 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     if wandb_cfg is not None:
         wandb.finish()
 
-    return trainer.callback_metrics
+    results = trainer.callback_metrics
+
+    # When part of of a hyper-parameter search, we are very specific about how we save our results
+    # NOTE (cwognum): We also check if the we are in multi-run mode, as the sweeper is otherwise not active.
+    if HYPER_PARAM_SEARCH_CONFIG_KEY in cfg and HydraConfig.get().mode == RunMode.MULTIRUN:
+        results = process_results_for_hyper_param_search(results, cfg[HYPER_PARAM_SEARCH_CONFIG_KEY])
+
+    return results
 
 
 if __name__ == "__main__":

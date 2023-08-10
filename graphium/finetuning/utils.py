@@ -57,6 +57,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
 
     # Load pretrained model
     pretrained_model_name = cfg_finetune["pretrained_model_name"]
+    print(GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name])
     pretrained_predictor = PredictorModule.load_from_checkpoint(
         GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name], device="cpu"
     )

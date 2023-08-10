@@ -78,7 +78,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
+    processed_graph_data_path:  ${constants.datacache_path}
     num_workers: 30 # -1 to use all
     persistent_workers: False
     featurization:

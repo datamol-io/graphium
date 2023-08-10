@@ -63,7 +63,7 @@ dependencies = [
 ]
 
 [project.scripts]
-graphium = "graphium.cli.main:main_cli"
+graphium = "graphium.cli.main:app"
  graphium-train = "graphium.cli.train_finetune:cli"
 
 [project.urls]
