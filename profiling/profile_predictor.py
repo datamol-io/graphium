@@ -20,7 +20,9 @@ def main():
 
     with fsspec.open(CONFIG_PATH, "r") as f:
         cfg = yaml.safe_load(f)
-    cfg["datamodule"]["args"]["processed_graph_data_path"] = "graphium/data/cache/profiling/predictor_data.cache"
+    cfg["datamodule"]["args"][
+        "processed_graph_data_path"
+    ] = "graphium/data/cache/profiling/predictor_data.cache"
     # cfg["datamodule"]["args"]["df_path"] = DATA_PATH
     cfg["trainer"]["trainer"]["max_epochs"] = 5
     cfg["trainer"]["trainer"]["min_epochs"] = 5
