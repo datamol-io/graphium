@@ -3,16 +3,18 @@
 # (graph-level) on the TDC dataset lipophilicity_astraceneca
 
 # Here are the changes to the architecture:
+#   Change zinc task-head:
+#     depth:        2 -> 2 - 1 + 2 = 3
+#     out_dim:      3 -> 8
 #
-# Change zinc task-head:
-#   depth:        2 -> 2 - 1 + 2 = 3
-#   out_dim:      3 -> 8
+#   Add finetuning head
+#     model_type:   FeedForwardNN
+#     out_dim:      1
+#     hidden_dims:  8
+#     depth:        2
 #
-# Add finetuning head
-#   model_type:   FeedForwardNN
-#   out_dim:      1
-#   hidden_dims:  8
-#   depth:        2
+# Finetuning training:
+#   after 2 epochs, unfreeze all layers
 
 
 ###################################################
