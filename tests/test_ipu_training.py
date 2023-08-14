@@ -37,7 +37,7 @@ def test_cli(acc_type) -> None:
         print(cfg)
         assert cfg["accelerator"]["type"] == acc_type
         # import ipdb; ipdb.set_trace()
-        
+
         run_training_finetuning(cfg)
 
 
@@ -74,7 +74,6 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     # Accelerator
     cfg, accelerator_type = load_accelerator(cfg)
 
-    
     ## Data-module
     datamodule = load_datamodule(cfg, accelerator_type)
 
@@ -136,6 +135,3 @@ def run_training_finetuning(cfg: DictConfig) -> None:
         wandb.finish()
 
     # return trainer.callback_metrics
-    
-
-
