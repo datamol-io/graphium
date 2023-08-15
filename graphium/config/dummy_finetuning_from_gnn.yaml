@@ -134,7 +134,6 @@ datamodule:
     prepare_dict_or_graph: pyg:graph
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
 
 

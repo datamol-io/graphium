@@ -55,6 +55,7 @@ class Test_Finetuning(ut.TestCase):
 
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
@@ -243,6 +244,7 @@ class Test_Finetuning(ut.TestCase):
 
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
