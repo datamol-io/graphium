@@ -375,7 +375,7 @@ class Test_Finetuning(ut.TestCase):
                     assert not True in frozen_parameters
                     assert not False in unfrozen_parameters
 
-                if trainer.current_epoch == 2:
+                if trainer.current_epoch == 1:
                     # All parameter are unfrozen starting from epoch_unfreeze_all
                     unfrozen_parameters = [
                         parameter.requires_grad for parameter in pl_module.model.parameters()
