@@ -70,7 +70,7 @@ echo "Installation completed successfully."
 echo "Downloading the sub-datasets consisting on the ToyMix dataset"
 toymix_dir=expts/data/neurips2023/small-dataset/
 mkdir -p $toymix_dir
-wget -P "${toymix_dir}" "ZINC12k.csv.gz"
+wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz"
 wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz"
 wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz"
 wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt"
