@@ -55,29 +55,15 @@ pip install --no-deps -e .
 
 ### For IPU developers
 
+Install Poplar SDK for Graphcore's IPU and Graphium's dependencies in a new environment called `.graphium_ipu`:
+
 ```bash
-mkdir ~/.venv                               # Create the folder for the environment
-python3 -m venv ~/.venv/graphium_ipu        # Create the environment
-source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
-
-# Update pip to the latest version
-python3 -m pip install --upgrade pip
-
-# Install the PopTorch wheel
-# Make sure this is the 3.3 SDK
-# Change the link according to your operating system and the `PATH_TO_SDK`
-pip install PATH_TO_SDK/poptorch-3.3.0+113432_960e9c294b_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
-
-# Enable Poplar SDK (including Poplar and PopART)
-source PATH_TO_SDK/enable
-
-# Install the IPU specific and graphium requirements
-pip install -r requirements_ipu.txt
-
-# Install Graphium in dev mode
-pip install --no-deps -e .
+source install_ipu.sh
 ```
-If you are new to Graphcore IPUs, you can find more details in the section below: `First Time Running On IPUs`. 
+The above step needs to be done once. After than, enable the SDK and the environment as follows:
+```bash
+source enable_ipu.sh
+```
 
 ## Training a model
 
