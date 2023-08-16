@@ -54,15 +54,15 @@ pip install --no-deps -e .
 ```
 
 ### For IPU developers
-
-Install Poplar SDK for Graphcore's IPU and Graphium's dependencies in a new environment called `.graphium_ipu`:
-
 ```bash
-source install_ipu.sh
+# Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
+./install_ipu.sh .graphium_ipu
 ```
-The above step needs to be done once. After than, enable the SDK and the environment as follows:
+
+The above step needs to be done once. After that, enable the SDK and the environment as follows:
+
 ```bash
-source enable_ipu.sh
+source enable_ipu.sh .graphium_ipu
 ```
 
 ## Training a model

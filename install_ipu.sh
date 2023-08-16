@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Default location for the virtual environment
+default_venv_name=".graphium_ipu"
+
+# Allow the user to specify the location of their virtual environment
+# If not specified, use the default location
+venv_name=${1:-$default_venv_name}
+
 # Constants
-venv_name=".graphium_ipu"
 sdk_compressed_file="poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz"
 sdk_wheel_file="poptorch-3.3.0+113432_960e9c294b_ubuntu_20_04-cp38-cp38-linux_x86_64.whl"
 sdk_url="https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=${sdk_compressed_file}"
@@ -64,15 +70,29 @@ python3 -m pip install -r requirements_ipu.txt
 echo "Installing Graphium in dev mode..."
 python3 -m pip install --no-deps -e .
 
-echo "Installation completed successfully."
+# This is a quick test make sure poptorch is correctly installed
+if python3 -c "import poptorch;print('poptorch installed correctly')" &> /dev/null; then
+    echo "Installation completed successfully."
+else
+    echo "Installation was not successful. Please check the logs and try again."
+    exit 1  # Exit with status code 1 to indicate failure
+fi
 
 # Download the datafiles (Total ~ 10Mb - nothing compared to the libraries)
 echo "Downloading the sub-datasets consisting on the ToyMix dataset"
 toymix_dir=expts/data/neurips2023/small-dataset/
 mkdir -p $toymix_dir
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz"
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz"
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz"
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt"
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt"
-wget -P "${toymix_dir}" "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt"
+
+base_url="https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/"
+files=("ZINC12k.csv.gz" "Tox21-7k-12-labels.csv.gz" "qm9.csv.gz" "qm9_random_splits.pt" "Tox21_random_splits.pt" "ZINC12k_random_splits.pt")
+
+for file in "${files[@]}"; do
+    if [ ! -f "${toymix_dir}${file}" ]; then
+        echo "Downloading ${file}..."
+        wget -P "${toymix_dir}" "${base_url}${file}"
+    else
+        echo "${file} already exists. Skipping..."
+    fi
+done
+
+echo "Data has been successfully downloaded."
