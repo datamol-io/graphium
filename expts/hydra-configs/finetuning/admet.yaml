@@ -29,16 +29,16 @@ constants:
   # For now, we assume a model is always fine-tuned on a single task at a time.
   # You can override this value with any of the benchmark names in the TDC benchmark suite.
   # See also https://tdcommons.ai/benchmark/admet_group/overview/
-  task: &task lipophilicity_astrazeneca
+  task: lipophilicity_astrazeneca
 
   name: finetuning_${constants.task}_gcn
   wandb:
     name: ${constants.name}
-    project: *task
+    project: ${constants.task}
     entity: multitask-gnn
     save_dir: logs/${constants.task}
   seed: 42
-  max_epochs: 10
+  max_epochs: 100
   data_dir: expts/data/admet/${constants.task}
   raise_train_error: true
 
@@ -57,7 +57,7 @@ finetuning:
   level: graph
 
   # Pretrained model
-  pretrained_model_name: dummy-pretrained-model
+  pretrained_model: dummy-pretrained-model
   finetuning_module: task_heads # gnn  
   sub_module_from_pretrained: zinc # optional
   new_sub_module: lipophilicity_astrazeneca # optional

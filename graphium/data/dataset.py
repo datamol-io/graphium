@@ -1,16 +1,15 @@
-from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
-
-from multiprocessing import Manager
-import numpy as np
-from functools import lru_cache
-from loguru import logger
-from copy import deepcopy
 import os
-import numpy as np
+from copy import deepcopy
+from functools import lru_cache
+from multiprocessing import Manager
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import fsspec
+import numpy as np
 import torch
+from loguru import logger
 from torch.utils.data.dataloader import Dataset
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import Batch, Data
 
 from graphium.data.smiles_transform import smiles_to_unique_mol_ids
 from graphium.features import GraphDict
@@ -247,7 +246,8 @@ class MultitaskDataset(Dataset):
             "_num_edges_list",
         ]
         path = os.path.join(self.data_path, "multitask_metadata.pkl")
-        attrs = torch.load(path)
+        with fsspec.open(path, "rb") as f:
+            attrs = torch.load(path)
 
         if not set(attrs_to_load).issubset(set(attrs.keys())):
             raise ValueError(
@@ -409,7 +409,8 @@ class MultitaskDataset(Dataset):
         filename = os.path.join(
             self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
         )
-        data_dict = torch.load(filename)
+        with fsspec.open(filename, "rb") as f:
+            data_dict = torch.load(f)
         return data_dict
 
     def merge(

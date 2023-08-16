@@ -1,10 +1,9 @@
-from typing import Union, List, Dict, Any
-
 from copy import deepcopy
-from loguru import logger
-from graphium.trainer import PredictorModule
+from typing import Any, Dict, List, Union
 
-from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
+from loguru import logger
+
+from graphium.trainer import PredictorModule
 
 
 def filter_cfg_based_on_admet_benchmark_name(config: Dict[str, Any], names: Union[List[str], str]):
@@ -56,11 +55,8 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     cfg_finetune = cfg["finetuning"]
 
     # Load pretrained model
-    pretrained_model_name = cfg_finetune["pretrained_model_name"]
-    print(GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name])
-    pretrained_predictor = PredictorModule.load_from_checkpoint(
-        GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name], device="cpu"
-    )
+    pretrained_model = cfg_finetune["pretrained_model"]
+    pretrained_predictor = PredictorModule.load_pretrained_models(pretrained_model, device="cpu")
 
     # Inherit shared configuration from pretrained
     # Architecture
@@ -147,7 +143,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         pretrained_overwriting_kwargs.pop(key, None)
 
     finetuning_training_kwargs = deepcopy(cfg["finetuning"])
-    drop_keys = ["task", "level", "pretrained_model_name", "sub_module_from_pretrained", "finetuning_head"]
+    drop_keys = ["task", "level", "pretrained_model", "sub_module_from_pretrained", "finetuning_head"]
     for key in drop_keys:
         finetuning_training_kwargs.pop(key, None)
 

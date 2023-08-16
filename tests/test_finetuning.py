@@ -1,31 +1,24 @@
 import os
-from os.path import dirname, abspath
-
 import unittest as ut
+from copy import deepcopy
+from os.path import abspath, dirname
 
 import torch
-from copy import deepcopy
-
 from lightning.pytorch.callbacks import Callback
-
 from omegaconf import OmegaConf
+
 import graphium
-
-from graphium.finetuning import modify_cfg_for_finetuning
-from graphium.trainer import PredictorModule
-
-from graphium.finetuning import GraphFinetuning
-
 from graphium.config._loader import (
+    load_accelerator,
+    load_architecture,
     load_datamodule,
     load_metrics,
-    load_architecture,
     load_predictor,
     load_trainer,
     save_params_to_wandb,
-    load_accelerator,
 )
-
+from graphium.finetuning import GraphFinetuning, modify_cfg_for_finetuning
+from graphium.trainer import PredictorModule
 
 MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 CONFIG_FILE = "graphium/config/dummy_finetuning.yaml"
@@ -96,7 +89,7 @@ class Test_Finetuning(ut.TestCase):
 
         # Load pretrained & replace in predictor
         pretrained_model = PredictorModule.load_pretrained_models(
-            cfg["finetuning"]["pretrained_model_name"], device="cpu"
+            cfg["finetuning"]["pretrained_model"], device="cpu"
         ).model
 
         pretrained_model.create_module_map()
