@@ -5,9 +5,9 @@ import pytest
 FINETUNING_CONFIG_KEY = "finetuning"
 
 
-@pytest.mark.parametrize("acc_type", ["cpu", "ipu"])
+@pytest.mark.parametrize("acc_type, acc_prec", [("cpu", 32), ("ipu", 16)])
 @pytest.mark.ipu
-def test_cli(acc_type) -> None:
+def test_cli(acc_type, acc_prec) -> None:
     """
     The main CLI endpoint for training and fine-tuning Graphium models.
     """
@@ -39,6 +39,9 @@ def test_cli(acc_type) -> None:
                 "+datamodule.args.task_specific_args.qm9.sample_size=1000",
                 "+datamodule.args.task_specific_args.tox21.sample_size=1000",
                 "+datamodule.args.task_specific_args.zinc.sample_size=1000",
+
+                "trainer.trainer.check_val_every_n_epoch=1",
+                f"trainer.trainer.precision={acc_prec}", # perhaps you can make this 32 for CPU and 16 for IPU
             ],
         )
         if acc_type == "ipu":

@@ -62,9 +62,8 @@ def run_training_finetuning(cfg: DictConfig) -> None:
         wandb.init(mode="disabled")
     elif wandb_cfg is not None:
         wandb.init(
-            entity=wandb_cfg["entity"],
-            project=wandb_cfg["project"],
             config=cfg,
+            **wandb_cfg
         )
 
     ## == Instantiate all required objects from their respective configs ==
