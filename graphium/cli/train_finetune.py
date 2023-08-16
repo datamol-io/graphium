@@ -53,10 +53,7 @@ def run_training_finetuning(cfg: DictConfig) -> None:
         )
         wandb.init(mode="disabled")
     elif wandb_cfg is not None:
-        wandb.init(
-            config=cfg,
-            **wandb_cfg
-        )
+        wandb.init(config=cfg, **wandb_cfg)
 
     ## == Instantiate all required objects from their respective configs ==
     # Accelerator

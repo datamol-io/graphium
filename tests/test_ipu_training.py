@@ -39,9 +39,8 @@ def test_cli(acc_type, acc_prec) -> None:
                 "+datamodule.args.task_specific_args.qm9.sample_size=1000",
                 "+datamodule.args.task_specific_args.tox21.sample_size=1000",
                 "+datamodule.args.task_specific_args.zinc.sample_size=1000",
-
                 "trainer.trainer.check_val_every_n_epoch=1",
-                f"trainer.trainer.precision={acc_prec}", # perhaps you can make this 32 for CPU and 16 for IPU
+                f"trainer.trainer.precision={acc_prec}",  # perhaps you can make this 32 for CPU and 16 for IPU
             ],
         )
         if acc_type == "ipu":
