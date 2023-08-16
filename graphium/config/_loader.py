@@ -372,7 +372,7 @@ def load_trainer(
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = "auto"
+    strategy = config["trainer"]["trainer"].get("strategy", "auto")
     if accelerator_type == "ipu":
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
@@ -384,6 +384,9 @@ def load_trainer(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
             precision=config["trainer"]["trainer"].get("precision"),
         )
+
+        if strategy != "auto":
+            raise ValueError("IPUs selected, but strategy is not set to 'auto'")
 
         from lightning_graphcore import IPUStrategy
 
