@@ -1,6 +1,7 @@
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
+from os import PathLike as Path
 
 from dataclasses import dataclass
 
@@ -135,6 +136,7 @@ class BaseDataModule(lightning.LightningDataModule):
         self._predict_ds = None
 
         self._data_is_prepared = False
+        self._data_is_cached = False
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -932,6 +934,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )
         self.data_hash = self.get_data_hash()
 
+        if self.processed_graph_data_path is not None:
+            if self._ready_to_load_all_from_file():
+                self._data_is_prepared = True
+                self._data_is_cached = True
+
     def _parse_caching_args(self, processed_graph_data_path, dataloading_from):
         """
         Parse the caching arguments, and raise errors if the arguments are invalid.
@@ -994,14 +1001,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             return has_atoms
 
         if self._data_is_prepared:
-            logger.info("Data is already prepared. Skipping the preparation")
+            logger.info("Data is already prepared.")
+            self.get_label_statistics(self.processed_graph_data_path, self.data_hash, dataset=None)
             return
-
-        if self.dataloading_from == "disk":
-            if self._ready_to_load_all_from_file():
-                self.get_label_statistics(self.processed_graph_data_path, self.data_hash, dataset=None)
-                self._data_is_prepared = True
-                return
 
         """Load all single-task dataframes."""
         task_df = {}
@@ -1172,6 +1174,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if self.processed_graph_data_path is not None:
             self._save_data_to_files()
+            self._data_is_cached = True
 
         self._data_is_prepared = True
 
@@ -1191,21 +1194,29 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            if self.dataloading_from == "disk":
-                processed_train_data_path = self._path_to_load_from_file("train")
-                assert self._data_ready_at_path(
-                    processed_train_data_path
-                ), "Loading from file + setup() called but training data not ready"
-                processed_val_data_path = self._path_to_load_from_file("val")
-                assert self._data_ready_at_path(
-                    processed_val_data_path
-                ), "Loading from file + setup() called but validation data not ready"
-            else:
-                processed_train_data_path = None
-                processed_val_data_path = None
+            # if self.dataloading_from == "disk":
+            #     processed_train_data_path = self._path_to_load_from_file("train")
+            #     assert self._data_ready_at_path(
+            #         processed_train_data_path
+            #     ), "Loading from file + setup() called but training data not ready"
+            #     processed_val_data_path = self._path_to_load_from_file("val")
+            #     assert self._data_ready_at_path(
+            #         processed_val_data_path
+            #     ), "Loading from file + setup() called but validation data not ready"
+            # else:
+            #     processed_train_data_path = None
+            #     processed_val_data_path = None
 
-            self.train_ds = self._make_multitask_dataset("train", save_smiles_and_ids=save_smiles_and_ids)
-            self.val_ds = self._make_multitask_dataset("val", save_smiles_and_ids=save_smiles_and_ids)
+            # if not self._data_is_setup:
+            if self.train_ds is None:
+                self.train_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
+                )
+            if self.val_ds is None:
+                self.val_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
+                )
+
             logger.info(self.train_ds)
             logger.info(self.val_ds)
             labels_size.update(
@@ -1216,14 +1227,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_dtype.update(self.val_ds.labels_dtype)
 
         if stage == "test" or stage is None:
-            if self.dataloading_from == "disk":
-                processed_test_data_path = self._path_to_load_from_file("test")
-                assert self._data_ready_at_path(
-                    processed_test_data_path
-                ), "Loading from file + setup() called but test data not ready"
-            else:
-                processed_test_data_path = None
-            self.test_ds = self._make_multitask_dataset("test", save_smiles_and_ids=save_smiles_and_ids)
+            if self.test_ds is None:
+                self.test_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
+                )
+
             logger.info(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
@@ -1241,9 +1249,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def _make_multitask_dataset(
         self,
+        dataloading_from: Literal["disk", "ram"],
         stage: Literal["train", "val", "test"],
         save_smiles_and_ids: bool,
-        processed_graph_data_path: Optional[str] = None,
+        # processed_graph_data_path: Optional[str] = None,
     ) -> Datasets.MultitaskDataset:
         """
         Create a MultitaskDataset for the given stage using single task datasets
@@ -1270,18 +1279,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             raise ValueError(f"Unknown stage {stage}")
 
-        if processed_graph_data_path is None:
-            processed_graph_data_path = self.processed_graph_data_path
-
-        # assert singletask_datasets is not None, "Single task datasets must exist to make multitask dataset"
-        if singletask_datasets is None:
-            assert processed_graph_data_path is not None
-            assert self._data_ready_at_path(
-                self._path_to_load_from_file(stage)
-            ), "Trying to create multitask dataset without single-task datasets but data not ready"
-            files_ready = True
-        else:
-            files_ready = False
+        processed_graph_data_path = self.processed_graph_data_path
 
         multitask_dataset = Datasets.MultitaskDataset(
             singletask_datasets,
@@ -1292,8 +1290,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             about=about,
             save_smiles_and_ids=save_smiles_and_ids,
             data_path=self._path_to_load_from_file(stage) if processed_graph_data_path else None,
-            processed_graph_data_path=processed_graph_data_path,
-            files_ready=files_ready,
+            dataloading_from=dataloading_from,
+            data_is_cached=self._data_is_cached,
         )  # type: ignore
 
         # calculate statistics for the train split and used for all splits normalization
@@ -1301,7 +1299,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
-        if self.dataloading_from == "ram":
+        # Normalization has already been applied in cached data
+        if not self._data_is_prepared:
             self.normalize_label(multitask_dataset, stage)
 
         return multitask_dataset
@@ -1342,7 +1341,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # At the moment, we need to merge the `SingleTaskDataset`'s into `MultitaskDataset`s in order to save to file
         #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
         temp_datasets = {
-            stage: self._make_multitask_dataset(stage, save_smiles_and_ids=False, load_from_file=False)
+            stage: self._make_multitask_dataset(
+                dataloading_from="ram", stage=stage, save_smiles_and_ids=False
+            )
             for stage in stages
         }
         for stage in stages:
@@ -1364,6 +1365,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             train: whether the dataset is the training set
 
         """
+
         if self.task_norms and train:
             for task in dataset.labels_size.keys():
                 # if the label type is graph_*, we need to stack them as the tensor shape is (num_labels, )

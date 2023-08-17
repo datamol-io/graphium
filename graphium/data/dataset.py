@@ -8,6 +8,8 @@ from copy import deepcopy
 import os
 import numpy as np
 
+from datamol import parallelized, parallelized_with_batches
+
 import torch
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Data, Batch
@@ -147,7 +149,7 @@ class MultitaskDataset(Dataset):
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
         dataloading_from: str = "ram",
-        files_ready: bool = False,
+        data_is_cached: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -176,7 +178,6 @@ class MultitaskDataset(Dataset):
             files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
-        # self.datasets = datasets
         self.n_jobs = n_jobs
         self.backend = backend
         self.featurization_batch_size = featurization_batch_size
@@ -185,14 +186,17 @@ class MultitaskDataset(Dataset):
         self.data_path = data_path
         self.dataloading_from = dataloading_from
 
-        if files_ready:
-            if dataloading_from != "disk":
-                raise ValueError(
-                    "Files are ready to be loaded from disk, but `dataloading_from` is not set to `disk`"
-                )
+        logger.info(f"Dataloading from {dataloading_from.upper()}")
+
+        if data_is_cached:
             self._load_metadata()
-            self.features = None
-            self.labels = None
+
+            if dataloading_from == "disk":
+                self.features = None
+                self.labels = None
+            elif dataloading_from == "ram":
+                logger.info("Transferring data from DISK to RAM...")
+                self.transfer_from_disk_to_ram()
 
         else:
             task = next(iter(datasets))
@@ -213,9 +217,50 @@ class MultitaskDataset(Dataset):
             if self.features is not None:
                 self._num_nodes_list = get_num_nodes_per_graph(self.features)
                 self._num_edges_list = get_num_edges_per_graph(self.features)
-            if self.dataloading_from == "disk":
-                self.features = None
-                self.labels = None
+
+    def transfer_from_disk_to_ram(self, parallel_with_batches: bool = False):
+        """
+        Function parallelizing transfer from DISK to RAM
+        """
+
+        def transfer_mol_from_disk_to_ram(idx):
+            """
+            Function transferring single mol from DISK to RAM
+            """
+            data_dict = self.load_graph_from_index(idx)
+            mol_in_ram = {}
+            mol_in_ram.update({"features": data_dict["graph_with_features"]})
+            mol_in_ram.update({"labels": data_dict["labels"]})
+            if self.smiles is not None:
+                mol_in_ram.update({"smiles": data_dict["smiles"]})
+
+            return mol_in_ram
+
+        if parallel_with_batches and self.featurization_batch_size:
+            data_in_ram = parallelized_with_batches(
+                transfer_mol_from_disk_to_ram,
+                range(self.dataset_length),
+                batch_size=self.featurization_batch_size,
+                n_jobs=self.n_jobs,
+                backend=self.backend,
+                progress=self.progress,
+                tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
+            )
+        else:
+            data_in_ram = parallelized(
+                transfer_mol_from_disk_to_ram,
+                range(self.dataset_length),
+                n_jobs=self.n_jobs,
+                backend=self.backend,
+                progress=self.progress,
+                tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
+            )
+
+        self.features = [sample["features"] for sample in data_in_ram]
+        self.labels = [sample["labels"] for sample in data_in_ram]
+        self.smiles = None
+        if "smiles" in self.load_graph_from_index(0):
+            self.smiles = [sample["smiles"] for sample in data_in_ram]
 
     def save_metadata(self, directory: str):
         """
