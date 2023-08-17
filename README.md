@@ -112,7 +112,22 @@ graphium-train --config-path [PATH] --config-name [CONFIG]
 Thanks to the modular nature of `hydra` you can reuse many of our config settings for your own experiments with Graphium.
 
 ## Preparing the data in advance
-The data preparation including the featurization (e.g., of molecules from smiles to pyg-compatible format) is embedded in the pipeline and will be performed when executing `graphium-train [...]`. However, when working with larger datasets, it is recommended to perform data preparation in advance using a machine with sufficient allocated memory (e.g., ~400GB in the case of `LargeMix`). The command `graphium-prepare-data datamodule.args.processed_graph_data_path=[path_to_cached_data]` will prepare the data and cache it in the indicated location `[path_to_cached_data]`. The prepared data can be used for training via `graphium-train [...] datamodule.args.processed_graph_data_path=[path_to_cached_data]`. Note that `datamodule.args.processed_graph_data_path` can also be specified at `expts/hydra_configs/`.
+The data preparation including the featurization (e.g., of molecules from smiles to pyg-compatible format) is embedded in the pipeline and will be performed when executing `graphium-train [...]`.
+
+However, when working with larger datasets, it is recommended to perform data preparation in advance using a machine with sufficient allocated memory (e.g., ~400GB in the case of `LargeMix`). Preparing data in advance is also beneficial when running lots of concurrent jobs with identical molecular featurization, so that resources aren't wasted and processes don't conflict reading/writing in the same directory.
+
+The following command-line will prepare the data and cache it, then use it to train a model.
+```bash
+# First prepare the data and cache it in `path_to_cached_data`
+graphium-prepare-data datamodule.args.processed_graph_data_path=[path_to_cached_data]
+
+# Then train the model on the prepared data
+graphium-train [...] datamodule.args.processed_graph_data_path=[path_to_cached_data]
+```
+
+**Note** that `datamodule.args.processed_graph_data_path` can also be specified at `expts/hydra_configs/`.
+
+**Note** that, every time the configs of `datamodule.args.featurization` changes, you will need to run a new data preparation, which will automatically be saved in a separate directory that uses a hash unique to the configs.
 
 ## First Time Running on IPUs
 For new IPU developers this section helps provide some more explanation on how to set up an environment to use Graphcore IPUs with Graphium. 
