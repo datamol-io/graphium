@@ -21,16 +21,18 @@ def run_prepare_data(cfg: DictConfig) -> None:
     """
 
     cfg = OmegaConf.to_container(cfg, resolve=True)
-
     st = timeit.default_timer()
 
-    ## == Instantiate all required objects from their respective configs ==
-    # Accelerator
-    cfg, accelerator_type = load_accelerator(cfg)
+    # Checking that `processed_graph_data_path` is provided
+    path = cfg["datamodule"]["args"].get("processed_graph_data_path", None)
+    if path is None:
+        raise ValueError(
+            "Please provide `datamodule.args.processed_graph_data_path` to specify the caching dir."
+        )
+    logger.info(f"The caching dir is set to '{path}'")
 
-    ## Data-module
-    datamodule = load_datamodule(cfg, accelerator_type)
-
+    # Data-module
+    datamodule = load_datamodule(cfg, "cpu")
     datamodule.prepare_data()
 
     logger.info(f"Data preparation took {timeit.default_timer() - st:.2f} seconds.")

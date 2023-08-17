@@ -1194,20 +1194,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            # if self.dataloading_from == "disk":
-            #     processed_train_data_path = self._path_to_load_from_file("train")
-            #     assert self._data_ready_at_path(
-            #         processed_train_data_path
-            #     ), "Loading from file + setup() called but training data not ready"
-            #     processed_val_data_path = self._path_to_load_from_file("val")
-            #     assert self._data_ready_at_path(
-            #         processed_val_data_path
-            #     ), "Loading from file + setup() called but validation data not ready"
-            # else:
-            #     processed_train_data_path = None
-            #     processed_val_data_path = None
-
-            # if not self._data_is_setup:
             if self.train_ds is None:
                 self.train_ds = self._make_multitask_dataset(
                     self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
