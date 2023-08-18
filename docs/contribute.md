@@ -39,5 +39,5 @@ You can build and serve the documentation locally with:
 
 ```bash
 # Build and serve the doc
-make serve
+mkdocs serve
 ```
