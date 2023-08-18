@@ -673,18 +673,18 @@ class PredictorModule(lightning.LightningModule):
         """Load a pretrained model from its name.
 
         Args:
-            name: Name of the model to load. List available
-                from `graphium.trainer.PredictorModule.list_pretrained_models()`.
+            name: Name of the model to load, or full path of the model.
+                List available from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        if name not in GRAPHIUM_PRETRAINED_MODELS_DICT:
-            raise ValueError(
-                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS_DICT.keys())}."
+        if name in GRAPHIUM_PRETRAINED_MODELS_DICT:
+            return PredictorModule.load_from_checkpoint(
+                GRAPHIUM_PRETRAINED_MODELS_DICT[name], map_location=device
             )
-
-        return PredictorModule.load_from_checkpoint(
-            GRAPHIUM_PRETRAINED_MODELS_DICT[name], map_location=device
-        )
+        else:
+            return PredictorModule.load_from_checkpoint(
+                name, map_location=device
+            )
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()
