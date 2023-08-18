@@ -171,11 +171,9 @@ class MultitaskDataset(Dataset):
             progress: Whether to display the progress bar
             save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
             about: A description of the dataset
-            progress: Whether to display the progress bar
-            about: A description of the dataset
             data_path: The location of the data if saved on disk
             dataloading_from: Whether to load the data from `"disk"` or `"ram"`
-            files_ready: Whether the files to load from were prepared ahead of time
+            data_is_cached: Whether the data is already cached on `"disk"`
         """
         super().__init__()
         self.n_jobs = n_jobs
@@ -183,6 +181,7 @@ class MultitaskDataset(Dataset):
         self.featurization_batch_size = featurization_batch_size
         self.progress = progress
         self.about = about
+        self.save_smiles_and_ids = save_smiles_and_ids
         self.data_path = data_path
         self.dataloading_from = dataloading_from
 
@@ -228,11 +227,10 @@ class MultitaskDataset(Dataset):
             Function transferring single mol from DISK to RAM
             """
             data_dict = self.load_graph_from_index(idx)
-            mol_in_ram = {}
-            mol_in_ram.update({"features": data_dict["graph_with_features"]})
-            mol_in_ram.update({"labels": data_dict["labels"]})
-            if self.smiles is not None:
-                mol_in_ram.update({"smiles": data_dict["smiles"]})
+            mol_in_ram = {
+                "features": data_dict["graph_with_features"],
+                "labels": data_dict["labels"],
+            }
 
             return mol_in_ram
 
@@ -241,7 +239,7 @@ class MultitaskDataset(Dataset):
                 transfer_mol_from_disk_to_ram,
                 range(self.dataset_length),
                 batch_size=self.featurization_batch_size,
-                n_jobs=self.n_jobs,
+                n_jobs=0,
                 backend=self.backend,
                 progress=self.progress,
                 tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
@@ -250,7 +248,7 @@ class MultitaskDataset(Dataset):
             data_in_ram = parallelized(
                 transfer_mol_from_disk_to_ram,
                 range(self.dataset_length),
-                n_jobs=self.n_jobs,
+                n_jobs=0,
                 backend=self.backend,
                 progress=self.progress,
                 tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
@@ -258,9 +256,6 @@ class MultitaskDataset(Dataset):
 
         self.features = [sample["features"] for sample in data_in_ram]
         self.labels = [sample["labels"] for sample in data_in_ram]
-        self.smiles = None
-        if "smiles" in self.load_graph_from_index(0):
-            self.smiles = [sample["smiles"] for sample in data_in_ram]
 
     def save_metadata(self, directory: str):
         """
@@ -308,6 +303,14 @@ class MultitaskDataset(Dataset):
 
         for attr, value in attrs.items():
             setattr(self, attr, value)
+
+        if self.save_smiles_and_ids:
+            if self.smiles is None or self.mol_ids is None:
+                logger.warning(
+                    f"Argument `save_smiles_and_ids` is set to {self.save_smiles_and_ids} but metadata in the cache at {self.data_path} does not contain smiles and mol_ids. "
+                    f"This may be because `Datamodule.prepare_data(save_smiles_and_ids=False)` was run followed by `Datamodule.setup(save_smiles_and_ids=True)`. "
+                    f"When loading from cached files, the `save_smiles_and_ids` argument of `Datamodule.setup()` is superseeded by the `Datamodule.prepare_data()`. "
+                )
 
     def __len__(self):
         r"""

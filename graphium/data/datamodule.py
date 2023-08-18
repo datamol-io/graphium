@@ -976,7 +976,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return task_level_map
 
-    def prepare_data(self):
+    def prepare_data(self, save_smiles_and_ids: bool = False):
         """Called only from a single process in distributed settings. Steps:
 
         - If each cache is set and exists, reload from cache and return. Otherwise,
@@ -1173,7 +1173,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
 
         if self.processed_graph_data_path is not None:
-            self._save_data_to_files()
+            self._save_data_to_files(save_smiles_and_ids)
             self._data_is_cached = True
 
         self._data_is_prepared = True
@@ -1194,14 +1194,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            if self.train_ds is None:
-                self.train_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
-                )
-            if self.val_ds is None:
-                self.val_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
-                )
+            # if self.train_ds is None:
+            self.train_ds = self._make_multitask_dataset(
+                self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
+            )
+            # if self.val_ds is None:
+            self.val_ds = self._make_multitask_dataset(
+                self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
+            )
 
             logger.info(self.train_ds)
             logger.info(self.val_ds)
@@ -1213,10 +1213,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_dtype.update(self.val_ds.labels_dtype)
 
         if stage == "test" or stage is None:
-            if self.test_ds is None:
-                self.test_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
-                )
+            # if self.test_ds is None:
+            self.test_ds = self._make_multitask_dataset(
+                self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
+            )
 
             logger.info(self.test_ds)
 
@@ -1238,7 +1238,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         dataloading_from: Literal["disk", "ram"],
         stage: Literal["train", "val", "test"],
         save_smiles_and_ids: bool,
-        # processed_graph_data_path: Optional[str] = None,
     ) -> Datasets.MultitaskDataset:
         """
         Create a MultitaskDataset for the given stage using single task datasets
@@ -1317,7 +1316,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return can_load_from_file
 
-    def _save_data_to_files(self) -> None:
+    def _save_data_to_files(self, save_smiles_and_ids: bool = False) -> None:
         """
         Save data to files so that they can be loaded from file during training/validation/test
         """
@@ -1328,7 +1327,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
         temp_datasets = {
             stage: self._make_multitask_dataset(
-                dataloading_from="ram", stage=stage, save_smiles_and_ids=False
+                dataloading_from="ram", stage=stage, save_smiles_and_ids=save_smiles_and_ids
             )
             for stage in stages
         }
@@ -2220,6 +2219,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args = {}
         dm_args["task_specific_args"] = new_task_specific_args
         dm_args["processed_graph_data_path"] = processed_graph_data_path
+        dm_args["dataloading_from"] = dataloading_from
         dm_args["dataloader_from"] = dataloading_from
         dm_args["featurization"] = featurization
         dm_args["batch_size_training"] = batch_size_training

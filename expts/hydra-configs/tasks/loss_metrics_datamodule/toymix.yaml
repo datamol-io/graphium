@@ -73,6 +73,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        sample_size: 200
 
       tox21:
         df: null
@@ -85,6 +86,7 @@ datamodule:
         splits_path: ${constants.data_dir}/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: ${constants.seed}
         task_level: graph
+        sample_size: 200
 
       zinc:
         df: null
@@ -100,3 +102,4 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        sample_size: 200
