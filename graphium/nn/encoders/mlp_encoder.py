@@ -166,7 +166,7 @@ class CatMLPEncoder(BaseEncoder):
         self,
         input_keys: List[str],
         output_keys: str,
-        in_dim: int or List[int],
+        in_dim: Union[int, List[int]],
         hidden_dim: int,
         out_dim: int,
         num_layers: int,
