@@ -682,9 +682,7 @@ class PredictorModule(lightning.LightningModule):
                 GRAPHIUM_PRETRAINED_MODELS_DICT[name], map_location=device
             )
         else:
-            return PredictorModule.load_from_checkpoint(
-                name, map_location=device
-            )
+            return PredictorModule.load_from_checkpoint(name, map_location=device)
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()

@@ -4,6 +4,7 @@
 
 
 The library is designed with 3 things in mind:
+
 - High modularity and configurability with *YAML* files
 - Contain the state-of-the art GNNs, including positional encodings and graph Transformers
 - Massively multitasking across diverse and sparse datasets
