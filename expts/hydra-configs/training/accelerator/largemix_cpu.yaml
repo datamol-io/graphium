@@ -1,0 +1,19 @@
+# @package _global_
+
+datamodule:
+  args:
+    batch_size_training: 1000
+    batch_size_inference: 1000
+    featurization_n_jobs: 0
+    num_workers: 0
+
+predictor:
+  metrics_every_n_train_steps: 300
+  torch_scheduler_kwargs:
+    max_num_epochs: ${constants.max_epochs}
+
+trainer:
+  trainer:
+    precision: 32
+    accumulate_grad_batches: 2
+    max_epochs: ${constants.max_epochs}
