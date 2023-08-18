@@ -1,0 +1,5072 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Graphium: Scaling molecular GNNs to infinity.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/2.3.1/api/graphium.features.html">
+      
+      
+        <link rel="prev" href="graphium.nn/pyg_layers.html">
+      
+      
+        <link rel="next" href="graphium.trainer.html">
+      
+      <link rel="icon" href="../images/logo.png">
+      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
+    
+    
+      
+        <title>graphium.features - graphium</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom-graphium.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#graphiumfeatures" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            graphium
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              graphium.features
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link">
+      Overview
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../baseline.html" class="md-tabs__link">
+      Baseline
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-tabs__link md-tabs__link--active">
+        API
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+        Tutorials
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../design.html" class="md-tabs__link">
+      Design
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../datasets.html" class="md-tabs__link">
+      Datasets
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../pretrained_models.html" class="md-tabs__link">
+      Pretrained Models
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contribute.html" class="md-tabs__link">
+      Contribute
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../license.html" class="md-tabs__link">
+      License
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../cli_references.html" class="md-tabs__link">
+      CLI
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    graphium
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline.html" class="md-nav__link">
+        Baseline
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          graphium.nn
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          graphium.nn
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-nav__link">
+        graphium.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/architectures.html" class="md-nav__link">
+        graphium.nn.architectures
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/encoders.html" class="md-nav__link">
+        graphium.nn.encoders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/pyg_layers.html" class="md-nav__link">
+        graphium.nn.pyg_layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          graphium.features
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="graphium.features.html" class="md-nav__link md-nav__link--active">
+        graphium.features
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#featurizer" class="md-nav__link">
+    Featurizer
+  </a>
+  
+    <nav class="md-nav" aria-label="Featurizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer" class="md-nav__link">
+    featurizer
+  </a>
+  
+    <nav class="md-nav" aria-label="featurizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict" class="md-nav__link">
+    GraphDict
+  </a>
+  
+    <nav class="md-nav" aria-label="GraphDict">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict.make_pyg_graph" class="md-nav__link">
+    make_pyg_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_estimated_bond_length" class="md-nav__link">
+    get_estimated_bond_length()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_atomic_features_float" class="md-nav__link">
+    get_mol_atomic_features_float()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_atomic_features_onehot" class="md-nav__link">
+    get_mol_atomic_features_onehot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_conformer_features" class="md-nav__link">
+    get_mol_conformer_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_edge_features" class="md-nav__link">
+    get_mol_edge_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_simple_mol_conformer" class="md-nav__link">
+    get_simple_mol_conformer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_adj_and_features" class="md-nav__link">
+    mol_to_adj_and_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_adjacency_matrix" class="md-nav__link">
+    mol_to_adjacency_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_graph_dict" class="md-nav__link">
+    mol_to_graph_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_graph_signature" class="md-nav__link">
+    mol_to_graph_signature()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_pyggraph" class="md-nav__link">
+    mol_to_pyggraph()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.to_dense_array" class="md-nav__link">
+    to_dense_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.to_dense_tensor" class="md-nav__link">
+    to_dense_tensor()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#positional-encoding" class="md-nav__link">
+    Positional Encoding
+  </a>
+  
+    <nav class="md-nav" aria-label="Positional Encoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding" class="md-nav__link">
+    positional_encoding
+  </a>
+  
+    <nav class="md-nav" aria-label="positional_encoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding.get_all_positional_encodings" class="md-nav__link">
+    get_all_positional_encodings()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding.graph_positional_encoder" class="md-nav__link">
+    graph_positional_encoder()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties" class="md-nav__link">
+    properties
+  </a>
+  
+    <nav class="md-nav" aria-label="properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties.get_prop_or_none" class="md-nav__link">
+    get_prop_or_none()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties.get_props_from_mol" class="md-nav__link">
+    get_props_from_mol()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spectral-pe" class="md-nav__link">
+    Spectral PE
+  </a>
+  
+    <nav class="md-nav" aria-label="Spectral PE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral" class="md-nav__link">
+    spectral
+  </a>
+  
+    <nav class="md-nav" aria-label="spectral">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.compute_laplacian_pe" class="md-nav__link">
+    compute_laplacian_pe()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix" class="md-nav__link">
+    normalize_matrix()
+  </a>
+  
+    <nav class="md-nav" aria-label="normalize_matrix()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-walk-pe" class="md-nav__link">
+    Random Walk PE
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Walk PE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw" class="md-nav__link">
+    rw
+  </a>
+  
+    <nav class="md-nav" aria-label="rw">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw.compute_rwse" class="md-nav__link">
+    compute_rwse()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw.get_Pks" class="md-nav__link">
+    get_Pks()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nmp" class="md-nav__link">
+    NMP
+  </a>
+  
+    <nav class="md-nav" aria-label="NMP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.nmp" class="md-nav__link">
+    nmp
+  </a>
+  
+    <nav class="md-nav" aria-label="nmp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.nmp.float_or_none" class="md-nav__link">
+    float_or_none()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.trainer.html" class="md-nav__link">
+        graphium.trainer
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.data.html" class="md-nav__link">
+        graphium.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.utils.html" class="md-nav__link">
+        graphium.utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.config.html" class="md-nav__link">
+        graphium.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.ipu.html" class="md-nav__link">
+        graphium.ipu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.visualization.html" class="md-nav__link">
+        graphium.visualization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+          feature_processing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_1">
+          <span class="md-nav__icon md-icon"></span>
+          feature_processing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          model_training
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        Multitask Molecular Modelling with Graphium on the IPU
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_references.html" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#featurizer" class="md-nav__link">
+    Featurizer
+  </a>
+  
+    <nav class="md-nav" aria-label="Featurizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer" class="md-nav__link">
+    featurizer
+  </a>
+  
+    <nav class="md-nav" aria-label="featurizer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict" class="md-nav__link">
+    GraphDict
+  </a>
+  
+    <nav class="md-nav" aria-label="GraphDict">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.GraphDict.make_pyg_graph" class="md-nav__link">
+    make_pyg_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_estimated_bond_length" class="md-nav__link">
+    get_estimated_bond_length()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_atomic_features_float" class="md-nav__link">
+    get_mol_atomic_features_float()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_atomic_features_onehot" class="md-nav__link">
+    get_mol_atomic_features_onehot()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_conformer_features" class="md-nav__link">
+    get_mol_conformer_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_mol_edge_features" class="md-nav__link">
+    get_mol_edge_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.get_simple_mol_conformer" class="md-nav__link">
+    get_simple_mol_conformer()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_adj_and_features" class="md-nav__link">
+    mol_to_adj_and_features()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_adjacency_matrix" class="md-nav__link">
+    mol_to_adjacency_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_graph_dict" class="md-nav__link">
+    mol_to_graph_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_graph_signature" class="md-nav__link">
+    mol_to_graph_signature()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.mol_to_pyggraph" class="md-nav__link">
+    mol_to_pyggraph()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.to_dense_array" class="md-nav__link">
+    to_dense_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.featurizer.to_dense_tensor" class="md-nav__link">
+    to_dense_tensor()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#positional-encoding" class="md-nav__link">
+    Positional Encoding
+  </a>
+  
+    <nav class="md-nav" aria-label="Positional Encoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding" class="md-nav__link">
+    positional_encoding
+  </a>
+  
+    <nav class="md-nav" aria-label="positional_encoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding.get_all_positional_encodings" class="md-nav__link">
+    get_all_positional_encodings()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.positional_encoding.graph_positional_encoder" class="md-nav__link">
+    graph_positional_encoder()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    Properties
+  </a>
+  
+    <nav class="md-nav" aria-label="Properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties" class="md-nav__link">
+    properties
+  </a>
+  
+    <nav class="md-nav" aria-label="properties">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties.get_prop_or_none" class="md-nav__link">
+    get_prop_or_none()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.properties.get_props_from_mol" class="md-nav__link">
+    get_props_from_mol()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spectral-pe" class="md-nav__link">
+    Spectral PE
+  </a>
+  
+    <nav class="md-nav" aria-label="Spectral PE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral" class="md-nav__link">
+    spectral
+  </a>
+  
+    <nav class="md-nav" aria-label="spectral">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.compute_laplacian_pe" class="md-nav__link">
+    compute_laplacian_pe()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix" class="md-nav__link">
+    normalize_matrix()
+  </a>
+  
+    <nav class="md-nav" aria-label="normalize_matrix()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.spectral.normalize_matrix--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#random-walk-pe" class="md-nav__link">
+    Random Walk PE
+  </a>
+  
+    <nav class="md-nav" aria-label="Random Walk PE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw" class="md-nav__link">
+    rw
+  </a>
+  
+    <nav class="md-nav" aria-label="rw">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw.compute_rwse" class="md-nav__link">
+    compute_rwse()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.rw.get_Pks" class="md-nav__link">
+    get_Pks()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#nmp" class="md-nav__link">
+    NMP
+  </a>
+  
+    <nav class="md-nav" aria-label="NMP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.nmp" class="md-nav__link">
+    nmp
+  </a>
+  
+    <nav class="md-nav" aria-label="nmp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.features.nmp.float_or_none" class="md-nav__link">
+    float_or_none()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="graphiumfeatures">graphium.features<a class="headerlink" href="#graphiumfeatures" title="Permanent link">&para;</a></h1>
+<p>Feature extraction and manipulation</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Contents</label><div class="tabbed-content">
+<ul>
+<li><a href="#featurizer">Featurizer</a></li>
+<li><a href="#positional-encoding">Positional Encoding</a></li>
+<li><a href="#properties">Properties</a></li>
+<li><a href="#spectral-pe">Spectral PE</a></li>
+<li><a href="#random-walk-pe">Random Walk PE</a></li>
+<li><a href="#nmp">NMP</a></li>
+</ul>
+</div>
+</div>
+<h2 id="featurizer">Featurizer<a class="headerlink" href="#featurizer" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.featurizer" class="doc doc-heading">
+            <code>graphium.features.featurizer</code>
+
+
+<a href="#graphium.features.featurizer" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.features.featurizer.GraphDict" class="doc doc-heading">
+          <code>GraphDict</code>
+
+
+<a href="#graphium.features.featurizer.GraphDict" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>dict</code></p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.features.featurizer.GraphDict.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.GraphDict.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Store the parameters required to initialize a <code>pyg.data.Data</code>, but
+as a dictionary to reduce memory consumption.</p>
+<p>Possible keys for the dictionary:</p>
+<ul>
+<li>
+<p>adj: A sparse Tensor containing the adjacency matrix</p>
+</li>
+<li>
+<p>ndata: A dictionnary containing different keys and Tensors
+    associated to the node features.</p>
+</li>
+<li>
+<p>edata: A dictionnary containing different keys and Tensors
+    associated to the edge features.</p>
+</li>
+<li>
+<p>dtype: The dtype for the floating data.</p>
+</li>
+<li>
+<p>mask_nan:
+    Deal with molecules that fail a part of the featurization.
+    NaNs can happen when taking the of a noble gas,
+    or other properties that are not measured for specific atoms.</p>
+<ul>
+<li>"raise": Raise an error when there is a nan or inf in the featurization</li>
+<li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
+<li>"None": DEFAULT. Don't do anything</li>
+<li>"Floating value": Replace nans or inf by the specified value</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.features.featurizer.GraphDict.make_pyg_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_pyg_graph</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.GraphDict.make_pyg_graph" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
+into a <code>pyg.data.Data</code> of torch Tensors.</p>
+<p><code>**kwargs</code> can be used to overwrite any parameter from the current dictionary. See <code>GraphDict.__init__</code>
+for a list of parameters</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_estimated_bond_length" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_estimated_bond_length</span><span class="p">(</span><span class="n">bond</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_estimated_bond_length" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Estimate the bond length between atoms by looking at the estimated atomic radius
+that depends both on the atom type and the bond type. The resulting bond-length is
+then the sum of the radius.</p>
+<p>Keep in mind that this function only provides an estimate of the bond length and not
+the true one based on a conformer. The vast majority od estimated bond lengths will
+have an error below 5% while some bonds can have an error up to 20%. This function
+is mostly useful when conformer generation fails for some molecules, or for
+increased computation speed.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>bond</code></td>
+          <td>
+                <code><span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Bond">Bond</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The bond to measure its lenght</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule containing the bond (used to get neighbouring atoms)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>bond_length</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The bond length in Angstrom, typically a value around 1-2.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_mol_atomic_features_float" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_mol_atomic_features_float</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">offset_carbon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_mol_atomic_features_float" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a dictionary of floating-point arrays of atomic properties.
+To ensure all properties are at a similar scale, some of the properties
+are divided by a constant.</p>
+<p>There is also the possibility of offseting by the carbon value using
+the <code>offset_carbon</code> parameter.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>property_list</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], <span title="typing.List">List</span>[<span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of atomic properties to get from the molecule, such as 'atomic-number',
+'mass', 'valence', 'degree', 'electronegativity'.
+Some elements are divided by a factor to avoid feature explosion.</p>
+<p>Accepted properties are:</p>
+<ul>
+<li>"atomic-number"</li>
+<li>"mass", "weight"</li>
+<li>"valence", "total-valence"</li>
+<li>"implicit-valence"</li>
+<li>"hybridization"</li>
+<li>"chirality"</li>
+<li>"hybridization"</li>
+<li>"aromatic"</li>
+<li>"ring", "in-ring"</li>
+<li>"min-ring"</li>
+<li>"max-ring"</li>
+<li>"num-ring"</li>
+<li>"degree"</li>
+<li>"radical-electron"</li>
+<li>"formal-charge"</li>
+<li>"vdw-radius"</li>
+<li>"covalent-radius"</li>
+<li>"electronegativity"</li>
+<li>"ionization", "first-ionization"</li>
+<li>"melting-point"</li>
+<li>"metal"</li>
+<li>"single-bond"</li>
+<li>"aromatic-bond"</li>
+<li>"double-bond"</li>
+<li>"triple-bond"</li>
+<li>"is-carbon"</li>
+<li>"group"</li>
+<li>"period"</li>
+</ul>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>offset_carbon</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to subract the Carbon property from the desired atomic property.
+For example, if we want the mass of the Lithium (6.941), the mass of the
+Carbon (12.0107) will be subracted, resulting in a value of -5.0697</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mask_nan</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
+NaNs can happen when taking the of a noble gas,
+or other properties that are not measured for specific atoms.</p>
+<ul>
+<li>"raise": Raise an error when there is a nan or inf in the featurization</li>
+<li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
+<li>"None": DEFAULT. Don't do anything</li>
+<li>"Floating value": Replace nans or inf by the specified value</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;raise&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>prop_dict</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
+and the values are np.ndarray of shape (N,). N is the number of atoms
+in <code>mol</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_mol_atomic_features_onehot" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_mol_atomic_features_onehot</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_mol_atomic_features_onehot" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the following set of features for any given atom</p>
+<ul>
+<li>One-hot representation of the atom</li>
+<li>One-hot representation of the atom degree</li>
+<li>One-hot representation of the atom implicit valence</li>
+<li>One-hot representation of the the atom hybridization</li>
+<li>Whether the atom is aromatic</li>
+<li>The atom's formal charge</li>
+<li>The atom's number of radical electrons</li>
+</ul>
+<p>Additionally, the following features can be set, depending on the value of input Parameters</p>
+<ul>
+<li>One-hot representation of the number of hydrogen atom in the the current atom neighborhood if <code>explicit_H</code> is false</li>
+<li>One-hot encoding of the atom chirality, and whether such configuration is even possible</li>
+</ul>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of integer atomic properties to get from the molecule.
+The integer values are converted to a one-hot vector.
+Callables are not supported by this function.</p>
+<p>Accepted properties are:</p>
+<ul>
+<li>"atomic-number"</li>
+<li>"degree"</li>
+<li>"valence", "total-valence"</li>
+<li>"implicit-valence"</li>
+<li>"hybridization"</li>
+<li>"chirality"</li>
+<li>"phase"</li>
+<li>"type"</li>
+<li>"group"</li>
+<li>"period"</li>
+</ul>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>prop_dict</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
+and the values are np.ndarray of shape (N, OH). N is the number of atoms
+in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_mol_conformer_features" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_mol_conformer_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_mol_conformer_features" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>obtain the conformer features of a molecule</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>property_list</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], <span title="typing.List">List</span>[<span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of conformer property to get from the molecule
+Accepted properties are:
+- "positions_3d"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>prop_dict</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary where the element of <code>property_list</code> are the keys</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_mol_edge_features" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_mol_edge_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_mol_edge_features" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the following set of features for any given bond
+See <code>graphium.features.nmp</code> for allowed values in one hot encoding</p>
+<ul>
+<li>One-hot representation of the bond type. Note that you should not kekulize your
+    molecules, if you expect this to take aromatic bond into account.</li>
+<li>Bond stereo type, following CIP classification</li>
+<li>Whether the bond is conjugated</li>
+<li>Whether the bond is in a ring</li>
+</ul>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>rdkit.Chem.Molecule
+the molecule of interest</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of edge properties to return for the given molecule.
+Accepted properties are:</p>
+<ul>
+<li>"bond-type-onehot"</li>
+<li>"bond-type-float"</li>
+<li>"stereo"</li>
+<li>"in-ring"</li>
+<li>"conjugated"</li>
+<li>"conformer-bond-length" (might cause problems with complex molecules)</li>
+<li>"estimated-bond-length"</li>
+</ul>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>prop_dict</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
+and the values are np.ndarray of shape (N,). N is the number of atoms
+in <code>mol</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.get_simple_mol_conformer" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_simple_mol_conformer</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.get_simple_mol_conformer" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>If the molecule has a conformer, then it will return the conformer at idx <code>0</code>.
+Otherwise, it generates a simple molecule conformer using <code>rdkit.Chem.rdDistGeom.EmbedMolecule</code>
+and returns it. This is meant to be used in simple functions like <code>GetBondLength</code>,
+not in functions requiring complex 3D structure.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Rdkit Molecule</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>conf</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Conformer">Conformer</span>, None]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A conformer of the molecule, or <code>None</code> if it fails</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.mol_to_adj_and_features" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_adj_and_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.mol_to_adj_and_features" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Transforms a molecule into an adjacency matrix representing the molecular graph
+and a set of atom and bond features.</p>
+<p>It also returns the positional encodings associated to the graph.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_onehot</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
+such as the atom index represented as a one-hot vector.
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_float</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
+such as the atomic mass or electronegativity.
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>conformer_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>add_self_loop</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>explicit_H</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_bonds_weights</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_encoding_as_features</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch data type used to build the graph</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mask_nan</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
+NaNs can happen when taking the of a noble gas,
+or other properties that are not measured for specific atoms.</p>
+<ul>
+<li>"raise": Raise an error when there is a nan or inf in the featurization</li>
+<li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
+<li>"None": DEFAULT. Don't do anything</li>
+<li>"Floating value": Replace nans or inf by the specified value</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;raise&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>adj</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch coo sparse adjacency matrix of the molecule</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>ndata</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Concatenated node data of the atoms, based on the properties from
+<code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>.
+If no properties are given, it returns <code>None</code></p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>edata</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Concatenated node edge of the molecule, based on the properties from
+<code>edge_property_list</code>.
+If no properties are given, it returns <code>None</code></p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>pe_dict</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of all positional encodings. Current supported keys:</p>
+<ul>
+<li>
+<p>"pos_enc_feats_sign_flip":
+    Node positional encoding that requires augmentation via sign-flip.
+    For example, eigenvectors of the Laplacian are ambiguous to the
+    sign and are returned here.</p>
+</li>
+<li>
+<p>"pos_enc_feats_no_flip":
+    Node positional encoding that requires does not use sign-flip.
+    For example, distance from centroid are returned here.</p>
+</li>
+<li>
+<p>"rwse":
+    Node structural encoding corresponding to the diagonal of the random
+    walk matrix</p>
+</li>
+</ul>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>conf_dict</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>contains the 3d positions of a conformer of the molecule or 0s if none is found</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.mol_to_adjacency_matrix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_adjacency_matrix</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.mol_to_adjacency_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert a molecule to a sparse adjacency matrix, as a torch Tensor.
+Instead of using the Rdkit <code>GetAdjacencyMatrix()</code> method, this method
+uses the bond ordering from the molecule object, which is the same as
+the bond ordering in the bond features.</p>
+
+<details class="warning" open>
+  <summary>Warning</summary>
+  <p>Do not use <code>Tensor.coalesce()</code> on the returned adjacency matrix, as it
+will change the ordering of the bonds.</p>
+</details>
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A molecule in the form of a SMILES string or an RDKit molecule object.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_bonds_weights</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>True</code>, the adjacency matrix will contain the bond type as the
+value of the edge. If <code>False</code>, the adjacency matrix will contain
+<code>1</code> as the value of the edge.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>add_self_loop</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>True</code>, the adjacency matrix will contain a self-loop for each
+node.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The data type used to build the graph</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.float32">float32</span></code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>adj</code></td>          <td>
+                <code><span title="scipy.sparse.coo_matrix">coo_matrix</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>coo sparse adjacency matrix of the molecule</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.mol_to_graph_dict" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_graph_dict</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.mol_to_graph_dict" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Transforms a molecule into an adjacency matrix representing the molecular graph
+and a set of atom and bond features, and re-organizes them into a dictionary
+that allows to build a <code>pyg.data.Data</code> object.</p>
+<p>Compared to <code>mol_to_pyggraph</code>, this function does not build the graph directly,
+and is thus faster, less memory heavy, and compatible with other frameworks.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_onehot</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
+such as the atom index represented as a one-hot vector.
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_float</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
+such as the atomic mass or electronegativity.
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>conformer_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>add_self_loop</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>explicit_H</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_bonds_weights</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_encoding_as_features</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The numpy data type used to build the graph</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>on_error</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>What to do when the featurization fails. This can change the
+behavior of <code>mask_nan</code>.</p>
+<ul>
+<li>"raise": Raise an error</li>
+<li>"warn": Raise a warning and return a string of the error</li>
+<li>"ignore": Ignore the error and return a string of the error</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;ignore&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mask_nan</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
+NaNs can happen when taking the of a noble gas,
+or other properties that are not measured for specific atoms.</p>
+<ul>
+<li>"raise": Raise an error when there is a nan or inf in the featurization</li>
+<li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
+<li>"None": DEFAULT. Don't do anything</li>
+<li>"Floating value": Replace nans or inf by the specified value</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;raise&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_atoms</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of atoms for a given molecule. If a molecule with more atoms
+is give, an error is raised, but catpured according to the rules of
+<code>on_error</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>graph_dict</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.features.featurizer.GraphDict" href="#graphium.features.featurizer.GraphDict">GraphDict</a>, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary <code>GraphDict</code> containing the keys required to build a graph,
+and which can be used to build a PyG graph. If it fails
+to featurize the molecule, it returns a string with the error.</p>
+<ul>
+<li>
+<p>"adj": A sparse int-array containing the adjacency matrix</p>
+</li>
+<li>
+<p>"data": A dictionnary containing different keys and numpy
+  arrays associated to the (node, edge &amp; graph) features.</p>
+</li>
+<li>
+<p>"dtype": The numpy dtype for the floating data.</p>
+</li>
+</ul>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.mol_to_graph_signature" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_graph_signature</span><span class="p">(</span><span class="n">featurizer_args</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.mol_to_graph_signature" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the default arguments of <code>mol_to_graph_dict</code> and update it
+with a provided dict of arguments in order to get a fulle signature
+of the featurizer args actually used for the features computation.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>featurizer_args</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of featurizer arguments to update</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of featurizer arguments</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.mol_to_pyggraph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_pyggraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.mol_to_pyggraph" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Transforms a molecule into an adjacency matrix representing the molecular graph
+and a set of atom and bond features.</p>
+<p>Then, the adjacency matrix and node/edge features are used to build a
+<code>pyg.data.Data</code> with pytorch Tensors.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_onehot</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
+such as the atom index represented as a one-hot vector.
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>atom_property_list_float</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
+such as the atomic mass or electronegativity.
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>conformer_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_property_list</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>add_self_loop</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>explicit_H</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_bonds_weights</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_encoding_as_features</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The numpy data type used to build the graph</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>on_error</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>What to do when the featurization fails. This can change the
+behavior of <code>mask_nan</code>.</p>
+<ul>
+<li>"raise": Raise an error</li>
+<li>"warn": Raise a warning and return a string of the error</li>
+<li>"ignore": Ignore the error and return a string of the error</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;ignore&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mask_nan</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
+NaNs can happen when taking the of a noble gas,
+or other properties that are not measured for specific atoms.</p>
+<ul>
+<li>"raise": Raise an error when there is a nan in the featurization</li>
+<li>"warn": Raise a warning when there is a nan in the featurization</li>
+<li>"None": DEFAULT. Don't do anything</li>
+<li>"Floating value": Replace nans by the specified value</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;raise&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_atoms</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of atoms for a given molecule. If a molecule with more atoms
+is give, an error is raised, but catpured according to the rules of
+<code>on_error</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>graph</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Pyg graph, with <code>graph['feat']</code> corresponding to the concatenated
+node data from <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>,
+<code>graph['edge_feat']</code> corresponding to the concatenated edge data from <code>edge_property_list</code>.
+There are also additional entries for the positional encodings.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.to_dense_array" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dense_array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.to_dense_array" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Assign the node data</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>array</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The array to convert to dense</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dtype of the array</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dense array</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.featurizer.to_dense_tensor" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dense_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.featurizer.to_dense_tensor" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Assign the node data</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>array</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The array to convert to dense</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dtype of the array</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dense array</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="positional-encoding">Positional Encoding<a class="headerlink" href="#positional-encoding" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.positional_encoding" class="doc doc-heading">
+            <code>graphium.features.positional_encoding</code>
+
+
+<a href="#graphium.features.positional_encoding" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.positional_encoding.get_all_positional_encodings" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_all_positional_encodings</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.positional_encoding.get_all_positional_encodings" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get features positional encoding.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>adj</code></td>
+          <td>
+                <code>[num_nodes, num_nodes]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_encoding_as_features</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>pe_dict</code></td>          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of positional and structural encodings</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.positional_encoding.graph_positional_encoder" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">graph_positional_encoder</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.positional_encoding.graph_positional_encoder" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a positional encoding that depends on the parameters.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>adj</code></td>
+          <td>
+                <code>[num_nodes, num_nodes]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_type</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The type of positional encoding to use. If None, it must be provided by <code>pos_kwargs["pos_type"]</code>. Supported types are:
+- laplacian_eigvec              \
+- laplacian_eigval               \  -&gt; cache connected comps. &amp; eigendecomp.
+- rwse
+- electrostatic                 \
+- commute                        \  -&gt; cache pinvL
+- graphormer</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_level</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Positional level to output. If None, it must be provided by <code>pos_kwargs["pos_level"]</code>.
+- node
+- edge
+- nodepair
+- graph</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Extra keyword arguments for the positional encoding. Can include the keys pos_type and pos_level.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>pe</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Positional or structural encoding</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.properties" class="doc doc-heading">
+            <code>graphium.features.properties</code>
+
+
+<a href="#graphium.features.properties" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.properties.get_prop_or_none" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_prop_or_none</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.features.properties.get_prop_or_none" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return properties. If error, return list of <code>None</code> with lenght <code>n</code>.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>prop</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The property to compute.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of elements in the property.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>*args</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The arguments to pass to the property.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keyword arguments to pass to the property.</p>
+            </div>
+          </td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[float], <span title="typing.List">List</span>[None]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The property or a list of <code>None</code> with lenght <code>n</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.properties.get_props_from_mol" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_props_from_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="s1">&#39;autocorr3d&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.features.properties.get_props_from_mol" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Function to get a given set of desired properties from a molecule,
+and output a property list.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule from which to compute the properties.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>properties</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The list of properties to compute for each molecule. It can be the following:</p>
+<ul>
+<li>'descriptors'</li>
+<li>'autocorr3d'</li>
+<li>'rdf'</li>
+<li>'morse'</li>
+<li>'whim'</li>
+<li>'all'</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;autocorr3d&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>props</code></td>          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>np.array(float)
+The array of properties for the desired molecule</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>classes_start_idx</code></td>          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list(int)
+The list of index specifying the start of each new class of
+descriptor or property. For example, if props has 20 elements,
+the first 5 are rotatable bonds, the next 8 are morse, and
+the rest are whim, then <code>classes_start_idx = [0, 5, 13]</code>.
+This will mainly be useful to normalize the features of
+each class.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>classes_names</code></td>          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list(str)
+The name of the classes associated to each starting index.
+Will be usefull to understand what property is the network learning.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="spectral-pe">Spectral PE<a class="headerlink" href="#spectral-pe" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.spectral" class="doc doc-heading">
+            <code>graphium.features.spectral</code>
+
+
+<a href="#graphium.features.spectral" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.spectral.compute_laplacian_pe" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_laplacian_pe</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_pos</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">disconnected_comp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.features.spectral.compute_laplacian_pe" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>adj</code></td>
+          <td>
+                <code>[num_nodes, num_nodes]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_pos</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of Laplacian eigenvectors to compute</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>disconnected_comp</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute the eigenvectors for each connected component</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>normalization</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to apply to the Laplacian</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td></td>          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Two possible outputs:
+eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
+    This repetition is necessary in case of disconnected components, where
+    the eigenvalues of the Laplacian are not the same for each node.
+eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>base_level</code></td>          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here node</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.spectral.normalize_matrix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">normalize_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">degree_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.spectral.normalize_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Normalize a given matrix using its degree vector</p>
+<h6 id="graphium.features.spectral.normalize_matrix--parameters">Parameters<a class="headerlink" href="#graphium.features.spectral.normalize_matrix--parameters" title="Permanent link">&para;</a></h6>
+<pre><code>matrix: torch.tensor(N, N) or scipy.sparse.spmatrix(N, N)
+    A square matrix representing either an Adjacency matrix or a Laplacian.
+
+degree_vector: torch.tensor(N) or np.ndarray(N) or None
+    A vector representing the degree of ``matrix``.
+    ``None`` is only accepted if ``normalization==None``
+
+normalization: str or None, Default='none'
+    Normalization to use on the eig_matrix
+
+    - 'none' or ``None``: no normalization
+
+    - 'sym': Symmetric normalization ``D^-0.5 L D^-0.5``
+
+    - 'inv': Inverse normalization ``D^-1 L``
+</code></pre>
+<h6 id="graphium.features.spectral.normalize_matrix--returns">Returns<a class="headerlink" href="#graphium.features.spectral.normalize_matrix--returns" title="Permanent link">&para;</a></h6>
+<pre><code>matrix: torch.tensor(N, N) or scipy.sparse.spmatrix(N, N)
+    The normalized matrix
+</code></pre>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="random-walk-pe">Random Walk PE<a class="headerlink" href="#random-walk-pe" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.rw" class="doc doc-heading">
+            <code>graphium.features.rw</code>
+
+
+<a href="#graphium.features.rw" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.rw.compute_rwse" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_rwse</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ksteps</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="s1">&#39;rw_return_probs&#39;</span> <span class="ow">or</span> <span class="s1">&#39;rw_transition_probs&#39;</span><span class="p">,</span> <span class="n">space_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+<a href="#graphium.features.rw.compute_rwse" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute Random Walk Spectral Embedding (RWSE) for given list of K steps.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>adj</code></td>
+          <td>
+                <code>[num_nodes, num_nodes]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ksteps</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[int, <span title="typing.List">List</span>[int]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of numbers of steps for the random walks. If int, a list is generated from 1 to ksteps.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Desired output</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;rw_return_probs&#39; or &#39;rw_transition_probs&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>space_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Estimated dimensionality of the space. Used to
+correct the random-walk diagonal by a factor <code>k^(space_dim/2)</code>.
+In euclidean space, this correction means that the height of
+the gaussian distribution stays almost constant across the number of
+steps, if <code>space_dim</code> is the dimension of the euclidean space.</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td></td>          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Two possible outputs:
+rw_return_probs [num_nodes, len(ksteps)]: Random-Walk k-step landing probabilities
+rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step transition probabilities</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>base_level</code></td>          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here either node or nodepair</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.rw.get_Pks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_Pks</span><span class="p">(</span><span class="n">ksteps</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_Pk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.features.rw.get_Pks" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute Random Walk landing probabilities for given list of K steps.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>ksteps</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of numbers of k-steps for which to compute the RW landings</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_index</code></td>
+          <td>
+                <code><span title="typing.Tuple">Tuple</span>[torch.<span title="torch.Tensor">Tensor</span>, torch.<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>PyG sparse representation of the graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_weight</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[torch.<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Edge weights</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="nmp">NMP<a class="headerlink" href="#nmp" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.features.nmp" class="doc doc-heading">
+            <code>graphium.features.nmp</code>
+
+
+<a href="#graphium.features.nmp" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.features.nmp.float_or_none" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">float_or_none</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></code>
+
+<a href="#graphium.features.nmp.float_or_none" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>check if a string can be converted to float, return none if it can't</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>string</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>str</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>val</code></td>          <td>
+                <code><span title="typing.Union">Union</span>[float, None]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>float or None</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 datamol.io
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
+      
+        
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        
+      
+        
+          <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+      
+        
+          <script src="../_assets/js/google-analytics.js"></script>
+        
+      
+    
+  </body>
+</html>
