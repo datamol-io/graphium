@@ -25,7 +25,7 @@ or pip:
 pip install graphium
 ```
 
-### For IPU developers
+### For IPU
 ```bash
 # Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
 ./install_ipu.sh .graphium_ipu
