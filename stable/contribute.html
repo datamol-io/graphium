@@ -964,16 +964,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#setup-a-dev-environment" class="md-nav__link">
-    Setup a dev environment
+  <a href="#installation-for-developers" class="md-nav__link">
+    Installation for developers
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation for developers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-cpu-and-gpu-developers" class="md-nav__link">
+    For CPU and GPU developers
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#run-tests" class="md-nav__link">
-    Run tests
+        
+          <li class="md-nav__item">
+  <a href="#for-ipu-developers" class="md-nav__link">
+    For IPU developers
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1049,16 +1062,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#setup-a-dev-environment" class="md-nav__link">
-    Setup a dev environment
+  <a href="#installation-for-developers" class="md-nav__link">
+    Installation for developers
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation for developers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-cpu-and-gpu-developers" class="md-nav__link">
+    For CPU and GPU developers
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#run-tests" class="md-nav__link">
-    Run tests
+        
+          <li class="md-nav__item">
+  <a href="#for-ipu-developers" class="md-nav__link">
+    For IPU developers
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1088,20 +1114,30 @@
 
 
 <h1 id="contribute">Contribute<a class="headerlink" href="#contribute" title="Permanent link">&para;</a></h1>
-<p>The below documents the development lifecycle of Graphium.</p>
-<h2 id="setup-a-dev-environment">Setup a dev environment<a class="headerlink" href="#setup-a-dev-environment" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>graphium<span class="w"> </span>-f<span class="w"> </span>env.yml
-mamba<span class="w"> </span>activate<span class="w"> </span>graphium
+<p>We are happy to see that you want to contribute 🤗.
+Feel free to open an issue or pull request at any time. But first, follow this page to install Graphium in dev mode.</p>
+<h2 id="installation-for-developers">Installation for developers<a class="headerlink" href="#installation-for-developers" title="Permanent link">&para;</a></h2>
+<h3 id="for-cpu-and-gpu-developers">For CPU and GPU developers<a class="headerlink" href="#for-cpu-and-gpu-developers" title="Permanent link">&para;</a></h3>
+<p>Use <a href="https://github.com/mamba-org/mamba"><code>mamba</code></a>, a preferred alternative to conda, to create your environment:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install Graphium&#39;s dependencies in a new environment named `graphium`</span>
+mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>env.yml<span class="w"> </span>-n<span class="w"> </span>graphium
 
+<span class="c1"># Install Graphium in dev mode</span>
+mamba<span class="w"> </span>activate<span class="w"> </span>graphium
 pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
-<h2 id="run-tests">Run tests<a class="headerlink" href="#run-tests" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>pytest
+<h3 id="for-ipu-developers">For IPU developers<a class="headerlink" href="#for-ipu-developers" title="Permanent link">&para;</a></h3>
+<p>Download the SDK and use pypi to create your environment:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install Graphcore&#39;s SDK and Graphium dependencies in a new environment called `.graphium_ipu`</span>
+./install_ipu.sh<span class="w"> </span>.graphium_ipu
+</code></pre></div>
+<p>The above step needs to be done once. After that, enable the SDK and the environment as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>enable_ipu.sh<span class="w"> </span>.graphium_ipu
 </code></pre></div>
 <h2 id="build-the-documentation">Build the documentation<a class="headerlink" href="#build-the-documentation" title="Permanent link">&para;</a></h2>
 <p>You can build and serve the documentation locally with:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Build and serve the doc</span>
-mike<span class="w"> </span>serve
+mkdocs<span class="w"> </span>serve
 </code></pre></div>
 
 

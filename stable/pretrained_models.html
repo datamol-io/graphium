@@ -949,8 +949,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#graphium-zinc-micro-dummy-test" class="md-nav__link">
-    graphium-zinc-micro-dummy-test
+  <a href="#listing-all-available-models" class="md-nav__link">
+    Listing all available models
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dummy-pre-trained-model" class="md-nav__link">
+    Dummy pre-trained model
   </a>
   
 </li>
@@ -1035,8 +1042,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#graphium-zinc-micro-dummy-test" class="md-nav__link">
-    graphium-zinc-micro-dummy-test
+  <a href="#listing-all-available-models" class="md-nav__link">
+    Listing all available models
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dummy-pre-trained-model" class="md-nav__link">
+    Dummy pre-trained model
   </a>
   
 </li>
@@ -1060,14 +1074,20 @@
 
 
 <h1 id="graphium-pretrained-models">Graphium pretrained models<a class="headerlink" href="#graphium-pretrained-models" title="Permanent link">&para;</a></h1>
-<p>Graphium provides a set of pretrained models that you can use for inference or transfer learning. The models are available on Google Cloud Storage at <code>gs://graphium-public/pretrained-models</code>.</p>
+<p>Graphium aims to provide a set of pretrained models that you can use for inference or transfer learning. The models will be made available once trained and validated.</p>
+<h2 id="listing-all-available-models">Listing all available models<a class="headerlink" href="#listing-all-available-models" title="Permanent link">&para;</a></h2>
+<p>To know which models are available, you can run the following command</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">graphium</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">graphium</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">PredictorModule</span><span class="o">.</span><span class="n">list_pretrained_models</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="dummy-pre-trained-model">Dummy pre-trained model<a class="headerlink" href="#dummy-pre-trained-model" title="Permanent link">&para;</a></h2>
+<p>At the moment, only <code>tests/dummy-pretrained-model.ckpt</code> is provided, which is mostly useful for development and debugging of the checkpointing and finetuning pipelines.</p>
 <p>You can load a pretrained models using the Graphium API:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">graphium</span>
 
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">graphium</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">PredictorModule</span><span class="o">.</span><span class="n">load_pretrained_models</span><span class="p">(</span><span class="s2">&quot;graphium-zinc-micro-dummy-test&quot;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">graphium</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">PredictorModule</span><span class="o">.</span><span class="n">load_pretrained_models</span><span class="p">(</span><span class="s2">&quot;dummy-pretrained-model&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="graphium-zinc-micro-dummy-test"><code>graphium-zinc-micro-dummy-test</code><a class="headerlink" href="#graphium-zinc-micro-dummy-test" title="Permanent link">&para;</a></h2>
-<p>Dummy model used for testing purposes <em>(probably to delete in the future)</em>.</p>
 
 
 

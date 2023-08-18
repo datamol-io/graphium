@@ -411,8 +411,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ipu-installation" class="md-nav__link">
-    IPU installation
+  <a href="#for-cpu-or-gpu" class="md-nav__link">
+    For CPU or GPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-ipu" class="md-nav__link">
+    For IPU
   </a>
   
 </li>
@@ -1054,8 +1061,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ipu-installation" class="md-nav__link">
-    IPU installation
+  <a href="#for-cpu-or-gpu" class="md-nav__link">
+    For CPU or GPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-ipu" class="md-nav__link">
+    For IPU
   </a>
   
 </li>
@@ -1094,6 +1108,7 @@
 <li>🔌 Have a new dataset? Graphium provides a simple plug-and-play interface. Change the path, the name of the columns to predict, the atomic featurization, and you’re ready to play!</li>
 </ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="for-cpu-or-gpu">For CPU or GPU<a class="headerlink" href="#for-cpu-or-gpu" title="Permanent link">&para;</a></h3>
 <p>Use <a href="https://github.com/mamba-org/mamba"><code>mamba</code></a>:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Install Graphium</span>
 mamba<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>graphium
@@ -1101,24 +1116,16 @@ mamba<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <p>or pip:</p>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphium
 </code></pre></div>
-<h3 id="ipu-installation">IPU installation<a class="headerlink" href="#ipu-installation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>~/.venv<span class="w">                               </span><span class="c1"># Create the folder for the environment</span>
-python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/.venv/graphium_ipu<span class="w">        </span><span class="c1"># Create the environment</span>
-<span class="nb">source</span><span class="w"> </span>~/.venv/graphium_ipu/bin/activate<span class="w">    </span><span class="c1"># Activate the environment</span>
-
-<span class="c1"># Install the PopTorch wheel</span>
-pip<span class="w"> </span>install<span class="w"> </span>PATH_TO_SDK/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
-
-<span class="c1"># Enable Poplar SDK (including Poplar and PopART)</span>
-<span class="nb">source</span><span class="w"> </span>PATH_TO_SDK/enable
-
-<span class="c1"># Install the IPU specific and graphium requirements</span>
-<span class="nv">PACKAGE_NAME</span><span class="o">=</span>pytorch<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements_ipu.txt
-pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>lightning.txt
-
-<span class="c1"># Install Graphium in dev mode</span>
-pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>-e<span class="w"> </span>.
+<h3 id="for-ipu">For IPU<a class="headerlink" href="#for-ipu" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install Graphcore&#39;s SDK and Graphium dependencies in a new environment called `.graphium_ipu`</span>
+./install_ipu.sh<span class="w"> </span>.graphium_ipu
 </code></pre></div>
+<p>The above step needs to be done once. After that, enable the SDK and the environment as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>enable_ipu.sh<span class="w"> </span>.graphium_ipu
+</code></pre></div>
+<p>Finally, you will need to install graphium with pip
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphium
+</code></pre></div></p>
 
 
 
