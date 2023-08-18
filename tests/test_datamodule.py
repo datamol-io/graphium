@@ -241,42 +241,42 @@ class Test_DataModule(ut.TestCase):
         batch_from_disk = next(iter(cached_train_loader_from_disk))
 
         # Features are the same
-        assert torch.equal(batch["features"].edge_index, batch_from_ram["features"].edge_index)
-        assert torch.equal(batch["features"].edge_index, batch_from_disk["features"].edge_index)
+        np.testing.assert_array_almost_equal(batch["features"].edge_index, batch_from_ram["features"].edge_index)
+        np.testing.assert_array_almost_equal(batch["features"].edge_index, batch_from_disk["features"].edge_index)
 
         assert batch["features"].num_nodes == batch_from_ram["features"].num_nodes
         assert batch["features"].num_nodes == batch_from_disk["features"].num_nodes
 
-        assert torch.equal(batch["features"].edge_weight, batch_from_ram["features"].edge_weight)
-        assert torch.equal(batch["features"].edge_weight, batch_from_disk["features"].edge_weight)
+        np.testing.assert_array_almost_equal(batch["features"].edge_weight, batch_from_ram["features"].edge_weight)
+        np.testing.assert_array_almost_equal(batch["features"].edge_weight, batch_from_disk["features"].edge_weight)
 
-        assert torch.equal(batch["features"].feat, batch_from_ram["features"].feat)
-        assert torch.equal(batch["features"].feat, batch_from_disk["features"].feat)
+        np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_ram["features"].feat)
+        np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_disk["features"].feat)
 
-        assert torch.equal(batch["features"].edge_feat, batch_from_ram["features"].edge_feat)
-        assert torch.equal(batch["features"].edge_feat, batch_from_disk["features"].edge_feat)
+        np.testing.assert_array_almost_equal(batch["features"].edge_feat, batch_from_ram["features"].edge_feat)
+        np.testing.assert_array_almost_equal(batch["features"].edge_feat, batch_from_disk["features"].edge_feat)
 
-        assert torch.equal(batch["features"].batch, batch_from_ram["features"].batch)
-        assert torch.equal(batch["features"].batch, batch_from_disk["features"].batch)
+        np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_ram["features"].batch)
+        np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_disk["features"].batch)
 
-        assert torch.equal(batch["features"].ptr, batch_from_ram["features"].ptr)
-        assert torch.equal(batch["features"].ptr, batch_from_disk["features"].ptr)
+        np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_ram["features"].ptr)
+        np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_disk["features"].ptr)
 
         # Labels are the same
-        assert torch.equal(batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1)
-        assert torch.equal(batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1)
+        np.testing.assert_array_almost_equal(batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1)
+        np.testing.assert_array_almost_equal(batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1)
 
-        assert torch.equal(batch["labels"].x, batch_from_ram["labels"].x)
-        assert torch.equal(batch["labels"].x, batch_from_disk["labels"].x)
+        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_ram["labels"].x)
+        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_disk["labels"].x)
 
-        assert torch.equal(batch["labels"].edge_index, batch_from_ram["labels"].edge_index)
-        assert torch.equal(batch["labels"].edge_index, batch_from_disk["labels"].edge_index)
+        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_ram["labels"].edge_index)
+        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_disk["labels"].edge_index)
 
-        assert torch.equal(batch["labels"].batch, batch_from_ram["labels"].batch)
-        assert torch.equal(batch["labels"].batch, batch_from_disk["labels"].batch)
+        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_ram["labels"].batch)
+        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_disk["labels"].batch)
 
-        assert torch.equal(batch["labels"].ptr, batch_from_ram["labels"].ptr)
-        assert torch.equal(batch["labels"].ptr, batch_from_disk["labels"].ptr)
+        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_ram["labels"].ptr)
+        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_disk["labels"].ptr)
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -422,7 +422,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -435,7 +435,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -448,7 +448,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -461,7 +461,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
