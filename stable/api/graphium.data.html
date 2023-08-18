@@ -932,13 +932,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.save_data_to_cache" class="md-nav__link">
-    save_data_to_cache()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.setup" class="md-nav__link">
     setup()
   </a>
@@ -1898,13 +1891,6 @@
           <li class="md-nav__item">
   <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.prepare_data" class="md-nav__link">
     prepare_data()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.save_data_to_cache" class="md-nav__link">
-    save_data_to_cache()
   </a>
   
 </li>
@@ -3368,7 +3354,7 @@ graph to not fail is returned.</p>
 
 
 <h5 id="graphium.data.datamodule.GraphOGBDataModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">processed_graph_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataloading_from</span><span class="o">=</span><span class="s1">&#39;ram&#39;</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.GraphOGBDataModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3413,18 +3399,32 @@ meaning that all molecules will be considered.</li>
           </td>
         </tr>
         <tr>
-          <td><code>cache_data_path</code></td>
+          <td><code>processed_graph_data_path</code></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>path where to save or reload the cached data. The path can be
-remote (S3, GS, etc).</p>
+              <p>Path to the processed graph data. If None, the data will be
+downloaded from the OGB website.</p>
             </div>
           </td>
           <td>
                 <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataloading_from</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to load the data from RAM or disk. Default is "ram".</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;ram&#39;</code>
           </td>
         </tr>
         <tr>
@@ -3889,7 +3889,7 @@ raw positional encoding dimensions such eigval, eigvec, rwse and more</p>
 
 
 <h5 id="graphium.data.datamodule.MultitaskFromSmilesDataModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">processed_graph_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">processed_graph_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataloading_from</span><span class="o">=</span><span class="s1">&#39;ram&#39;</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4100,18 +4100,34 @@ should be implemented.</p>
           </td>
         </tr>
         <tr>
-          <td><code>cache_data_path</code></td>
+          <td><code>processed_graph_data_path</code></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>path where to save or reload the cached data. The path can be
-remote (S3, GS, etc).</p>
+              <p>path where to save or reload the cached data. Can be used
+to avoid recomputing the featurization, or for dataloading from disk with the option <code>dataloader_from="disk"</code>.</p>
             </div>
           </td>
           <td>
                 <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataloading_from</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to load the data from RAM or from disk. If set to "disk", the data
+must have been previously cached with <code>processed_graph_data_path</code> set. If set to "ram", the data
+will be loaded in RAM and the <code>processed_graph_data_path</code> will be ignored.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;ram&#39;</code>
           </td>
         </tr>
         <tr>
@@ -4979,7 +4995,7 @@ without reading the dataset. Useful for getting the number of node/edge features
   <div class="doc doc-contents ">
   
       <p>Load the datasets from cache. First create a hash for the dataset, and verify if that
-hash is available at the path given by <code>self.cache_data_path</code>.</p>
+hash is available at the path given by <code>self.processed_graph_data_path</code>.</p>
 
 
 
@@ -5132,7 +5148,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
 
 
 <h5 id="graphium.data.datamodule.MultitaskFromSmilesDataModule.prepare_data" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">prepare_data</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">prepare_data</span><span class="p">(</span><span class="n">save_smiles_and_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.prepare_data" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5156,70 +5172,6 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
 </ul>
 </li>
 </ul>
-
-  </div>
-
-</div>
-
-
-<div class="doc doc-object doc-function">
-
-
-
-<h5 id="graphium.data.datamodule.MultitaskFromSmilesDataModule.save_data_to_cache" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">save_data_to_cache</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
-
-<a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.save_data_to_cache" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Save the datasets from cache. First create a hash for the dataset, use it to
-generate a file name. Then save to the path given by <code>self.cache_data_path</code>.</p>
-
-
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>verbose</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Whether to print the progress</p>
-            </div>
-          </td>
-          <td>
-                <code>True</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>compress</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>Whether to compress the data</p>
-            </div>
-          </td>
-          <td>
-                <code>False</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 
