@@ -241,20 +241,32 @@ class Test_DataModule(ut.TestCase):
         batch_from_disk = next(iter(cached_train_loader_from_disk))
 
         # Features are the same
-        np.testing.assert_array_almost_equal(batch["features"].edge_index, batch_from_ram["features"].edge_index)
-        np.testing.assert_array_almost_equal(batch["features"].edge_index, batch_from_disk["features"].edge_index)
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_index, batch_from_ram["features"].edge_index
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_index, batch_from_disk["features"].edge_index
+        )
 
         assert batch["features"].num_nodes == batch_from_ram["features"].num_nodes
         assert batch["features"].num_nodes == batch_from_disk["features"].num_nodes
 
-        np.testing.assert_array_almost_equal(batch["features"].edge_weight, batch_from_ram["features"].edge_weight)
-        np.testing.assert_array_almost_equal(batch["features"].edge_weight, batch_from_disk["features"].edge_weight)
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_weight, batch_from_ram["features"].edge_weight
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_weight, batch_from_disk["features"].edge_weight
+        )
 
         np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_ram["features"].feat)
         np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_disk["features"].feat)
 
-        np.testing.assert_array_almost_equal(batch["features"].edge_feat, batch_from_ram["features"].edge_feat)
-        np.testing.assert_array_almost_equal(batch["features"].edge_feat, batch_from_disk["features"].edge_feat)
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_feat, batch_from_ram["features"].edge_feat
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_feat, batch_from_disk["features"].edge_feat
+        )
 
         np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_ram["features"].batch)
         np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_disk["features"].batch)
@@ -263,8 +275,12 @@ class Test_DataModule(ut.TestCase):
         np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_disk["features"].ptr)
 
         # Labels are the same
-        np.testing.assert_array_almost_equal(batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1)
-        np.testing.assert_array_almost_equal(batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1)
+        np.testing.assert_array_almost_equal(
+            batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1
+        )
+        np.testing.assert_array_almost_equal(
+            batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1
+        )
 
         np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_ram["labels"].x)
         np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_disk["labels"].x)
