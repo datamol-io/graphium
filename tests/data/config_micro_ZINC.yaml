@@ -6,7 +6,7 @@ datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
     df_path: graphium/data/micro_ZINC/micro_ZINC.csv
-    cache_data_path: graphium/data/cache/micro_ZINC/full.cache
+    processed_graph_data_path: graphium/data/cache/micro_ZINC/
     label_cols: ['score']
     smiles_col: SMILES
 
