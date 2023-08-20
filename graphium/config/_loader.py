@@ -576,3 +576,24 @@ def merge_dicts(
                     elif on_exist == "ignore":
                         pass
     return dict_a
+
+
+def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> str:
+    """
+    Get the checkpoint path from a config file.
+    """
+
+    cfg_trainer = config["trainer"]
+
+    if "model_checkpoint" in cfg_trainer.keys():
+        dirpath = cfg_trainer["model_checkpoint"]["dirpath"] + str(cfg_trainer["seed"]) + "/"
+        filename = config.get("ckpt_name_for_testing", "last") + ".ckpt"
+    else:
+        raise ValueError("Empty checkpoint section in config file")
+
+    checkpoint_path = os.path.join(dirpath, filename)
+
+    if not os.path.exists(checkpoint_path):
+        raise ValueError(f"Checkpoint path `{checkpoint_path}` does not exist")
+
+    return checkpoint_path

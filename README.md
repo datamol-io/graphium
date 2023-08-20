@@ -111,6 +111,9 @@ graphium-train --config-path [PATH] --config-name [CONFIG]
 ```
 Thanks to the modular nature of `hydra` you can reuse many of our config settings for your own experiments with Graphium.
 
+## Testing a model from a checkpoint
+A model trained via `graphium-train [...]` can be tested using `graphium-test [...]` if the checkpoint section `trainer.model_checkpoint` has been specified in the config used for training. By default, the last model checkpoint is used for testing, but a specific model checkpoint can be selected by passing an additional argument `graphium-test [...] +ckpt_name_for_testing=[filename]`, which will look for a model checkpoint at `"[trainer.model_checkpoint.dirpath]/[filename].ckpt"`.
+
 ## Preparing the data in advance
 The data preparation including the featurization (e.g., of molecules from smiles to pyg-compatible format) is embedded in the pipeline and will be performed when executing `graphium-train [...]`.
 

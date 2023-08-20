@@ -605,7 +605,9 @@ class PredictorModule(lightning.LightningModule):
         return super().on_validation_batch_end(outputs, batch, batch_idx)
 
     def on_validation_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val", device="cpu")
+        metrics_logs = self._general_epoch_end(
+            outputs=self.validation_step_outputs, step_name="val", device="cpu"
+        )
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)

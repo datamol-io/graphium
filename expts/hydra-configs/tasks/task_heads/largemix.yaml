@@ -4,7 +4,7 @@ architecture:
   task_heads:
     l1000_vcap:
       task_level: graph
-      out_dim: 4890
+      out_dim: 2934
       hidden_dims: 128
       depth: 2
       activation: none
@@ -15,7 +15,7 @@ architecture:
       residual_type: none
     l1000_mcf7:
       task_level: graph
-      out_dim: 4890
+      out_dim: 2934
       hidden_dims: 128
       depth: 2
       activation: none

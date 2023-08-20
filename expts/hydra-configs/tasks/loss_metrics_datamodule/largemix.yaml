@@ -16,11 +16,11 @@ predictor:
   loss_fun:
     l1000_vcap:
       name: hybrid_ce_ipu
-      n_brackets: 5
+      n_brackets: 3
       alpha: 0.5
     l1000_mcf7:
       name: hybrid_ce_ipu
-      n_brackets: 5
+      n_brackets: 3
       alpha: 0.5
     pcba_1328: bce_logits_ipu
     pcqm4m_g25: mae_ipu
@@ -30,7 +30,7 @@ metrics:
   l1000_vcap: &classif_metrics
     - name: auroc
       metric: auroc
-      num_classes: 5
+      num_classes: 3
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
@@ -39,7 +39,7 @@ metrics:
       threshold_kwargs: null
     - name: avpr
       metric: averageprecision
-      num_classes: 5
+      num_classes: 3
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
@@ -84,50 +84,50 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       l1000_vcap:
         df: null
-        df_path: expts/data/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: expts/data/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
         epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
         df: null
-        df_path: expts/data/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: expts/data/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
         epoch_sampling_fraction: 1.0
 
       pcba_1328:
         df: null
-        df_path: expts/data/large-dataset/PCBA_1328_1564k.parquet
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/PCBA_1328_1564k.parquet
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: expts/data/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
         epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
         df: null
-        df_path: expts/data/large-dataset/PCQM4M_G25_N4.parquet
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/PCQM4M_G25_N4.parquet
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: expts/data/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
           normalize_val_test: True
           method: "normal"
@@ -135,14 +135,14 @@ datamodule:
 
       pcqm4m_n4:
         df: null
-        df_path: expts/data/large-dataset/PCQM4M_G25_N4.parquet
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/PCQM4M_G25_N4.parquet
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
         # sample_size: 2000 # use sample_size for test
         task_level: node
-        splits_path: expts/data/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: ${constants.seed}
         label_normalization:
           normalize_val_test: True

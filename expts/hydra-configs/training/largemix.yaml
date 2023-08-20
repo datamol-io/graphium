@@ -18,7 +18,7 @@ trainer:
   seed: ${constants.seed}
   model_checkpoint:
     dirpath: model_checkpoints/large-dataset/
-    filename: ${constants.name}
+    filename: best
     save_last: True         # saving last model
     save_top_k: 1           # and best model
     monitor: loss/val       # wrt validation loss

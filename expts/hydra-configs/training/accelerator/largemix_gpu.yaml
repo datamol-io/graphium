@@ -8,7 +8,8 @@ datamodule:
     batch_size_training: 1000
     batch_size_inference: 1000
     featurization_n_jobs: 0
-    num_workers: 10
+    num_workers: 0
+    persistent_workers: false
 
 predictor:
   metrics_every_n_train_steps: 300

@@ -2,10 +2,11 @@
 
 datamodule:
   args:
-    batch_size_training: 1000
-    batch_size_inference: 1000
+    batch_size_training: 200
+    batch_size_inference: 200
     featurization_n_jobs: 0
     num_workers: 0
+    persistent_workers: false
 
 predictor:
   metrics_every_n_train_steps: 300

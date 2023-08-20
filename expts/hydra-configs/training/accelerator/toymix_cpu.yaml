@@ -2,10 +2,10 @@
 
 datamodule:
   args:
-    batch_size_training: 200
-    batch_size_inference: 200
-    featurization_n_jobs: 4
-    num_workers: 4
+    batch_size_training: 1000
+    batch_size_inference: 1000
+    featurization_n_jobs: 0
+    num_workers: 0
 
 predictor:
   optim_kwargs: {}
