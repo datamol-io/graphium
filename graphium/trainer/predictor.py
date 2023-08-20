@@ -539,18 +539,16 @@ class PredictorModule(lightning.LightningModule):
     def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
-    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
+    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str, device: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
-        device = device = outputs[0]["preds"][self.tasks[0]].device  # should be better way to do this
-        # device = 0
         for task in self.tasks:
-            preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
-            targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
+            preds[task] = torch.cat([out["preds"][task].to(device) for out in outputs], dim=0)
+            targets[task] = torch.cat([out["targets"][task].to(device) for out in outputs], dim=0)
         if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
-            weights = torch.cat([out["weights"] for out in outputs], dim=0)
+            weights = torch.cat([out["weights"].to(device) for out in outputs], dim=0)
         else:
             weights = None
 
@@ -607,7 +605,7 @@ class PredictorModule(lightning.LightningModule):
         return super().on_validation_batch_end(outputs, batch, batch_idx)
 
     def on_validation_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
+        metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val", device="cpu")
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
@@ -627,7 +625,7 @@ class PredictorModule(lightning.LightningModule):
         self.test_step_outputs.append(outputs)
 
     def on_test_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test")
+        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test", device="cpu")
         self.test_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
