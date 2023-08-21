@@ -67,7 +67,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       l1000_vcap:
         df: null
-        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_VCAP_0-2_th2.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
@@ -79,7 +79,7 @@ datamodule:
 
       l1000_mcf7:
         df: null
-        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
@@ -261,7 +261,7 @@ architecture:
   task_heads:
     l1000_vcap:
       task_level: graph
-      out_dim: 4890
+      out_dim: 2934
       hidden_dims: 128
       depth: 2
       activation: none
@@ -272,7 +272,7 @@ architecture:
       residual_type: none
     l1000_mcf7:
       task_level: graph
-      out_dim: 4890
+      out_dim: 2934
       hidden_dims: 128
       depth: 2
       activation: none
@@ -332,12 +332,12 @@ predictor:
   loss_fun:
     l1000_vcap:
       name: hybrid_ce_ipu
-      n_brackets: 5
+      n_brackets: 3
       alpha: 0.5
     l1000_mcf7:
       name: hybrid_ce_ipu
-      n_brackets: 5
-      alpha: 0.5
+      n_brackets: 3
+      alpha: ${predictor.loss_fun.l1000_vcap.alpha}
     pcba_1328: bce_logits_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
@@ -362,7 +362,7 @@ metrics:
   l1000_vcap: &classif_metrics
     - name: auroc
       metric: auroc
-      num_classes: 5
+      num_classes: 3
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
@@ -371,7 +371,7 @@ metrics:
       threshold_kwargs: null
     - name: avpr
       metric: averageprecision
-      num_classes: 5
+      num_classes: 3
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
@@ -425,6 +425,6 @@ trainer:
     # save_top_k: 1
     save_last: True
   trainer:
-    max_epochs: *max_epochs
+    max_epochs: ${predictor.torch_scheduler_kwargs.max_num_epochs} 
     min_epochs: 1
     check_val_every_n_epoch: 20

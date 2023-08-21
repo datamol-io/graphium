@@ -6,6 +6,10 @@ defaults:
 
 constants:
   name: neurips2023_large_data_gine
+  wandb:
+    name: ${constants.name}
+    project: neurips2023_large_graphcore
+    entity: multitask-gnn
 
 architecture:
   pre_nn_edges:   # Set as null to avoid a pre-nn network
