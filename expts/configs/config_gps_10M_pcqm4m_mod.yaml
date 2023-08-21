@@ -81,7 +81,6 @@ datamodule:
     # Data handling-related
     batch_size_training: 64
     batch_size_inference: 16
-    # cache_data_path: .
     num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.

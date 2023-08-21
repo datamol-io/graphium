@@ -31,25 +31,36 @@ class Test_DataModule(ut.TestCase):
         task_specific_args = {}
         task_specific_args["task_1"] = {"task_level": "graph", "dataset_name": dataset_name}
         dm_args = {}
-        dm_args["cache_data_path"] = None
+        dm_args["processed_graph_data_path"] = None
         dm_args["featurization"] = featurization_args
         dm_args["batch_size_training"] = 16
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 2
+        dm_args["featurization_n_jobs"] = 0
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
         dm_args["featurization_batch_size"] = 50
 
         ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
-        ds.prepare_data()
+        ds.prepare_data(save_smiles_and_ids=False)
 
         # Check the keys in the dataset
         ds.setup(save_smiles_and_ids=False)
         assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        # Reset the datamodule
+        ds._data_is_prepared = False
+        ds._data_is_cached = False
+
+        ds.prepare_data(save_smiles_and_ids=True)
+
+        # Check the keys in the dataset
         ds.setup(save_smiles_and_ids=True)
         assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
@@ -163,7 +174,6 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
-        # featurization_args["conformer_property_list"] = ["positions_3d"]
         featurization_args["edge_property_list"] = ["bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False
@@ -178,7 +188,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 2
+        dm_args["featurization_n_jobs"] = 0
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
         dm_args["featurization_batch_size"] = 50
@@ -189,24 +199,113 @@ class Test_DataModule(ut.TestCase):
 
         # Prepare the data. It should create the cache there
         assert not exists(TEMP_CACHE_DATA_PATH)
-        ds = GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
-        assert not ds.load_data_from_cache(verbose=False)
-        ds.prepare_data()
+        ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+        # assert not ds.load_data_from_cache(verbose=False)
+        ds.prepare_data(save_smiles_and_ids=False)
 
         # Check the keys in the dataset
         ds.setup(save_smiles_and_ids=False)
         assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
+        # ds_batch = next(iter(ds.train_dataloader()))
+        train_loader = ds.get_dataloader(ds.train_ds, shuffle=False, stage="train")
+        batch = next(iter(train_loader))
+
+        # Test loading cached data
+        assert exists(TEMP_CACHE_DATA_PATH)
+
+        cached_ds_from_ram = GraphOGBDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            dataloading_from="ram",
+            **dm_args,
+        )
+        cached_ds_from_ram.prepare_data()
+        cached_ds_from_ram.setup()
+        cached_train_loader_from_ram = cached_ds_from_ram.get_dataloader(
+            cached_ds_from_ram.train_ds, shuffle=False, stage="train"
+        )
+        batch_from_ram = next(iter(cached_train_loader_from_ram))
+
+        cached_ds_from_disk = GraphOGBDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            dataloading_from="disk",
+            **dm_args,
+        )
+        cached_ds_from_disk.prepare_data()
+        cached_ds_from_disk.setup()
+        cached_train_loader_from_disk = cached_ds_from_disk.get_dataloader(
+            cached_ds_from_disk.train_ds, shuffle=False, stage="train"
+        )
+        batch_from_disk = next(iter(cached_train_loader_from_disk))
+
+        # Features are the same
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_index, batch_from_ram["features"].edge_index
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_index, batch_from_disk["features"].edge_index
+        )
+
+        assert batch["features"].num_nodes == batch_from_ram["features"].num_nodes
+        assert batch["features"].num_nodes == batch_from_disk["features"].num_nodes
+
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_weight, batch_from_ram["features"].edge_weight
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_weight, batch_from_disk["features"].edge_weight
+        )
+
+        np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_ram["features"].feat)
+        np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_disk["features"].feat)
+
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_feat, batch_from_ram["features"].edge_feat
+        )
+        np.testing.assert_array_almost_equal(
+            batch["features"].edge_feat, batch_from_disk["features"].edge_feat
+        )
+
+        np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_ram["features"].batch)
+        np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_disk["features"].batch)
+
+        np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_ram["features"].ptr)
+        np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_disk["features"].ptr)
+
+        # Labels are the same
+        np.testing.assert_array_almost_equal(
+            batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1
+        )
+        np.testing.assert_array_almost_equal(
+            batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1
+        )
+
+        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_ram["labels"].x)
+        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_disk["labels"].x)
+
+        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_ram["labels"].edge_index)
+        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_disk["labels"].edge_index)
+
+        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_ram["labels"].batch)
+        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_disk["labels"].batch)
+
+        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_ram["labels"].ptr)
+        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_disk["labels"].ptr)
+
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        # Reset the datamodule
+        ds._data_is_prepared = False
+        ds._data_is_cached = False
+
+        ds.prepare_data(save_smiles_and_ids=True)
+
         ds.setup(save_smiles_and_ids=True)
         assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
-
-        # Make sure that the cache is created
-        full_cache_path = ds.get_data_cache_fullname(compress=False)
-        assert exists(full_cache_path)
-        assert get_size(full_cache_path) > 10000
-
-        # Check that the data is loaded correctly from cache
-        assert ds.load_data_from_cache(verbose=False)
 
         # test module
         assert ds.num_edge_feats == 5
@@ -218,6 +317,10 @@ class Test_DataModule(ut.TestCase):
         assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["graph_task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
+
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
     def test_datamodule_with_none_molecules(self):
         # Setup the featurization
@@ -335,7 +438,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -348,7 +451,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -361,7 +464,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 
@@ -374,7 +477,7 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
         ds.prepare_data()
         ds.setup()
 

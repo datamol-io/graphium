@@ -126,7 +126,7 @@ DATAMODULE_DICT = {
 }
 
 GRAPHIUM_PRETRAINED_MODELS_DICT = {
-    "dummy-pretrained-model": "tests/dummy-pretrained-model.ckpt",  # dummy model (to be deleted later)
+    "dummy-pretrained-model": "tests/dummy-pretrained-model.ckpt",  # dummy model used for testing purposes
 }
 
 FINETUNING_HEADS_DICT = {"mlp": FeedForwardNN, "gnn": FeedForwardPyg, "task_head": TaskHeads}

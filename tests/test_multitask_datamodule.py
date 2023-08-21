@@ -100,7 +100,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["featurization_backend"] = "loky"
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["cache_data_path"] = None
+        dm_args["processed_graph_data_path"] = None
         dm_args["batch_size_training"] = 16
         dm_args["batch_size_inference"] = 16
 
