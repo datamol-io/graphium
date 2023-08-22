@@ -71,7 +71,6 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.tasklist
   - pymdownx.details
-  - mkdocs-click
   - pymdownx.arithmatex:
       generic: true
   - toc:
