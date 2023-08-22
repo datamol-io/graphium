@@ -42,7 +42,6 @@ nav:
   - Pretrained Models: pretrained_models.md
   - Contribute: contribute.md
   - License: license.md
-  - CLI: cli_references.md
 
 theme:
   name: material
