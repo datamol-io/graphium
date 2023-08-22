@@ -2,6 +2,8 @@
 
 defaults:
   - base_config: large
+  # - base_config: large_pcqm_g25
+  # - base_config: large_pcqm_n4
   - _self_
 
 constants:
