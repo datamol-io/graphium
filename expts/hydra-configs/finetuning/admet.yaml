@@ -60,7 +60,7 @@ finetuning:
   pretrained_model: dummy-pretrained-model
   finetuning_module: task_heads # gnn  
   sub_module_from_pretrained: zinc # optional
-  new_sub_module: lipophilicity_astrazeneca # optional
+  new_sub_module: ${constants.task} # optional
   
   # keep_modules_after_finetuning_module: # optional
   #   graph_output_nn/graph: {}
