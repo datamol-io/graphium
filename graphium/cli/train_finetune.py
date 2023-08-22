@@ -69,13 +69,16 @@ def run_training_finetuning(cfg: DictConfig) -> None:
 
     st = timeit.default_timer()
 
+    # Disable wandb if the user is not logged in.
     wandb_cfg = cfg["constants"].get("wandb")
-    if wandb_cfg is not None:
-        wandb.init(
-            entity=wandb_cfg["entity"],
-            project=wandb_cfg["project"],
-            config=cfg,
+    if wandb.login() is False:
+        logger.info(
+            "Not logged in to wandb - disabling wandb logging.\n"
+            + "To enable wandb, run `wandb login` from the command line."
         )
+        wandb.init(mode="disabled")
+    elif wandb_cfg is not None:
+        wandb.init(config=cfg, **wandb_cfg)
 
     ## == Instantiate all required objects from their respective configs ==
     # Accelerator

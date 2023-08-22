@@ -11,6 +11,7 @@ A deep learning library focused on graph representation learning for real-world 
 
 ## Installation
 
+### For CPU or GPU
 Use [`mamba`](https://github.com/mamba-org/mamba):
 
 ```bash
@@ -24,23 +25,19 @@ or pip:
 pip install graphium
 ```
 
-### IPU installation
+### For IPU
+```bash
+# Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
+./install_ipu.sh .graphium_ipu
+```
+
+The above step needs to be done once. After that, enable the SDK and the environment as follows:
 
 ```bash
-mkdir ~/.venv                               # Create the folder for the environment
-python3 -m venv ~/.venv/graphium_ipu        # Create the environment
-source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
+source enable_ipu.sh .graphium_ipu
+```
 
-# Install the PopTorch wheel
-pip install PATH_TO_SDK/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
-
-# Enable Poplar SDK (including Poplar and PopART)
-source PATH_TO_SDK/enable
-
-# Install the IPU specific and graphium requirements
-PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
-pip install -r lightning.txt
-
-# Install Graphium in dev mode
-pip install --no-deps -e .
+Finally, you will need to install graphium with pip
+```bash
+pip install graphium
 ```

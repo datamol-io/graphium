@@ -3,16 +3,18 @@
 # (graph-level) on the TDC dataset lipophilicity_astraceneca
 
 # Here are the changes to the architecture:
+#   Change zinc task-head:
+#     depth:        2 -> 2 - 1 + 2 = 3
+#     out_dim:      3 -> 8
 #
-# Change zinc task-head:
-#   depth:        2 -> 2 - 1 + 2 = 3
-#   out_dim:      3 -> 8
+#   Add finetuning head
+#     model_type:   FeedForwardNN
+#     out_dim:      1
+#     hidden_dims:  8
+#     depth:        2
 #
-# Add finetuning head
-#   model_type:   FeedForwardNN
-#   out_dim:      1
-#   hidden_dims:  8
-#   depth:        2
+# Finetuning training:
+#   after 1 epochs, unfreeze all layers
 
 
 ###################################################
@@ -55,11 +57,11 @@ finetuning:
 
   # Finetuning training
   unfreeze_pretrained_depth: 0
-  epoch_unfreeze_all: 2
+  epoch_unfreeze_all: 1
 
 constants:
   seed: 42
-  max_epochs: 3
+  max_epochs: 2
 
 accelerator:
   float32_matmul_precision: medium
@@ -75,7 +77,7 @@ predictor:
   
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 3
+    max_num_epochs: 2
     warmup_epochs: 1
     verbose: False
   
@@ -111,7 +113,7 @@ trainer:
   seed: ${constants.seed}
   trainer:
     precision: 32
-    max_epochs: 3
+    max_epochs: 2
     min_epochs: 1
     check_val_every_n_epoch: 1
     accumulate_grad_batches: 1
@@ -138,7 +140,6 @@ datamodule:
     prepare_dict_or_graph: pyg:graph
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
     persistent_workers: False
 
 

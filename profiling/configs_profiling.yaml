@@ -6,7 +6,7 @@ datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
     df_path: https://storage.googleapis.com/graphium-public/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz
-    cache_data_path: null # graphium/data/cache/ZINC_bench_gnn/smiles_score.cache
+    processed_graph_data_path: null
     label_cols: ['score']
     smiles_col: SMILES
 

@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import fsspec
 import numpy as np
 import torch
+from datamol import parallelized, parallelized_with_batches
 from loguru import logger
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Batch, Data
@@ -145,8 +146,8 @@ class MultitaskDataset(Dataset):
         save_smiles_and_ids: bool = False,
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
-        load_from_file: bool = False,
-        files_ready: bool = False,
+        dataloading_from: str = "ram",
+        data_is_cached: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -168,27 +169,31 @@ class MultitaskDataset(Dataset):
             progress: Whether to display the progress bar
             save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
             about: A description of the dataset
-            progress: Whether to display the progress bar
-            about: A description of the dataset
             data_path: The location of the data if saved on disk
-            load_from_file: Whether to load the data from disk
-            files_ready: Whether the files to load from were prepared ahead of time
+            dataloading_from: Whether to load the data from `"disk"` or `"ram"`
+            data_is_cached: Whether the data is already cached on `"disk"`
         """
         super().__init__()
-        # self.datasets = datasets
         self.n_jobs = n_jobs
         self.backend = backend
         self.featurization_batch_size = featurization_batch_size
         self.progress = progress
         self.about = about
+        self.save_smiles_and_ids = save_smiles_and_ids
         self.data_path = data_path
-        self.load_from_file = load_from_file
+        self.dataloading_from = dataloading_from
 
-        if files_ready:
-            assert load_from_file
+        logger.info(f"Dataloading from {dataloading_from.upper()}")
+
+        if data_is_cached:
             self._load_metadata()
-            self.features = None
-            self.labels = None
+
+            if dataloading_from == "disk":
+                self.features = None
+                self.labels = None
+            elif dataloading_from == "ram":
+                logger.info("Transferring data from DISK to RAM...")
+                self.transfer_from_disk_to_ram()
 
         else:
             task = next(iter(datasets))
@@ -209,9 +214,46 @@ class MultitaskDataset(Dataset):
             if self.features is not None:
                 self._num_nodes_list = get_num_nodes_per_graph(self.features)
                 self._num_edges_list = get_num_edges_per_graph(self.features)
-            if self.load_from_file:
-                self.features = None
-                self.labels = None
+
+    def transfer_from_disk_to_ram(self, parallel_with_batches: bool = False):
+        """
+        Function parallelizing transfer from DISK to RAM
+        """
+
+        def transfer_mol_from_disk_to_ram(idx):
+            """
+            Function transferring single mol from DISK to RAM
+            """
+            data_dict = self.load_graph_from_index(idx)
+            mol_in_ram = {
+                "features": data_dict["graph_with_features"],
+                "labels": data_dict["labels"],
+            }
+
+            return mol_in_ram
+
+        if parallel_with_batches and self.featurization_batch_size:
+            data_in_ram = parallelized_with_batches(
+                transfer_mol_from_disk_to_ram,
+                range(self.dataset_length),
+                batch_size=self.featurization_batch_size,
+                n_jobs=0,
+                backend=self.backend,
+                progress=self.progress,
+                tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
+            )
+        else:
+            data_in_ram = parallelized(
+                transfer_mol_from_disk_to_ram,
+                range(self.dataset_length),
+                n_jobs=0,
+                backend=self.backend,
+                progress=self.progress,
+                tqdm_kwargs={"desc": "Transfer from DISK to RAM"},
+            )
+
+        self.features = [sample["features"] for sample in data_in_ram]
+        self.labels = [sample["labels"] for sample in data_in_ram]
 
     def save_metadata(self, directory: str):
         """
@@ -260,6 +302,14 @@ class MultitaskDataset(Dataset):
 
         for attr, value in attrs.items():
             setattr(self, attr, value)
+
+        if self.save_smiles_and_ids:
+            if self.smiles is None or self.mol_ids is None:
+                logger.warning(
+                    f"Argument `save_smiles_and_ids` is set to {self.save_smiles_and_ids} but metadata in the cache at {self.data_path} does not contain smiles and mol_ids. "
+                    f"This may be because `Datamodule.prepare_data(save_smiles_and_ids=False)` was run followed by `Datamodule.setup(save_smiles_and_ids=True)`. "
+                    f"When loading from cached files, the `save_smiles_and_ids` argument of `Datamodule.setup()` is superseeded by the `Datamodule.prepare_data()`. "
+                )
 
     def __len__(self):
         r"""
@@ -377,7 +427,7 @@ class MultitaskDataset(Dataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
-        if self.load_from_file:
+        if self.dataloading_from == "disk":
             data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
             datum["labels"] = data_dict["labels"]
