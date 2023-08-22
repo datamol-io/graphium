@@ -126,7 +126,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
-        seed: ${constants.seed}
+        seed: 42
         label_normalization:
           normalize_val_test: True
           method: "normal"
