@@ -105,7 +105,7 @@ However, when working with larger datasets, it is recommended to perform data pr
 The following command-line will prepare the data and cache it, then use it to train a model.
 ```bash
 # First prepare the data and cache it in `path_to_cached_data`
-graphium-prepare-data datamodule.args.processed_graph_data_path=[path_to_cached_data]
+graphium data prepare ++datamodule.args.processed_graph_data_path=[path_to_cached_data]
 
 # Then train the model on the prepared data
 graphium-train [...] datamodule.args.processed_graph_data_path=[path_to_cached_data]
