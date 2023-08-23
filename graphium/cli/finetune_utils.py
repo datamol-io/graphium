@@ -17,7 +17,7 @@ app.add_typer(finetune_app, name="finetune")
 
 @finetune_app.command(name="admet")
 def benchmark_tdc_admet_cli(
-    overrides: list[str],
+    overrides: List[str],
     name: Optional[List[str]] = None,
     inclusive_filter: bool = True,
 ):
