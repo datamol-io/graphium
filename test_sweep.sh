@@ -20,4 +20,4 @@ source /home/frederik_valencediscovery_com/.bashrc
 cd /home/frederik_valencediscovery_com/projects/graphium_expts
 source activate graphium_dev
 
-wandb agent multitask-gnn/neurips2023-large-single-dataset/xngpcyrd
+wandb agent multitask-gnn/neurips2023-large-single-dataset/911gmdar
