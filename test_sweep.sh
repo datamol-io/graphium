@@ -12,7 +12,7 @@
 #SBATCH --time=120:00:00
 
 ## Partition to use,
-#SBATCH --partition=c112
+#SBATCH --partition=v1001
 
 set -e
 
@@ -20,4 +20,4 @@ source /home/frederik_valencediscovery_com/.bashrc
 cd /home/frederik_valencediscovery_com/projects/graphium_expts
 source activate graphium_dev
 
-wandb agent multitask-gnn/neurips2023-large-single-dataset/46xtxuht
+wandb agent multitask-gnn/neurips2023-large-single-dataset/xngpcyrd
