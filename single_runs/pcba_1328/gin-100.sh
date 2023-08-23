@@ -12,7 +12,7 @@
 #SBATCH --time=120:00:00
 
 ## Partition to use,
-#SBATCH --partition=v1002
+#SBATCH --partition=v1004
 
 set -e
 
@@ -24,5 +24,5 @@ micromamba run -n graphium -c graphium-train \
     accelerator=gpu \
     trainer.model_checkpoint.dirpath="model_checkpoints/pcba_1328/gin/100/" \
     predictor.optim_kwargs.lr=0.0004 \
-    constants.seed=100 \
+    constants.seed=400 \
     constants.wandb.project="neurips2023-large-single-dataset" \
