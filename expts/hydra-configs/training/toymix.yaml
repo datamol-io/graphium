@@ -3,7 +3,7 @@
 predictor:
   random_seed: ${constants.seed}
   optim_kwargs:
-    lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
@@ -11,19 +11,16 @@ predictor:
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs: null
-  target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  target_nan_mask: null
   multitask_handling: flatten # flatten, mean-per-label
 
 trainer:
   seed: ${constants.seed}
   model_checkpoint:
-    dirpath: model_checkpoints/large-dataset/
-    filename: ${constants.name}-{epoch}
-    save_last: True         # saving last model
-    save_top_k: 1           # and best model
-    monitor: loss/val       # wrt validation loss
+    filename: ${constants.name}
+    save_last: True
   trainer:
-    precision: 16-mixed
-    max_epochs: ${constants.max_epochs}
+    precision: 16
+    max_epochs: ${constants.max_epochs}-{epoch}
     min_epochs: 1
-    check_val_every_n_epoch: 1
+    check_val_every_n_epoch: 20

@@ -42,7 +42,7 @@ metrics:
       metric: f1
       multitask_handling: mean-per-label
       target_to_int: True
-      num_classes: 3
+      num_classes: 2
       average: micro
       threshold_kwargs: &threshold_05
         operator: greater

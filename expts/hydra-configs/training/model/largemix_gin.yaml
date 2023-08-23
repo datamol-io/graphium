@@ -1,7 +1,7 @@
 # @package _global_
 
 constants:
-  name: large_data_gine
+  name: large_data_gin
   wandb:
     name: ${constants.name}
     project: neurips2023-expts
@@ -15,4 +15,4 @@ constants:
 
 trainer:
   model_checkpoint:
-    dirpath: model_checkpoints/large-dataset/gine/
+    dirpath: model_checkpoints/large-dataset/gin/

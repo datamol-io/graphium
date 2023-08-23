@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+## Name of your SLURM job
+#SBATCH --job-name=test-last-th2_gine_c112
+
+## Files for logs: here we redirect stoout and sterr to the same file
+#SBATCH --output=outputs/test-last-th2_gine_c112.out
+#SBATCH --error=outputs/error_test-last-th2_gine_c112.out
+#SBATCH --open-mode=append
+
+## Time limit for the job
+#SBATCH --time=120:00:00
+
+## Partition to use,
+#SBATCH --partition=c112
+
+set -e
+
+micromamba run -n graphium -c graphium-test architecture=largemix tasks=largemix training=largemix \
+    model=gine accelerator=cpu \
+    trainer.model_checkpoint.dirpath="model_checkpoints/large-dataset/th2/gine/cpu/" \
+    datamodule.args.task_specific_args.l1000_vcap.df_path="expts/data/large-dataset/LINCS_L1000_VCAP_0-2_th2.csv.gz" \
+    datamodule.args.task_specific_args.l1000_mcf7.df_path="expts/data/large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz"
+    

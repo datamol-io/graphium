@@ -1,18 +1,12 @@
 # @package _global_
 
 constants:
-  name: small_data_gcn
-  wandb:
-    name: ${constants.name}
-    project: neurips2023-expts
-    entity: multitask-gnn
-    save_dir: logs/${constants.name}
-  entity: multitask-gnn
+  name: neurips2023_small_data_gcn
   seed: 42
   max_epochs: 100
-  data_dir: expts/data/small-dataset
+  data_dir: expts/data/neurips2023/small-dataset
   raise_train_error: true
 
 trainer:
   model_checkpoint:
-    dirpath: model_checkpoints/small-dataset/gcn/
+    dirpath: models_checkpoints/small-dataset/gcn/
