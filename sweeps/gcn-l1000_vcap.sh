@@ -12,7 +12,7 @@
 #SBATCH --time=120:00:00
 
 ## Partition to use,
-#SBATCH --partition=a1001a1001a1001
+#SBATCH --partition=a1001
 
 set -e
 
