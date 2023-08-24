@@ -17,7 +17,7 @@ class Fingerprinter:
         """
         Args:
             network: The network to extract fingerprints from
-            fingerprint_spec: The fingerprint specification. Of the format "module:layer". If specified as a list and concat=True,
+            fingerprint_spec: The fingerprint specification. Of the format "module:layer". If specified as a list,
                 the fingerprints from all the specified layers will be concatenated.
         """
 
