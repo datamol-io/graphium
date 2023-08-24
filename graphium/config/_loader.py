@@ -29,7 +29,8 @@ from graphium.utils.command_line_utils import get_anchors_and_aliases, update_co
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
-from graphium.utils.spaces import DATAMODULE_DICT
+from graphium.utils.spaces import DATAMODULE_DICT, GRAPHIUM_PRETRAINED_MODELS_DICT
+from graphium.utils import fs
 
 
 def get_accelerator(
@@ -577,3 +578,26 @@ def merge_dicts(
                     elif on_exist == "ignore":
                         pass
     return dict_a
+
+
+def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> str:
+    """
+    Get the checkpoint path from a config file.
+    If the path is a valid name or a valid path, return it.
+    Otherwise, assume it refers to a file in the checkpointing dir.
+    """
+
+    cfg_trainer = config["trainer"]
+
+    path = config.get("ckpt_name_for_testing", "last.ckpt")
+    if path in GRAPHIUM_PRETRAINED_MODELS_DICT or fs.exists(path):
+        return path
+
+    if "model_checkpoint" in cfg_trainer.keys():
+        dirpath = cfg_trainer["model_checkpoint"]["dirpath"]
+        path = fs.join(dirpath, path)
+
+    if not fs.exists(path):
+        raise ValueError(f"Checkpoint path `{path}` does not exist")
+
+    return path

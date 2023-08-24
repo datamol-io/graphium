@@ -23,6 +23,7 @@ from graphium.config._loader import (
     load_predictor,
     load_trainer,
     save_params_to_wandb,
+    get_checkpoint_path,
 )
 from graphium.finetuning import (
     FINETUNING_CONFIG_KEY,
@@ -33,13 +34,17 @@ from graphium.hyper_param_search import (
     HYPER_PARAM_SEARCH_CONFIG_KEY,
     extract_main_metric_for_hparam_search,
 )
+from graphium.trainer.predictor import PredictorModule
 from graphium.utils.safe_run import SafeRun
+
+
+TESTING_ONLY_CONFIG_KEY = "testing_only"
 
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
 def cli(cfg: DictConfig) -> None:
     """
-    The main CLI endpoint for training and fine-tuning Graphium models.
+    The main CLI endpoint for training, fine-tuning and evaluating Graphium models.
     """
     return run_training_finetuning(cfg)
 
@@ -86,26 +91,34 @@ def run_training_finetuning(cfg: DictConfig) -> None:
 
     ## Data-module
     datamodule = load_datamodule(cfg, accelerator_type)
-
-    ## Architecture
-    model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
-
     datamodule.prepare_data()
 
-    ## Metrics
-    metrics = load_metrics(cfg)
+    testing_only = cfg.get(TESTING_ONLY_CONFIG_KEY, False)
 
-    ## Predictor
-    predictor = load_predictor(
-        config=cfg,
-        model_class=model_class,
-        model_kwargs=model_kwargs,
-        metrics=metrics,
-        task_levels=datamodule.get_task_levels(),
-        accelerator_type=accelerator_type,
-        featurization=datamodule.featurization,
-        task_norms=datamodule.task_norms,
-    )
+    if testing_only:
+        # Load pre-trained model
+        predictor = PredictorModule.load_pretrained_model(
+            name_or_path=get_checkpoint_path(cfg), device=accelerator_type
+        )
+
+    else:
+        ## Architecture
+        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+
+        ## Metrics
+        metrics = load_metrics(cfg)
+
+        ## Predictor
+        predictor = load_predictor(
+            config=cfg,
+            model_class=model_class,
+            model_kwargs=model_kwargs,
+            metrics=metrics,
+            task_levels=datamodule.get_task_levels(),
+            accelerator_type=accelerator_type,
+            featurization=datamodule.featurization,
+            task_norms=datamodule.task_norms,
+        )
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
@@ -114,27 +127,28 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
     trainer = load_trainer(cfg, accelerator_type, date_time_suffix)
 
-    # Add the fine-tuning callback to trainer
-    if FINETUNING_CONFIG_KEY in cfg:
-        finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
-        trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
+    if not testing_only:
+        # Add the fine-tuning callback to trainer
+        if FINETUNING_CONFIG_KEY in cfg:
+            finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
+            trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
-    if wandb_cfg is not None:
-        save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
+        if wandb_cfg is not None:
+            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
-    # Determine the max num nodes and edges in training and validation
-    logger.info("Computing the maximum number of nodes and edges per graph")
-    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+        # Determine the max num nodes and edges in training and validation
+        logger.info("Computing the maximum number of nodes and edges per graph")
+        predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
-    # Run the model training
-    with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.fit(model=predictor, datamodule=datamodule)
+        # Run the model training
+        with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+            trainer.fit(model=predictor, datamodule=datamodule)
 
-    # Save validation metrics - Base utility in case someone doesn't use a logger.
-    results = trainer.callback_metrics
-    results = {k: v.item() if torch.is_tensor(v) else v for k, v in results.items()}
-    with fsspec.open(fs.join(output_dir, "val_results.yaml"), "w") as f:
-        yaml.dump(results, f)
+        # Save validation metrics - Base utility in case someone doesn't use a logger.
+        results = trainer.callback_metrics
+        results = {k: v.item() if torch.is_tensor(v) else v for k, v in results.items()}
+        with fsspec.open(fs.join(output_dir, "val_results.yaml"), "w") as f:
+            yaml.dump(results, f)
 
     # Determine the max num nodes and edges in testing
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])

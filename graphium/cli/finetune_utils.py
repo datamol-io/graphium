@@ -104,7 +104,7 @@ def get_fingerprints_from_model(
     datamodule.setup("predict")
 
     # Model
-    model = PredictorModule.load_pretrained_models(
+    model = PredictorModule.load_pretrained_model(
         pretrained_model,
         device=accelerator_type,
     ).model
