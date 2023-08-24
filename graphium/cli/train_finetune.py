@@ -71,7 +71,7 @@ def run_training_finetuning(cfg: DictConfig) -> None:
 
     # Disable wandb if the user is not logged in.
     wandb_cfg = cfg["constants"].get("wandb")
-    if wandb.login() is False:
+    if wandb_cfg is not None and wandb.login() is False:
         logger.info(
             "Not logged in to wandb - disabling wandb logging.\n"
             + "To enable wandb, run `wandb login` from the command line."

@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+from typing import Iterable, List, Dict, Literal, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
 from loguru import logger
@@ -163,6 +163,7 @@ class FeedForwardNN(nn.Module, MupMixin):
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
         self.last_layer_is_readout = last_layer_is_readout
+        self._readout_cache = None
 
         # Parse the layer and residuals
         from graphium.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -274,6 +275,23 @@ class FeedForwardNN(nn.Module, MupMixin):
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
 
+    @property
+    def cache_readouts(self) -> bool:
+        """Whether the readout cache is enabled"""
+        return isinstance(self._readout_cache, dict)
+
+    def _enable_readout_cache(self):
+        """
+        Enable the readout cache.
+        Due to the usage of a dict, it only saves readouts for a single batch at a time
+        """
+        if not self.cache_readouts:
+            self._readout_cache = {}
+
+    def _disable_readout_cache(self):
+        """Disable the readout cache"""
+        self._readout_cache = None
+
     def drop_layers(self, depth: int) -> None:
         r"""
         Remove the last layers of the model part.
@@ -324,6 +342,9 @@ class FeedForwardNN(nn.Module, MupMixin):
             h = layer.forward(h)
             if ii < len(self.layers) - 1:
                 h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
+
+                if self.cache_readouts:
+                    self._readout_cache[ii] = h
 
         return h
 
@@ -865,6 +886,9 @@ class FeedForwardGraph(FeedForwardNN):
                 g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii
             )
 
+            if self.cache_readouts:
+                self._readout_cache[ii] = feat
+
         g["feat"], g["edge_feat"] = feat, edge_feat
         return g
 
@@ -1008,6 +1032,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
+        self._cache_readouts = False
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
@@ -1142,10 +1167,44 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
 
-    def create_module_map(self):
+    def _enable_readout_cache(self, module_filter: Optional[Union[str, List[str]]]):
+        """
+        Enable a single-batch readout cache for (a subset of) the modules.
+        This is used to extract hidden representations for fingerprinting.
+        """
+
+        self.create_module_map(level="module")
+
+        if module_filter is None:
+            module_filter = list(self._module_map.keys())
+        if isinstance(module_filter, str):
+            module_filter = [module_filter]
+
+        for module_name, module in self._module_map.items():
+            if module_name in module_filter:
+                if not isinstance(module, FeedForwardNN):
+                    raise RuntimeError(
+                        f"Readout cache can only be enabled for FeedForwardNN subclasses, not {type(module)}"
+                    )
+                module._enable_readout_cache()
+
+        self._cache_readouts = True
+
+    def _disable_readout_cache(self):
+        """Disable the readout cache"""
+        self.create_module_map(level="module")
+        for _, module in self._module_map.items():
+            if isinstance(module, FeedForwardNN):
+                module._disable_readout_cache()
+        self._cache_readouts = False
+
+    def create_module_map(self, level: Union[Literal["layers"], Literal["module"]] = "layers"):
         """
         Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
         Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
+
+        Args:
+            level: Whether to map to the module object or the layers of the module object
         """
         self._module_map = OrderedDict()
 
@@ -1155,29 +1214,35 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )  # could be extended to submodules, e.g. pe_encoders/la_pos/linear_in/..., etc.; not necessary for current finetuning
 
         if self.pre_nn is not None:
-            self._module_map.update({"pre_nn": self.pre_nn.layers})
+            self._module_map.update({"pre_nn": self.pre_nn})
 
         if self.pre_nn_edges is not None:
-            self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
+            self._module_map.update({"pre_nn_edges": self.pre_nn_edges})
 
         # No need to check for NoneType as GNN module is not optional in FullGraphMultitaskNetwork
-        self._module_map.update({"gnn": self.gnn.layers})
+        self._module_map.update({"gnn": self.gnn})
 
         if self.task_heads is not None:
             self._module_map.update(
                 {
                     "graph_output_nn/"
-                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn.layers
+                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn
                     for output_level in self.task_heads.graph_output_nn.keys()
                 }
             )
 
             self._module_map.update(
                 {
-                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name].layers
+                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name]
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )
+
+            if level == "layers":
+                for module_name, module in self._module_map.items():
+                    if module_name != "pe_encoders":
+                        self._module_map[module_name] = module.layers
+        return self._module_map
 
     def forward(self, g: Batch) -> Tensor:
         r"""
