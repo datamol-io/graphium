@@ -20,4 +20,4 @@ micromamba run -n graphium -c graphium-prepare-data \
     architecture=largemix \
     tasks=pcba_1328 \
     training=largemix \
-    +datamodule.args.task_specific_args.pcba_1328.split_names=["train", "val", "test-seen"] \
+    +datamodule.args.task_specific_args.pcba_1328.split_names=[train, val, test_seen] \
