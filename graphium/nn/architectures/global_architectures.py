@@ -302,7 +302,6 @@ class FeedForwardNN(nn.Module, MupMixin):
         self.keep_readouts = True
         self.readouts = {}
 
-
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
         Apply the neural network on the input features.
@@ -334,7 +333,6 @@ class FeedForwardNN(nn.Module, MupMixin):
 
             if self.keep_readouts:
                 self.readouts[ii] = h
-
 
         return h
 
@@ -1156,7 +1154,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
 
-    def create_module_map(self, level: str ="layers"):
+    def create_module_map(self, level: str = "layers"):
         """
         Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
         Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
