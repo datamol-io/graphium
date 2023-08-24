@@ -174,6 +174,8 @@ class FeedForwardNN(nn.Module, MupMixin):
         self._create_layers()
         self._check_bad_arguments()
 
+        self.keep_readouts = False
+
     def _check_bad_arguments(self):
         r"""
         Raise comprehensive errors if the arguments seem wrong
@@ -296,6 +298,11 @@ class FeedForwardNN(nn.Module, MupMixin):
 
         self.layers.extend(layers)
 
+    def _keep_readouts(self):
+        self.keep_readouts = True
+        self.readouts = {}
+
+
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
         Apply the neural network on the input features.
@@ -324,6 +331,10 @@ class FeedForwardNN(nn.Module, MupMixin):
             h = layer.forward(h)
             if ii < len(self.layers) - 1:
                 h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
+
+            if self.keep_readouts:
+                self.readouts[ii] = h
+
 
         return h
 
@@ -865,6 +876,9 @@ class FeedForwardGraph(FeedForwardNN):
                 g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii
             )
 
+            if self.keep_readouts:
+                self.readouts[ii] = feat
+
         g["feat"], g["edge_feat"] = feat, edge_feat
         return g
 
@@ -1142,7 +1156,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
 
-    def create_module_map(self):
+    def create_module_map(self, level: str ="layers"):
         """
         Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
         Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
@@ -1155,29 +1169,34 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )  # could be extended to submodules, e.g. pe_encoders/la_pos/linear_in/..., etc.; not necessary for current finetuning
 
         if self.pre_nn is not None:
-            self._module_map.update({"pre_nn": self.pre_nn.layers})
+            self._module_map.update({"pre_nn": self.pre_nn})
 
         if self.pre_nn_edges is not None:
-            self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
+            self._module_map.update({"pre_nn_edges": self.pre_nn_edges})
 
         # No need to check for NoneType as GNN module is not optional in FullGraphMultitaskNetwork
-        self._module_map.update({"gnn": self.gnn.layers})
+        self._module_map.update({"gnn": self.gnn})
 
         if self.task_heads is not None:
             self._module_map.update(
                 {
                     "graph_output_nn/"
-                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn.layers
+                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn
                     for output_level in self.task_heads.graph_output_nn.keys()
                 }
             )
 
             self._module_map.update(
                 {
-                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name].layers
+                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name]
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )
+
+        if level == "layers":
+            for module_name, module in self._module_map.items():
+                if module_name != "pe_encoders":
+                    self._module_map[module_name] = module.layers
 
     def forward(self, g: Batch) -> Tensor:
         r"""
