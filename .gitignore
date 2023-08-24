@@ -24,7 +24,7 @@ datacache/
 tests/temp_cache*
 predictions/
 draft/
-scripts/
+scripts-expts/
 
 # Data and predictions
 graphium/data/ZINC_bench_gnn/
