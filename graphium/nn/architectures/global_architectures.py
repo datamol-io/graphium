@@ -1175,6 +1175,10 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         self.create_module_map(level="module")
 
+        for k in module_filter:
+            if k not in self._module_map:
+                raise ValueError(f"Module {k} not found in network, choose from {self._module_map.keys()}")
+
         if module_filter is None:
             module_filter = list(self._module_map.keys())
         if isinstance(module_filter, str):

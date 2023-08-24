@@ -120,7 +120,7 @@ def get_fingerprints_from_model(
                 if isinstance(v, torch.Tensor) and torch.is_floating_point(v):
                     batch["features"][k] = v.float()
 
-            feats = fp.get_fingerprints_for_batch(batch["features"])
+            feats = fp.get_fingerprints_for_batch(batch)
             fps.append(feats)
 
     fps = torch.cat(fps, dim=0)

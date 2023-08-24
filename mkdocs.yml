@@ -25,6 +25,7 @@ nav:
       - graphium.config: api/graphium.config.md
       - graphium.ipu: api/graphium.ipu.md
       - graphium.visualization: api/graphium.visualization.md
+      - graphium.finetuning: api/graphium.finetuning.md
   - Tutorials:
       - feature_processing:
           - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
