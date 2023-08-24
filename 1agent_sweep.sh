@@ -32,18 +32,36 @@ export POPLAR_LOG_LEVEL=INFO
 # ensure cache is set
 export TF_POPLAR_FLAGS=' --executable_cache_path=/nethome/samuelm/poplar_cache/' # <-------- CHANGE THIS
 
+# if [ ! -d "/localdata/neurips2023-large/" ]
+# then
+#     echo "Directory /localdata/neurips2023-large/ DOES NOT exists. Creating..."
+#     mkdir /localdata/neurips2023-large/
+# fi
+
+# if [ ! -d "/localdata/neurips2023-large/a369011e12e531e24c916bf2a0fe9e39" ]
+# then
+#     echo "Directory /localdata/neurips2023-large/a369011e12e531e24c916bf2a0fe9e39 DOES NOT exists. Copying..."
+#     cp -r /nethome/kerstink/datacache/neurips2023-large/*e12e531e24c916bf2a0fe9e39 /localdata/neurips2023-large/
+# fi
+# -----------------
 if [ ! -d "/localdata/neurips2023-large/" ]
 then
     echo "Directory /localdata/neurips2023-large/ DOES NOT exists. Creating..."
     mkdir /localdata/neurips2023-large/
 fi
 
-if [ ! -d "/localdata/neurips2023-large/a369011e12e531e24c916bf2a0fe9e39" ]
+if [ ! -d "/localdata/neurips2023-large/g25/" ]
 then
-    echo "Directory /localdata/neurips2023-large/a369011e12e531e24c916bf2a0fe9e39 DOES NOT exists. Copying..."
-    cp -r /nethome/kerstink/datacache/neurips2023-large/*e12e531e24c916bf2a0fe9e39 /localdata/neurips2023-large/
+    echo "Directory /localdata/neurips2023-large/g25/ DOES NOT exists. Copying..."
+    mkdir /localdata/neurips2023-large/g25/
 fi
 
+if [ ! -d "/localdata/neurips2023-large/g25/b8a504ed7ce403aace5a7490e671f77c" ]
+then
+    echo "Directory /localdata/neurips2023-large/g25/b8a504ed7ce403aace5a7490e671f77c DOES NOT exists. Copying..."
+    cp -r /nethome/kerstink/datacache/neurips2023-large/g25/*504ed7ce403aace5a7490e671f77c /localdata/neurips2023-large/g25/
+fi
+# -----------------
 echo "Entering repo"
 REPO="/nethome/samuelm/git/paper_experiments/graphium/" # <-------- CHANGE THIS
 cd $REPO || exit
