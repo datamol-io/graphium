@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ## Name of your SLURM job
-#SBATCH --job-name=featurize
+#SBATCH --job-name=pcba_feat
 
 ## Files for logs: here we redirect stoout and sterr to the same file
 #SBATCH --output=outputs/featurize.out
@@ -20,3 +20,4 @@ micromamba run -n graphium -c graphium-prepare-data \
     architecture=largemix \
     tasks=pcba_1328 \
     training=largemix \
+    +datamodule.args.task_specific_args.pcba_1328.split_names=["train", "val", "test-seen"] \

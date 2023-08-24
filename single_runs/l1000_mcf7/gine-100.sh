@@ -26,3 +26,4 @@ micromamba run -n graphium -c graphium-train \
     predictor.optim_kwargs.lr=0.0004 \
     constants.seed=100 \
     constants.wandb.project="neurips2023-large-single-dataset" \
+    +datamodule.args.task_specific_args.l1000_mcf7.split_names=["train", "val", "test-seen"] \
