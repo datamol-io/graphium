@@ -1,0 +1,17 @@
+# Running the gin model with the largemix dataset on IPU.
+defaults:
+  # - base_config: large
+  # - base_config: large_pcqm_g25
+  - base_config: large_pcqm_n4
+  - _self_
+
+constants:
+  name: neurips2023_large_data_gin
+  wandb:
+    name: ${constants.name}
+    project: neurips2023_large_graphcore
+    entity: multitask-gnn
+
+architecture:
+  gnn:  # Set as null to avoid a post-nn network
+    layer_type: 'pyg:gin'
