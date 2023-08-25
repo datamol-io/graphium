@@ -1,0 +1,40 @@
+# Running the gine model with the largemix dataset on IPU.
+
+defaults:
+  # - base_config: large
+  # - base_config: large_pcqm_g25
+  # - base_config: large_pcqm_n4
+  - base_config: large_pcba
+  - _self_
+
+constants:
+  name: neurips2023_large_data_gine
+  wandb:
+    name: ${constants.name}
+    project: neurips2023_large_graphcore
+    entity: multitask-gnn
+
+architecture:
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 32
+    hidden_dims: 128
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: ${architecture.pre_nn.dropout}
+    normalization: ${architecture.pre_nn.normalization}
+    last_normalization: ${architecture.pre_nn.normalization}
+    residual_type: none
+
+  gnn:
+    out_dim: &gnn_dim 704
+    hidden_dims: *gnn_dim
+    layer_type: 'pyg:gine'
+
+  graph_output_nn:
+    graph:
+      out_dim: *gnn_dim
+      hidden_dims: *gnn_dim
+    node:
+      out_dim: *gnn_dim
+      hidden_dims: *gnn_dim
