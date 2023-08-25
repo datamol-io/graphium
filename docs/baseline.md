@@ -60,6 +60,18 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 |               | GIN      | 0.1862 ± 0.0003 | 0.6202 ± 0.0091 | 0.3876 ± 0.0017 | 0.1874 ± 0.0013 | 0.6367 ± 0.0066 | **0.4198 ± 0.0036** |
 |               | GINE      | **0.1856 ± 0.0005** | 0.6166 ± 0.0017 | 0.3892 ± 0.0035 | 0.1873 ± 0.0009 | 0.6347 ± 0.0048 | 0.4177 ± 0.0024 |
 
+|           |       | Training loss (CE or MSE) in single-task ↓     | Training loss (CE or MSE) in multi-task ↓
+|-----------|-------|-----------|-----------|
+| Pcba\_1328    | GCN  | TODO | TODO |
+|               | GIN  | TODO | TODO |
+|               | GINE | TODO | TODO |
+| L1000\_vcap   | GCN  | TODO | TODO |
+|               | GIN  | TODO | TODO |
+|               | GINE | TODO | TODO |
+| L1000\_mcf7   | GCN  | TODO | TODO |
+|               | GIN  | TODO | TODO |
+|               | GINE | TODO | TODO |
+
 
 # UltraLarge Baseline
 Coming soon!
