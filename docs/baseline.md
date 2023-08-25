@@ -62,15 +62,21 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 
 |           |       | Training loss (CE or MSE) in single-task ↓     | Training loss (CE or MSE) in multi-task ↓
 |-----------|-------|-----------|-----------|
-| Pcba\_1328    | GCN  | TODO | TODO |
-|               | GIN  | TODO | TODO |
-|               | GINE | TODO | TODO |
-| L1000\_vcap   | GCN  | TODO | TODO |
-|               | GIN  | TODO | TODO |
-|               | GINE | TODO | TODO |
-| L1000\_mcf7   | GCN  | TODO | TODO |
-|               | GIN  | TODO | TODO |
-|               | GINE | TODO | TODO |
+| Pcqm4m\_g25   | GCN  | TO±DO | TO±DO |
+|               | GIN  | TO±DO | TO±DO |
+|               | GINE | TO±DO | TO±DO |
+| Pcqm4m\_g4    | GCN  | TO±DO | TO±DO |
+|               | GIN  | TO±DO | TO±DO |
+|               | GINE | TO±DO | TO±DO |
+| Pcba\_1328    | GCN  | .02836±.0010 | TO±DO |
+|               | GIN  | .02487±.0017 | TO±DO |
+|               | GINE | .02581±.00017 | TO±DO |
+| L1000\_vcap   | GCN  | TO±DO | TO±DO |
+|               | GIN  | TO±DO | TO±DO |
+|               | GINE | TO±DO | TO±DO |
+| L1000\_mcf7   | GCN  | TO±DO | TO±DO |
+|               | GIN  | TO±DO | TO±DO |
+|               | GINE | TO±DO | TO±DO |
 
 
 # UltraLarge Baseline
