@@ -61,7 +61,7 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 
 Below is the loss on the training set. One can observe that the multi-task model always underfits the single-task, except on the two `L1000` datasets.
 
-This is not surprising as they contain two orders of magnitude more datapoints and pose a significant challenge for the relatively small models used in this analysis. This favors the \emph{Single dataset} setup (which uses a model of the same size) and we conjecture larger models to bridge this gap moving forward.
+This is not surprising as they contain two orders of magnitude more datapoints and pose a significant challenge for the relatively small models used in this analysis. This favors the Single dataset setup (which uses a model of the same size) and we conjecture larger models to bridge this gap moving forward.
 
 |            |       | CE or BCE loss in single-task $\downarrow$ | CE or BCE loss in multi-task $\downarrow$ |
 |------------|-------|-----------------------------------------|-----------------------------------------|
