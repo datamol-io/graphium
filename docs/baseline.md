@@ -42,8 +42,6 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 | Pcqm4m_n4 | GCN | 0.2080 ± 0.0003 | 0.5497 ± 0.0010 | 0.2942 ± 0.0007 | 0.2040 ± 0.0001 | 0.4796 ± 0.0006 | 0.2185 ± 0.0002 |
 |               | GIN | 0.1912 ± 0.0027 | **0.6138 ± 0.0088** | **0.3688 ± 0.0116** | 0.1966 ± 0.0003 | 0.5198 ± 0.0008 | 0.2602 ± 0.0012 |
 |               | GINE| **0.1910 ± 0.0001** | 0.6127 ± 0.0003 | 0.3666 ± 0.0008 | 0.1941 ± 0.0003 | 0.5303 ± 0.0023 | 0.2701 ± 0.0034 |
-|               |       |      | CE ↓           | AUROC ↑ | AP ↑   | CE ↓          | AUROC ↑ | AP ↑   |
-|               |       |      |                |         |        |               |         |        |
 
 
 |           |       | BCE ↓     | AUROC ↑ | AP ↑     | BCE ↓   | AUROC ↑ | AP ↑   |
@@ -60,24 +58,31 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 |               | GIN      | 0.1862 ± 0.0003 | 0.6202 ± 0.0091 | 0.3876 ± 0.0017 | 0.1874 ± 0.0013 | 0.6367 ± 0.0066 | **0.4198 ± 0.0036** |
 |               | GINE      | **0.1856 ± 0.0005** | 0.6166 ± 0.0017 | 0.3892 ± 0.0035 | 0.1873 ± 0.0009 | 0.6347 ± 0.0048 | 0.4177 ± 0.0024 |
 
-|           |       | Training loss (CE or MSE) in single-task ↓     | Training loss (CE or MSE) in multi-task ↓
-|-----------|-------|-----------|-----------|
-| Pcqm4m\_g25   | GCN  | TO±DO | TO±DO |
-|               | GIN  | TO±DO | TO±DO |
-|               | GINE | TO±DO | TO±DO |
-| Pcqm4m\_g4    | GCN  | TO±DO | TO±DO |
-|               | GIN  | TO±DO | TO±DO |
-|               | GINE | TO±DO | TO±DO |
-| Pcba\_1328    | GCN  | .02836±.0010 | TO±DO |
-|               | GIN  | .02487±.0017 | TO±DO |
-|               | GINE | .02581±.00017 | TO±DO |
-| L1000\_vcap   | GCN  | TO±DO | TO±DO |
-|               | GIN  | TO±DO | TO±DO |
-|               | GINE | TO±DO | TO±DO |
-| L1000\_mcf7   | GCN  | TO±DO | TO±DO |
-|               | GIN  | TO±DO | TO±DO |
-|               | GINE | TO±DO | TO±DO |
 
+Below is the loss on the training set. One can observe that the multi-task model always underfits the single-task, except on the two `L1000` datasets. This suggests that the gap on the test set is likely to shrink with increasing the number of parameters.
+
+|            |       | CE or BCE loss in single-task $\downarrow$ | CE or BCE loss in multi-task $\downarrow$ |
+|------------|-------|-----------------------------------------|-----------------------------------------|
+|            |       |                                       |                                       |
+| **Pcqm4m\_g25**    | GCN   | **0.2660 ± 0.0005** | 0.2767 ± 0.0015 |
+|             | GIN   | **0.2439 ± 0.0004** | 0.2595 ± 0.0016 |
+|             | GINE  | **0.2424 ± 0.0007** | 0.2568 ± 0.0012 |
+|            |       |                                       |                                       |
+| **Pcqm4m\_n4**    | GCN   | **0.2515 ± 0.0002** | 0.2613 ± 0.0008 |
+|             | GIN   | **0.2317 ± 0.0003** | 0.2512 ± 0.0008 |
+|             | GINE  | **0.2272 ± 0.0001** | 0.2483 ± 0.0004 |
+|            |       |                                       |                                       |
+| **Pcba\_1328**    | GCN   | **0.0284 ± 0.0010** | 0.0382 ± 0.0005 |
+|             | GIN   | **0.0249 ± 0.0017** | 0.0359 ± 0.0011 |
+|             | GINE  | **0.0258 ± 0.0017** | 0.0361 ± 0.0008 |
+|            |       |                                       |                                       |
+| **L1000\_vcap**   | GCN   | 0.1906 ± 0.0036 | **0.1854 ± 0.0148** |
+|             | GIN   | 0.1854 ± 0.0030 | **0.1833 ± 0.0185** |
+|             | GINE  | **0.1860 ± 0.0025** | 0.1887 ± 0.0200 |
+|            |       |                                       |                                       |
+| **L1000\_mcf7**   | GCN   | 0.1902 ± 0.0038 | **0.1829 ± 0.0095** |
+|             | GIN   | 0.1873 ± 0.0033 | **0.1701 ± 0.0142** |
+|             | GINE  | 0.1883 ± 0.0039 | **0.1771 ± 0.0010** |
 
 # UltraLarge Baseline
 Coming soon!
