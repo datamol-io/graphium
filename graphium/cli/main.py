@@ -1,11 +1,8 @@
-import click
+import typer
 
 
-@click.group()
-@click.version_option()
-def main_cli():
-    pass
+app = typer.Typer(add_completion=False)
 
 
 if __name__ == "__main__":
-    main_cli()
+    app()

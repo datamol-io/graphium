@@ -1,26 +1,39 @@
-import hydra
-import wandb
+import os
+import time
 import timeit
-
-from omegaconf import DictConfig, OmegaConf
-from loguru import logger
 from datetime import datetime
+
+import fsspec
+import hydra
+import torch
+import wandb
+import yaml
+from datamol.utils import fs
+from hydra.core.hydra_config import HydraConfig
+from hydra.types import RunMode
 from lightning.pytorch.utilities.model_summary import ModelSummary
+from loguru import logger
+from omegaconf import DictConfig, OmegaConf
 
 from graphium.config._loader import (
+    load_accelerator,
+    load_architecture,
     load_datamodule,
     load_metrics,
-    load_architecture,
     load_predictor,
     load_trainer,
-    load_accelerator,
     save_params_to_wandb,
 )
-from graphium.finetuning import modify_cfg_for_finetuning, GraphFinetuning
+from graphium.finetuning import (
+    FINETUNING_CONFIG_KEY,
+    GraphFinetuning,
+    modify_cfg_for_finetuning,
+)
+from graphium.hyper_param_search import (
+    HYPER_PARAM_SEARCH_CONFIG_KEY,
+    extract_main_metric_for_hparam_search,
+)
 from graphium.utils.safe_run import SafeRun
-
-
-FINETUNING_CONFIG_KEY = "finetuning"
 
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
@@ -28,7 +41,7 @@ def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training and fine-tuning Graphium models.
     """
-    run_training_finetuning(cfg)
+    return run_training_finetuning(cfg)
 
 
 def run_training_finetuning(cfg: DictConfig) -> None:
@@ -37,6 +50,18 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     """
 
     cfg = OmegaConf.to_container(cfg, resolve=True)
+
+    dst_dir = cfg["constants"].get("results_dir")
+    hydra_cfg = HydraConfig.get()
+    output_dir = hydra_cfg["runtime"]["output_dir"]
+
+    if dst_dir is not None and fs.exists(dst_dir) and len(fs.get_mapper(dst_dir).fs.ls(dst_dir)) > 0:
+        logger.warning(
+            "The destination directory is not empty. "
+            "If files already exist, this would lead to a crash at the end of training."
+        )
+        # We pause here briefly, to make sure the notification is seen as there's lots of logs afterwards
+        time.sleep(5)
 
     # Modify the config for finetuning
     if FINETUNING_CONFIG_KEY in cfg:
@@ -105,6 +130,12 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
 
+    # Save validation metrics - Base utility in case someone doesn't use a logger.
+    results = trainer.callback_metrics
+    results = {k: v.item() if torch.is_tensor(v) else v for k, v in results.items()}
+    with fsspec.open(fs.join(output_dir, "val_results.yaml"), "w") as f:
+        yaml.dump(results, f)
+
     # Determine the max num nodes and edges in testing
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
 
@@ -119,7 +150,29 @@ def run_training_finetuning(cfg: DictConfig) -> None:
     if wandb_cfg is not None:
         wandb.finish()
 
-    return trainer.callback_metrics
+    # Save test metrics - Base utility in case someone doesn't use a logger.
+    results = trainer.callback_metrics
+    results = {k: v.item() if torch.is_tensor(v) else v for k, v in results.items()}
+    with fsspec.open(fs.join(output_dir, "test_results.yaml"), "w") as f:
+        yaml.dump(results, f)
+
+    # When part of of a hyper-parameter search, we are very specific about how we save our results
+    # NOTE (cwognum): We also check if the we are in multi-run mode, as the sweeper is otherwise not active.
+    if HYPER_PARAM_SEARCH_CONFIG_KEY in cfg and hydra_cfg.mode == RunMode.MULTIRUN:
+        results = extract_main_metric_for_hparam_search(results, cfg[HYPER_PARAM_SEARCH_CONFIG_KEY])
+
+    # Copy the current working directory to remote
+    # By default, processes should just write results to Hydra's output directory.
+    # However, this currently does not support remote storage, which is why we copy the results here if needed.
+    # For more info, see also: https://github.com/facebookresearch/hydra/issues/993
+
+    if dst_dir is not None:
+        src_dir = hydra_cfg["runtime"]["output_dir"]
+        dst_dir = fs.join(dst_dir, fs.get_basename(src_dir))
+        fs.mkdir(dst_dir, exist_ok=True)
+        fs.copy_dir(src_dir, dst_dir)
+
+    return results
 
 
 if __name__ == "__main__":

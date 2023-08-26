@@ -1,0 +1,54 @@
+# @package _global_
+#
+# For running a hyper-parameter search, we use the Optuna plugin for hydra.
+# This makes optuna available as a sweeper in hydra and integrates easily with the rest of the codebase. 
+# For more info, see https://hydra.cc/docs/plugins/optuna_sweeper/
+#
+# To run a hyper-param search, 
+#   (1) Update this config, specifically the hyper-param search space;
+#   (2) Run `graphium-train +hparam_search=optuna` from the command line.
+
+
+defaults:
+  - override /hydra/sweeper: optuna
+  # Optuna supports various sweepers (e.g. grid search, random search, TPE sampler)
+  - override /hydra/sweeper/sampler: tpe
+
+hyper_param_search: 
+  # For the sweeper to work, the main process needs to return
+  # the objective value(s) (as a float) we are trying to optimize. 
+
+  # Assuming this is a metric, the `objective` key specifies which metric. 
+  # Optuna supports multi-parameter optimization as well. 
+  # If configured correctly, you can specify multiple keys.
+  objective: loss/test
+
+  # Where to save results to
+  # NOTE (cwognum): Ideally, we would use the `hydra.sweep.dir` key, but they don't support remote paths.
+  # save_destination: gs://path/to/bucket
+  # overwrite_destination: false
+
+hydra:
+  # Run in multirun mode by default (i.e. actually use the sweeper)
+  mode: MULTIRUN
+
+  # Changes the working directory
+  sweep:
+    dir: hparam-search-results/${constants.name}
+    subdir: ${hydra.job.num}
+
+  # Sweeper config
+  sweeper:
+    sampler:
+      seed: ${constants.seed}
+    direction: minimize
+    study_name: ${constants.name}
+    storage: null
+    n_trials: 100
+    n_jobs: 1
+
+    # The hyper-parameter search space definition
+    # See https://hydra.cc/docs/plugins/optuna_sweeper/#search-space-configuration for the options
+    params:
+      predictor.optim_kwargs.lr: tag(log, interval(0.00001, 0.001))
+
