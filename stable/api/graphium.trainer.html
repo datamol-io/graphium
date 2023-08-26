@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1475,21 +1463,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -2042,8 +2015,9 @@
 
 
 
+
 <h3 id="graphium.trainer.predictor" class="doc doc-heading">
-            <code>graphium.trainer.predictor</code>
+          <code>graphium.trainer.predictor</code>
 
 
 <a href="#graphium.trainer.predictor" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2065,6 +2039,7 @@
 
 
 
+
 <h4 id="graphium.trainer.predictor.PredictorModule" class="doc doc-heading">
           <code>PredictorModule</code>
 
@@ -2074,7 +2049,7 @@
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code>lightning.<span title="lightning.LightningModule">LightningModule</span></code></p>
+            Bases: <code><span title="lightning.LightningModule">LightningModule</span></code></p>
 
 
 
@@ -2095,8 +2070,9 @@
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">task_levels</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_train_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">task_levels</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_train_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2328,8 +2304,9 @@ Set to <code>None</code> to never log the training metrics and statistics (the d
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2347,8 +2324,9 @@ Set to <code>None</code> to never log the training metrics and statistics (the d
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.compute_loss" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -2522,8 +2500,9 @@ all_task_losses: Loss per task</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.flag_step" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">flag_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">to_cpu</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">flag_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">to_cpu</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.flag_step" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2543,8 +2522,9 @@ Github: <a href="https://github.com/devnkong/FLAG">https://github.com/devnkong/F
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2589,8 +2569,9 @@ returns <code>{"preds": out}</code>.</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.get_num_graphs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_num_graphs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_num_graphs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.get_num_graphs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2609,8 +2590,9 @@ Essential to estimate throughput in graphs/s.</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.list_pretrained_models" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">list_pretrained_models</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">list_pretrained_models</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -2632,8 +2614,9 @@ Essential to estimate throughput in graphs/s.</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name_or_path</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -2662,12 +2645,11 @@ Essential to estimate throughput in graphs/s.</p>
         <tr>
           <td><code>name</code></td>
           <td>
-                <code>str</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Name of the model to load, or full path of the model.
-List available from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
+              <p>Name of the model to load or a valid checkpoint path. List available
+from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
             </div>
           </td>
           <td>
@@ -2704,8 +2686,9 @@ List available from <code>graphium.trainer.PredictorModule.list_pretrained_model
 
 
 
+
 <h3 id="graphium.trainer.metrics" class="doc doc-heading">
-            <code>graphium.trainer.metrics</code>
+          <code>graphium.trainer.metrics</code>
 
 
 <a href="#graphium.trainer.metrics" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2724,6 +2707,7 @@ List available from <code>graphium.trainer.PredictorModule.list_pretrained_model
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -2758,8 +2742,9 @@ List available from <code>graphium.trainer.PredictorModule.list_pretrained_model
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.__call__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2777,8 +2762,9 @@ List available from <code>graphium.trainer.PredictorModule.list_pretrained_model
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.__getstate__" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2796,8 +2782,9 @@ List available from <code>graphium.trainer.PredictorModule.list_pretrained_model
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squeeze_targets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">target_to_int</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squeeze_targets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">target_to_int</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2853,8 +2840,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2872,8 +2860,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.__setstate__" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.__setstate__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2891,8 +2880,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.metrics.MetricWrapper.compute" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.metrics.MetricWrapper.compute" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2914,6 +2904,7 @@ kwargs:
 </div>
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -2945,8 +2936,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.metrics.Thresholder.__getstate__" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.metrics.Thresholder.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2964,8 +2956,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.metrics.Thresholder.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.metrics.Thresholder.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3001,8 +2994,9 @@ kwargs:
 
 
 
+
 <h3 id="graphium.trainer.predictor_summaries" class="doc doc-heading">
-            <code>graphium.trainer.predictor_summaries</code>
+          <code>graphium.trainer.predictor_summaries</code>
 
 
 <a href="#graphium.trainer.predictor_summaries" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3023,6 +3017,7 @@ kwargs:
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -3054,6 +3049,7 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.Results" class="doc doc-heading">
           <code>Results</code>
 
@@ -3082,8 +3078,9 @@ kwargs:
 
 
 
+
 <h6 id="graphium.trainer.predictor_summaries.Summary.Results.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="headerlink" title="Permanent link">&para;</a></h6>
 
@@ -3210,8 +3207,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3329,8 +3327,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.get_best_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.get_best_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3401,8 +3400,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3444,8 +3444,9 @@ kwargs:
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3488,8 +3489,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.get_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.get_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3560,8 +3562,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3633,8 +3636,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_best_epoch</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">is_best_epoch</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3710,8 +3714,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.set_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.set_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3760,8 +3765,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3871,6 +3877,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h4 id="graphium.trainer.predictor_summaries.SummaryInterface" class="doc doc-heading">
           <code>SummaryInterface</code>
 
@@ -3910,6 +3917,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h4 id="graphium.trainer.predictor_summaries.TaskSummaries" class="doc doc-heading">
           <code>TaskSummaries</code>
 
@@ -3940,8 +3948,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_loss_fun</span><span class="p">,</span> <span class="n">task_metrics</span><span class="p">,</span> <span class="n">task_metrics_on_training_set</span><span class="p">,</span> <span class="n">task_metrics_on_progress_bar</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_loss_fun</span><span class="p">,</span> <span class="n">task_metrics</span><span class="p">,</span> <span class="n">task_metrics_on_training_set</span><span class="p">,</span> <span class="n">task_metrics_on_progress_bar</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4059,8 +4068,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">concatenate_metrics_logs</span><span class="p">(</span><span class="n">metrics_logs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">concatenate_metrics_logs</span><span class="p">(</span><span class="n">metrics_logs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4132,8 +4142,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4205,8 +4216,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4248,8 +4260,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4291,8 +4304,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4364,8 +4378,9 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4438,8 +4453,9 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">metric_log_name</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">step_name</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">metric_log_name</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">step_name</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4481,8 +4497,9 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">task_metrics</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">task_metrics</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4530,8 +4547,9 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 
+
 <h5 id="graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4667,8 +4685,9 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 
+
 <h3 id="graphium.trainer.predictor_options" class="doc doc-heading">
-            <code>graphium.trainer.predictor_options</code>
+          <code>graphium.trainer.predictor_options</code>
 
 
 <a href="#graphium.trainer.predictor_options" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4689,6 +4708,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -4805,8 +4825,9 @@ performance, depending on the number of readouts.</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_metrics_validity</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">check_metrics_validity</span><span class="p">()</span></code>
 
 <a href="#graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4824,8 +4845,9 @@ performance, depending on the number of readouts.</p>
 
 
 
+
 <h5 id="graphium.trainer.predictor_options.EvalOptions.parse_loss_fun" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_loss_fun</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_loss_fun</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -4911,6 +4933,7 @@ Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().</p>
 
 
 
+
 <h4 id="graphium.trainer.predictor_options.FlagOptions" class="doc doc-heading">
           <code>FlagOptions</code>
 
@@ -4990,6 +5013,7 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 </div>
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -5075,6 +5099,7 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 </div>
 
 <div class="doc doc-object doc-class">
+
 
 
 

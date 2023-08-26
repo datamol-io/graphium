@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#toymix-baseline" class="md-skip">
+        <a href="#toymix-baseline-test-set-metrics" class="md-skip">
           Skip to content
         </a>
       
@@ -304,18 +304,6 @@
   <li class="md-tabs__item">
     <a href="license.html" class="md-tabs__link">
       License
-    </a>
-  </li>
-
-      
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="cli_references.html" class="md-tabs__link">
-      CLI
     </a>
   </li>
 
@@ -962,21 +950,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1013,8 +986,8 @@
   
 
 
-<h1 id="toymix-baseline">ToyMix Baseline<a class="headerlink" href="#toymix-baseline" title="Permanent link">&para;</a></h1>
-<p>From the paper to be released soon. Below, you can see the baselines for the <code>ToyMix</code> dataset, a multitasking dataset comprising of <code>QM9</code>, <code>Zinc12k</code> and <code>Tox21</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>.</p>
+<h1 id="toymix-baseline-test-set-metrics">ToyMix Baseline - Test set metrics<a class="headerlink" href="#toymix-baseline-test-set-metrics" title="Permanent link">&para;</a></h1>
+<p>From the paper to be released soon. Below, you can see the baselines for the <code>ToyMix</code> dataset, a multitasking dataset comprising of <code>QM9</code>, <code>Zinc12k</code> and <code>Tox21</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>. The following baselines are all for models with ~150k parameters.</p>
 <p>One can observe that the smaller datasets (<code>Zinc12k</code> and <code>Tox21</code>) beneficiate from adding another unrelated task (<code>QM9</code>), where the labels are computed from DFT simulations.</p>
 <table>
 <thead>
@@ -1189,7 +1162,367 @@
 </tbody>
 </table>
 <h1 id="largemix-baseline">LargeMix Baseline<a class="headerlink" href="#largemix-baseline" title="Permanent link">&para;</a></h1>
-<p>Coming soon!</p>
+<h2 id="largemix-test-set-metrics">LargeMix test set metrics<a class="headerlink" href="#largemix-test-set-metrics" title="Permanent link">&para;</a></h2>
+<p>From the paper to be released soon. Below, you can see the baselines for the <code>LargeMix</code> dataset, a multitasking dataset comprising of <code>PCQM4M_N4</code>, <code>PCQM4M_G25</code>, <code>PCBA_1328</code>, <code>L1000_VCAP</code>, and <code>L1000_MCF7</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>. The following baselines are all for models with 4-6M parameters.</p>
+<p>One can observe that the smaller datasets (<code>L1000_VCAP</code> and <code>L1000_MCF7</code>) beneficiate tremendously from the multitasking. Indeed, the lack of molecular samples means that it is very easy for a model to overfit.</p>
+<p>While <code>PCQM4M_G25</code> has no noticeable changes, the node predictions of <code>PCQM4M_N4</code> and assay predictions of <code>PCBA_1328</code> take a hit, but it is most likely due to underfitting since the training loss is also increased. It seems that 4-6M parameters is far from sufficient to capturing all of the tasks simultaneously, which motivates the need for a larger model.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td>Pcqm4m_g25</td>
+<td>GCN</td>
+<td>0.2362 ± 0.0003</td>
+<td>0.8781 ± 0.0005</td>
+<td>0.7803 ± 0.0006</td>
+<td>0.2458 ± 0.0007</td>
+<td>0.8701 ± 0.0002</td>
+<td><strong>0.8189 ± 0.0726</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.2270 ± 0.0003</td>
+<td>0.8854 ± 0.0004</td>
+<td>0.7912 ± 0.0006</td>
+<td>0.2352 ± 0.0006</td>
+<td>0.8802 ± 0.0007</td>
+<td>0.7827 ± 0.0005</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.2223 ± 0.0007</strong></td>
+<td><strong>0.8874 ± 0.0003</strong></td>
+<td>0.7949 ± 0.0001</td>
+<td>0.2315 ± 0.0002</td>
+<td>0.8823 ± 0.0002</td>
+<td>0.7864 ± 0.0008</td>
+</tr>
+<tr>
+<td>Pcqm4m_n4</td>
+<td>GCN</td>
+<td>0.2080 ± 0.0003</td>
+<td>0.5497 ± 0.0010</td>
+<td>0.2942 ± 0.0007</td>
+<td>0.2040 ± 0.0001</td>
+<td>0.4796 ± 0.0006</td>
+<td>0.2185 ± 0.0002</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.1912 ± 0.0027</td>
+<td><strong>0.6138 ± 0.0088</strong></td>
+<td><strong>0.3688 ± 0.0116</strong></td>
+<td>0.1966 ± 0.0003</td>
+<td>0.5198 ± 0.0008</td>
+<td>0.2602 ± 0.0012</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.1910 ± 0.0001</strong></td>
+<td>0.6127 ± 0.0003</td>
+<td>0.3666 ± 0.0008</td>
+<td>0.1941 ± 0.0003</td>
+<td>0.5303 ± 0.0023</td>
+<td>0.2701 ± 0.0034</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>BCE ↓</th>
+<th>AUROC ↑</th>
+<th>AP ↑</th>
+<th>BCE ↓</th>
+<th>AUROC ↑</th>
+<th>AP ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td>Pcba_1328</td>
+<td>GCN</td>
+<td><strong>0.0316 ± 0.0000</strong></td>
+<td><strong>0.7960 ± 0.0020</strong></td>
+<td><strong>0.3368 ± 0.0027</strong></td>
+<td>0.0349 ± 0.0002</td>
+<td>0.7661 ± 0.0031</td>
+<td>0.2527 ± 0.0041</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.0324 ± 0.0000</td>
+<td>0.7941 ± 0.0018</td>
+<td>0.3328 ± 0.0019</td>
+<td>0.0342 ± 0.0001</td>
+<td>0.7747 ± 0.0025</td>
+<td>0.2650 ± 0.0020</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td>0.0320 ± 0.0001</td>
+<td>0.7944 ± 0.0023</td>
+<td>0.3337 ± 0.0027</td>
+<td>0.0341 ± 0.0001</td>
+<td>0.7737 ± 0.0007</td>
+<td>0.2611 ± 0.0043</td>
+</tr>
+<tr>
+<td>L1000_vcap</td>
+<td>GCN</td>
+<td>0.1900 ± 0.0002</td>
+<td>0.5788 ± 0.0034</td>
+<td>0.3708 ± 0.0007</td>
+<td>0.1872 ± 0.0020</td>
+<td>0.6362 ± 0.0012</td>
+<td>0.4022 ± 0.0008</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.1909 ± 0.0005</td>
+<td>0.5734 ± 0.0029</td>
+<td>0.3731 ± 0.0014</td>
+<td>0.1870 ± 0.0010</td>
+<td>0.6351 ± 0.0014</td>
+<td>0.4062 ± 0.0001</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td>0.1907 ± 0.0006</td>
+<td>0.5708 ± 0.0079</td>
+<td>0.3705 ± 0.0015</td>
+<td><strong>0.1862 ± 0.0007</strong></td>
+<td><strong>0.6398 ± 0.0043</strong></td>
+<td><strong>0.4068 ± 0.0023</strong></td>
+</tr>
+<tr>
+<td>L1000_mcf7</td>
+<td>GCN</td>
+<td>0.1869 ± 0.0003</td>
+<td>0.6123 ± 0.0051</td>
+<td>0.3866 ± 0.0010</td>
+<td>0.1863 ± 0.0011</td>
+<td><strong>0.6401 ± 0.0021</strong></td>
+<td>0.4194 ± 0.0004</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.1862 ± 0.0003</td>
+<td>0.6202 ± 0.0091</td>
+<td>0.3876 ± 0.0017</td>
+<td>0.1874 ± 0.0013</td>
+<td>0.6367 ± 0.0066</td>
+<td><strong>0.4198 ± 0.0036</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.1856 ± 0.0005</strong></td>
+<td>0.6166 ± 0.0017</td>
+<td>0.3892 ± 0.0035</td>
+<td>0.1873 ± 0.0009</td>
+<td>0.6347 ± 0.0048</td>
+<td>0.4177 ± 0.0024</td>
+</tr>
+</tbody>
+</table>
+<h2 id="largemix-training-set-loss">LargeMix training set loss<a class="headerlink" href="#largemix-training-set-loss" title="Permanent link">&para;</a></h2>
+<p>Below is the loss on the training set. One can observe that the multi-task model always underfits the single-task, except on the two <code>L1000</code> datasets.</p>
+<p>This is not surprising as they contain two orders of magnitude more datapoints and pose a significant challenge for the relatively small models used in this analysis. This favors the Single dataset setup (which uses a model of the same size) and we conjecture larger models to bridge this gap moving forward.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>CE or BCE loss in single-task <span class="arithmatex">\(\downarrow\)</span></th>
+<th>CE or BCE loss in multi-task <span class="arithmatex">\(\downarrow\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Pcqm4m_g25</strong></td>
+<td>GCN</td>
+<td><strong>0.2660 ± 0.0005</strong></td>
+<td>0.2767 ± 0.0015</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td><strong>0.2439 ± 0.0004</strong></td>
+<td>0.2595 ± 0.0016</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.2424 ± 0.0007</strong></td>
+<td>0.2568 ± 0.0012</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Pcqm4m_n4</strong></td>
+<td>GCN</td>
+<td><strong>0.2515 ± 0.0002</strong></td>
+<td>0.2613 ± 0.0008</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td><strong>0.2317 ± 0.0003</strong></td>
+<td>0.2512 ± 0.0008</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.2272 ± 0.0001</strong></td>
+<td>0.2483 ± 0.0004</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Pcba_1328</strong></td>
+<td>GCN</td>
+<td><strong>0.0284 ± 0.0010</strong></td>
+<td>0.0382 ± 0.0005</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td><strong>0.0249 ± 0.0017</strong></td>
+<td>0.0359 ± 0.0011</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.0258 ± 0.0017</strong></td>
+<td>0.0361 ± 0.0008</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>L1000_vcap</strong></td>
+<td>GCN</td>
+<td>0.1906 ± 0.0036</td>
+<td><strong>0.1854 ± 0.0148</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.1854 ± 0.0030</td>
+<td><strong>0.1833 ± 0.0185</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.1860 ± 0.0025</strong></td>
+<td>0.1887 ± 0.0200</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>L1000_mcf7</strong></td>
+<td>GCN</td>
+<td>0.1902 ± 0.0038</td>
+<td><strong>0.1829 ± 0.0095</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.1873 ± 0.0033</td>
+<td><strong>0.1701 ± 0.0142</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td>0.1883 ± 0.0039</td>
+<td><strong>0.1771 ± 0.0010</strong></td>
+</tr>
+</tbody>
+</table>
 <h1 id="ultralarge-baseline">UltraLarge Baseline<a class="headerlink" href="#ultralarge-baseline" title="Permanent link">&para;</a></h1>
 <p>Coming soon!</p>
 

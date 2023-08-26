@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1430,21 +1418,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1953,8 +1926,9 @@
 
 
 
+
 <h3 id="graphium.nn.encoders.base_encoder" class="doc doc-heading">
-            <code>graphium.nn.encoders.base_encoder</code>
+          <code>graphium.nn.encoders.base_encoder</code>
 
 
 <a href="#graphium.nn.encoders.base_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -1976,6 +1950,7 @@
 
 
 
+
 <h4 id="graphium.nn.encoders.base_encoder.BaseEncoder" class="doc doc-heading">
           <code>BaseEncoder</code>
 
@@ -1985,7 +1960,7 @@
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -2006,8 +1981,9 @@
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.base_encoder.BaseEncoder.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2153,8 +2129,9 @@ Initialize the encoder with the following arguments:</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2207,8 +2184,9 @@ This is a method to be implemented by the child class.</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.base_encoder.BaseEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2296,8 +2274,9 @@ layers width divided by a given factor (2 by default)</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.parse_input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2349,8 +2328,9 @@ layers width divided by a given factor (2 by default)</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.parse_input_keys_with_prefix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys_with_prefix</span><span class="p">(</span><span class="n">key_prefix</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys_with_prefix</span><span class="p">(</span><span class="n">key_prefix</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.base_encoder.BaseEncoder.parse_input_keys_with_prefix" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2369,8 +2349,9 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.base_encoder.BaseEncoder.parse_output_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2440,8 +2421,9 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 
+
 <h3 id="graphium.nn.encoders.gaussian_kernel_pos_encoder" class="doc doc-heading">
-            <code>graphium.nn.encoders.gaussian_kernel_pos_encoder</code>
+          <code>graphium.nn.encoders.gaussian_kernel_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2460,6 +2442,7 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -2493,8 +2476,9 @@ If the prefix is <code>None</code>, it is ignored</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_heads</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_heads</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2682,8 +2666,9 @@ Useful for encoding 3D conformation positions.</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2769,8 +2754,9 @@ Useful for encoding 3D conformation positions.</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2819,8 +2805,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.parse_input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.parse_input_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2892,8 +2879,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.parse_output_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder.parse_output_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2983,8 +2971,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h3 id="graphium.nn.encoders.laplace_pos_encoder" class="doc doc-heading">
-            <code>graphium.nn.encoders.laplace_pos_encoder</code>
+          <code>graphium.nn.encoders.laplace_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3003,6 +2992,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -3036,8 +3026,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s1">&#39;DeepSet&#39;</span><span class="p">,</span> <span class="n">num_layers_post</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s1">&#39;DeepSet&#39;</span><span class="p">,</span> <span class="n">num_layers_post</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">model_kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3222,8 +3213,9 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3289,7 +3281,7 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3309,8 +3301,9 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3359,8 +3352,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.parse_input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.parse_input_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3432,8 +3426,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.parse_output_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.parse_output_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3523,8 +3518,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h3 id="graphium.nn.encoders.mlp_encoder" class="doc doc-heading">
-            <code>graphium.nn.encoders.mlp_encoder</code>
+          <code>graphium.nn.encoders.mlp_encoder</code>
 
 
 <a href="#graphium.nn.encoders.mlp_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3543,6 +3539,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -3576,8 +3573,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3758,8 +3756,9 @@ Concatenates the list of input (node or edge) features in the feature dimension<
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3825,7 +3824,7 @@ Concatenates the list of input (node or edge) features in the feature dimension<
     <tbody>
         <tr>
 <td><code>output</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3845,8 +3844,9 @@ Concatenates the list of input (node or edge) features in the feature dimension<
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3895,8 +3895,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder.parse_input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder.parse_input_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3968,8 +3969,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.CatMLPEncoder.parse_output_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.CatMLPEncoder.parse_output_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4048,6 +4050,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h4 id="graphium.nn.encoders.mlp_encoder.MLPEncoder" class="doc doc-heading">
           <code>MLPEncoder</code>
 
@@ -4078,8 +4081,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.MLPEncoder.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">output_keys</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_input_keys_prefix</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4259,8 +4263,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.MLPEncoder.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4326,7 +4331,7 @@ factor_in_dim: Whether to factor the input dimension</p>
     <tbody>
         <tr>
 <td><code>output</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4346,8 +4351,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.MLPEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4396,8 +4402,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.MLPEncoder.parse_input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_input_keys</span><span class="p">(</span><span class="n">input_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder.parse_input_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4469,8 +4476,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.mlp_encoder.MLPEncoder.parse_output_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_output_keys</span><span class="p">(</span><span class="n">output_keys</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.mlp_encoder.MLPEncoder.parse_output_keys" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4560,8 +4568,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h3 id="graphium.nn.encoders.signnet_pos_encoder" class="doc doc-heading">
-            <code>graphium.nn.encoders.signnet_pos_encoder</code>
+          <code>graphium.nn.encoders.signnet_pos_encoder</code>
 
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4586,6 +4595,7 @@ based on <a href="https://github.com/cptq/SignNet-BasisNet">https://github.com/c
 
 
 
+
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.GINDeepSigns" class="doc doc-heading">
           <code>GINDeepSigns</code>
 
@@ -4595,7 +4605,7 @@ based on <a href="https://github.com/cptq/SignNet-BasisNet">https://github.com/c
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
   
       <p>Sign invariant neural network with MLP aggregation.
@@ -4626,6 +4636,7 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 
 
 
+
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.MaskedGINDeepSigns" class="doc doc-heading">
           <code>MaskedGINDeepSigns</code>
 
@@ -4635,7 +4646,7 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
   
       <p>Sign invariant neural network with sum pooling and DeepSet.
@@ -4663,6 +4674,7 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 </div>
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -4736,8 +4748,9 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
 
 
 
+
 <h5 id="graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4809,6 +4822,7 @@ layers width divided by a given factor (2 by default)</p>
 
 
 
+
 <h4 id="graphium.nn.encoders.signnet_pos_encoder.SimpleGIN" class="doc doc-heading">
           <code>SimpleGIN</code>
 
@@ -4818,7 +4832,7 @@ layers width divided by a given factor (2 by default)</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -4839,8 +4853,9 @@ layers width divided by a given factor (2 by default)</p>
 
 
 
+
 <h5 id="graphium.nn.encoders.signnet_pos_encoder.SimpleGIN.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.encoders.signnet_pos_encoder.SimpleGIN.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
