@@ -1,4 +1,4 @@
-# ToyMix Baseline
+# ToyMix Baseline - Test set metrics
 
 From the paper to be released soon. Below, you can see the baselines for the `ToyMix` dataset, a multitasking dataset comprising of `QM9`, `Zinc12k` and `Tox21`. The datasets and their splits are available on [this link](https://zenodo.org/record/7998401). The following baselines are all for models with ~150k parameters.
 
@@ -25,6 +25,7 @@ One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate fr
 |           | GINE  | 0.201 ± 0.007 | 0.783 ± 0.007 | 0.345 ± 0.02 | 0.177 ± 0.0008 | 0.836 ± 0.004 | **0.455 ± 0.008** |
 
 # LargeMix Baseline
+## LargeMix test set metrics
 
 From the paper to be released soon. Below, you can see the baselines for the `LargeMix` dataset, a multitasking dataset comprising of `PCQM4M_N4`, `PCQM4M_G25`, `PCBA_1328`, `L1000_VCAP`, and `L1000_MCF7`. The datasets and their splits are available on [this link](https://zenodo.org/record/7998401). The following baselines are all for models with 4-6M parameters.
 
@@ -58,6 +59,7 @@ While `PCQM4M_G25` has no noticeable changes, the node predictions of `PCQM4M_N4
 |               | GIN      | 0.1862 ± 0.0003 | 0.6202 ± 0.0091 | 0.3876 ± 0.0017 | 0.1874 ± 0.0013 | 0.6367 ± 0.0066 | **0.4198 ± 0.0036** |
 |               | GINE      | **0.1856 ± 0.0005** | 0.6166 ± 0.0017 | 0.3892 ± 0.0035 | 0.1873 ± 0.0009 | 0.6347 ± 0.0048 | 0.4177 ± 0.0024 |
 
+## LargeMix training set loss
 
 Below is the loss on the training set. One can observe that the multi-task model always underfits the single-task, except on the two `L1000` datasets.
 
