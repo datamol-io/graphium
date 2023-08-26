@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1343,21 +1331,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1780,8 +1753,9 @@
 
 
 
+
 <h3 id="graphium.features.featurizer" class="doc doc-heading">
-            <code>graphium.features.featurizer</code>
+          <code>graphium.features.featurizer</code>
 
 
 <a href="#graphium.features.featurizer" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -1800,6 +1774,7 @@
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -1833,8 +1808,9 @@
 
 
 
+
 <h5 id="graphium.features.featurizer.GraphDict.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.GraphDict.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -1882,8 +1858,9 @@ as a dictionary to reduce memory consumption.</p>
 
 
 
+
 <h5 id="graphium.features.featurizer.GraphDict.make_pyg_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_pyg_graph</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_pyg_graph</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.GraphDict.make_pyg_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -1913,8 +1890,9 @@ for a list of parameters</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.get_estimated_bond_length" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_estimated_bond_length</span><span class="p">(</span><span class="n">bond</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_estimated_bond_length</span><span class="p">(</span><span class="n">bond</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_estimated_bond_length" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -1946,7 +1924,7 @@ increased computation speed.</p>
         <tr>
           <td><code>bond</code></td>
           <td>
-                <code><span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Bond">Bond</span></code>
+                <code><span title="rdkit.Chem.rdchem.Bond">Bond</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -1960,7 +1938,7 @@ increased computation speed.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2007,8 +1985,9 @@ increased computation speed.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.get_mol_atomic_features_float" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_mol_atomic_features_float</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">offset_carbon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_mol_atomic_features_float</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">offset_carbon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_mol_atomic_features_float" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2037,7 +2016,7 @@ the <code>offset_carbon</code> parameter.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2149,7 +2128,7 @@ or other properties that are not measured for specific atoms.</p>
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2171,8 +2150,9 @@ in <code>mol</code>.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.get_mol_atomic_features_onehot" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_mol_atomic_features_onehot</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_mol_atomic_features_onehot</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_mol_atomic_features_onehot" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2211,7 +2191,7 @@ in <code>mol</code>.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2289,8 +2269,9 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.get_mol_conformer_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_mol_conformer_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_mol_conformer_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_mol_conformer_features" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2315,7 +2296,7 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2358,7 +2339,7 @@ Accepted properties are:
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2378,8 +2359,9 @@ Accepted properties are:
 
 
 
+
 <h4 id="graphium.features.featurizer.get_mol_edge_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_mol_edge_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_mol_edge_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_mol_edge_features" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2412,7 +2394,7 @@ See <code>graphium.features.nmp</code> for allowed values in one hot encoding</p
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2464,7 +2446,7 @@ Accepted properties are:</p>
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2486,8 +2468,9 @@ in <code>mol</code>.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.get_simple_mol_conformer" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_simple_mol_conformer</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_simple_mol_conformer</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.get_simple_mol_conformer" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2515,7 +2498,7 @@ not in functions requiring complex 3D structure.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2542,7 +2525,7 @@ not in functions requiring complex 3D structure.</p>
     <tbody>
         <tr>
 <td><code>conf</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Conformer">Conformer</span>, None]</code>
+                <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem.rdchem.Conformer">Conformer</span>, None]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2562,8 +2545,9 @@ not in functions requiring complex 3D structure.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.mol_to_adj_and_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_adj_and_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">mol_to_adj_and_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.mol_to_adj_and_features" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2590,7 +2574,7 @@ and a set of atom and bond features.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="datamol.Mol">Mol</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2724,7 +2708,7 @@ to generate positional encoding for node features.</p>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+                <code><span title="numpy.dtype">dtype</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2732,7 +2716,7 @@ to generate positional encoding for node features.</p>
             </div>
           </td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+                <code><span title="numpy.float16">float16</span></code>
           </td>
         </tr>
         <tr>
@@ -2855,8 +2839,9 @@ If no properties are given, it returns <code>None</code></p>
 
 
 
+
 <h4 id="graphium.features.featurizer.mol_to_adjacency_matrix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_adjacency_matrix</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">mol_to_adjacency_matrix</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.mol_to_adjacency_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2889,7 +2874,7 @@ will change the ordering of the bonds.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2934,7 +2919,7 @@ node.</p>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+                <code><span title="numpy.dtype">dtype</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2942,7 +2927,7 @@ node.</p>
             </div>
           </td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.float32">float32</span></code>
+                <code><span title="numpy.float32">float32</span></code>
           </td>
         </tr>
     </tbody>
@@ -2981,8 +2966,9 @@ node.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.mol_to_graph_dict" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_graph_dict</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">mol_to_graph_dict</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.mol_to_graph_dict" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3011,7 +2997,7 @@ and is thus faster, less memory heavy, and compatible with other frameworks.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3145,7 +3131,7 @@ to generate positional encoding for node features.</p>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+                <code><span title="numpy.dtype">dtype</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3153,7 +3139,7 @@ to generate positional encoding for node features.</p>
             </div>
           </td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+                <code><span title="numpy.float16">float16</span></code>
           </td>
         </tr>
         <tr>
@@ -3264,8 +3250,9 @@ to featurize the molecule, it returns a string with the error.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.mol_to_graph_signature" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_graph_signature</span><span class="p">(</span><span class="n">featurizer_args</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">mol_to_graph_signature</span><span class="p">(</span><span class="n">featurizer_args</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.mol_to_graph_signature" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3339,8 +3326,9 @@ of the featurizer args actually used for the features computation.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.mol_to_pyggraph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_pyggraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">mol_to_pyggraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.mol_to_pyggraph" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3368,7 +3356,7 @@ and a set of atom and bond features.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+                <code><span title="datamol.Mol">Mol</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3502,7 +3490,7 @@ to generate positional encoding for node features.</p>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+                <code><span title="numpy.dtype">dtype</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3510,7 +3498,7 @@ to generate positional encoding for node features.</p>
             </div>
           </td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.float16">float16</span></code>
+                <code><span title="numpy.float16">float16</span></code>
           </td>
         </tr>
         <tr>
@@ -3610,8 +3598,9 @@ There are also additional entries for the positional encodings.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.to_dense_array" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">to_dense_array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">to_dense_array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.to_dense_array" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3636,7 +3625,7 @@ There are also additional entries for the positional encodings.</p>
         <tr>
           <td><code>array</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3677,7 +3666,7 @@ There are also additional entries for the positional encodings.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3697,8 +3686,9 @@ There are also additional entries for the positional encodings.</p>
 
 
 
+
 <h4 id="graphium.features.featurizer.to_dense_tensor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">to_dense_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">to_dense_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.featurizer.to_dense_tensor" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3792,8 +3782,9 @@ There are also additional entries for the positional encodings.</p>
 
 
 
+
 <h3 id="graphium.features.positional_encoding" class="doc doc-heading">
-            <code>graphium.features.positional_encoding</code>
+          <code>graphium.features.positional_encoding</code>
 
 
 <a href="#graphium.features.positional_encoding" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3817,8 +3808,9 @@ There are also additional entries for the positional encodings.</p>
 
 
 
+
 <h4 id="graphium.features.positional_encoding.get_all_positional_encodings" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_all_positional_encodings</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_all_positional_encodings</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.positional_encoding.get_all_positional_encodings" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3898,7 +3890,7 @@ to generate positional encoding for node features.</p>
     <tbody>
         <tr>
 <td><code>pe_dict</code></td>          <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy.ndarray">ndarray</span>]]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3918,8 +3910,9 @@ to generate positional encoding for node features.</p>
 
 
 
+
 <h4 id="graphium.features.positional_encoding.graph_positional_encoder" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">graph_positional_encoder</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">graph_positional_encoder</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.positional_encoding.graph_positional_encoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4051,7 +4044,7 @@ to generate positional encoding for node features.</p>
     <tbody>
         <tr>
 <td><code>pe</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4090,8 +4083,9 @@ to generate positional encoding for node features.</p>
 
 
 
+
 <h3 id="graphium.features.properties" class="doc doc-heading">
-            <code>graphium.features.properties</code>
+          <code>graphium.features.properties</code>
 
 
 <a href="#graphium.features.properties" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4115,8 +4109,9 @@ to generate positional encoding for node features.</p>
 
 
 
+
 <h4 id="graphium.features.properties.get_prop_or_none" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_prop_or_none</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_prop_or_none</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.features.properties.get_prop_or_none" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4169,7 +4164,7 @@ to generate positional encoding for node features.</p>
         <tr>
           <td><code>*args</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4183,7 +4178,7 @@ to generate positional encoding for node features.</p>
         <tr>
           <td><code>**kwargs</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4230,8 +4225,9 @@ to generate positional encoding for node features.</p>
 
 
 
+
 <h4 id="graphium.features.properties.get_props_from_mol" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_props_from_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="s1">&#39;autocorr3d&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_props_from_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="s1">&#39;autocorr3d&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.features.properties.get_props_from_mol" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4257,7 +4253,7 @@ and output a property list.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4306,7 +4302,7 @@ and output a property list.</p>
     <tbody>
         <tr>
 <td><code>props</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4317,7 +4313,7 @@ The array of properties for the desired molecule</p>
         </tr>
         <tr>
 <td><code>classes_start_idx</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4333,7 +4329,7 @@ each class.</p>
         </tr>
         <tr>
 <td><code>classes_names</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4364,8 +4360,9 @@ Will be usefull to understand what property is the network learning.</p>
 
 
 
+
 <h3 id="graphium.features.spectral" class="doc doc-heading">
-            <code>graphium.features.spectral</code>
+          <code>graphium.features.spectral</code>
 
 
 <a href="#graphium.features.spectral" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4389,8 +4386,9 @@ Will be usefull to understand what property is the network learning.</p>
 
 
 
+
 <h4 id="graphium.features.spectral.compute_laplacian_pe" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_laplacian_pe</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_pos</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">disconnected_comp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">compute_laplacian_pe</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_pos</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">disconnected_comp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.features.spectral.compute_laplacian_pe" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4498,7 +4496,7 @@ Will be usefull to understand what property is the network learning.</p>
     <tbody>
         <tr>
 <td></td>          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4542,8 +4540,9 @@ eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p>
 
 
 
+
 <h4 id="graphium.features.spectral.normalize_matrix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">normalize_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">degree_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">normalize_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">degree_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.spectral.normalize_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4591,8 +4590,9 @@ normalization: str or None, Default='none'
 
 
 
+
 <h3 id="graphium.features.rw" class="doc doc-heading">
-            <code>graphium.features.rw</code>
+          <code>graphium.features.rw</code>
 
 
 <a href="#graphium.features.rw" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4616,8 +4616,9 @@ normalization: str or None, Default='none'
 
 
 
+
 <h4 id="graphium.features.rw.compute_rwse" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_rwse</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ksteps</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="s1">&#39;rw_return_probs&#39;</span> <span class="ow">or</span> <span class="s1">&#39;rw_transition_probs&#39;</span><span class="p">,</span> <span class="n">space_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">compute_rwse</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ksteps</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="s1">&#39;rw_return_probs&#39;</span> <span class="ow">or</span> <span class="s1">&#39;rw_transition_probs&#39;</span><span class="p">,</span> <span class="n">space_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
 <a href="#graphium.features.rw.compute_rwse" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4743,7 +4744,7 @@ steps, if <code>space_dim</code> is the dimension of the euclidean space.</p>
     <tbody>
         <tr>
 <td></td>          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+                <code><span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4785,8 +4786,9 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 
 
 
+
 <h4 id="graphium.features.rw.get_Pks" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_Pks</span><span class="p">(</span><span class="n">ksteps</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_Pk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_Pks</span><span class="p">(</span><span class="n">ksteps</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_Pk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.features.rw.get_Pks" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4825,7 +4827,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
         <tr>
           <td><code>edge_index</code></td>
           <td>
-                <code><span title="typing.Tuple">Tuple</span>[torch.<span title="torch.Tensor">Tensor</span>, torch.<span title="torch.Tensor">Tensor</span>]</code>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="torch.Tensor">Tensor</span>, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4880,7 +4882,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4909,8 +4911,9 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 
 
 
+
 <h3 id="graphium.features.nmp" class="doc doc-heading">
-            <code>graphium.features.nmp</code>
+          <code>graphium.features.nmp</code>
 
 
 <a href="#graphium.features.nmp" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4934,8 +4937,9 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 
 
 
+
 <h4 id="graphium.features.nmp.float_or_none" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">float_or_none</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">float_or_none</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></code>
 
 <a href="#graphium.features.nmp.float_or_none" class="headerlink" title="Permanent link">&para;</a></h4>
 

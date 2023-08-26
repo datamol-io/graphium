@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1464,21 +1452,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -2019,8 +1992,9 @@
 
 
 
+
 <h3 id="graphium.nn.architectures.global_architectures" class="doc doc-heading">
-            <code>graphium.nn.architectures.global_architectures</code>
+          <code>graphium.nn.architectures.global_architectures</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2039,6 +2013,7 @@
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -2072,8 +2047,9 @@
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardGraph.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hidden_dims_edges</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;GNN&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">virtual_node</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_virtual_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hidden_dims_edges</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;GNN&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">virtual_node</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_virtual_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2147,7 +2123,7 @@ hidden dimensions of the same value.</p>
         <tr>
           <td><code>layer_type</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn.Module">Module</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2367,7 +2343,7 @@ purposes.</p>
         <tr>
           <td><code>layer_type</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn.Module">Module</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2460,8 +2436,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardGraph.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2479,8 +2456,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardGraph.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2544,7 +2522,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
     <tbody>
         <tr>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2569,8 +2547,9 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardGraph.get_init_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph.get_init_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2588,8 +2567,9 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardGraph.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2645,6 +2625,7 @@ factor_in_dim: Whether to factor the input dimension for the nodes</p>
 
 
 
+
 <h4 id="graphium.nn.architectures.global_architectures.FeedForwardNN" class="doc doc-heading">
           <code>FeedForwardNN</code>
 
@@ -2654,7 +2635,7 @@ factor_in_dim: Whether to factor the input dimension for the nodes</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -2675,8 +2656,9 @@ factor_in_dim: Whether to factor the input dimension for the nodes</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;LNN&#39;</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;LNN&#39;</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2925,7 +2907,7 @@ purposes.</p>
         <tr>
           <td><code>layer_type</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn.Module">Module</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2979,8 +2961,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2998,8 +2981,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">add_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">add_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.add_layers" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3017,8 +3001,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">drop_layers</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">drop_layers</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.drop_layers" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3036,8 +3021,9 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3062,7 +3048,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3091,7 +3077,7 @@ Input feature tensor, before the network.
     <tbody>
         <tr>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3113,8 +3099,9 @@ Output feature tensor, after the network.
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3132,8 +3119,9 @@ Output feature tensor, after the network.
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3165,6 +3153,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h4 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="doc doc-heading">
           <code>FullGraphMultiTaskNetwork</code>
 
@@ -3174,7 +3163,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -3192,8 +3181,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.in_dim" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">in_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">in_dim</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3213,8 +3203,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.in_dim_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">in_dim_edges</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">in_dim_edges</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3234,8 +3225,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3255,8 +3247,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_edges</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_edges</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3280,8 +3273,9 @@ of the network.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">gnn_kwargs</span><span class="p">,</span> <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_nn_edges_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_heads_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accelerator_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_inference_to_average</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;FullGNN&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">gnn_kwargs</span><span class="p">,</span> <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_nn_edges_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_heads_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accelerator_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_inference_to_average</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;FullGNN&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3475,8 +3469,9 @@ purposes.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3494,8 +3489,9 @@ purposes.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">create_module_map</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">create_module_map</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.create_module_map" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3514,8 +3510,9 @@ Used for finetuning when (partially) loading or freezing specific modules of the
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3611,8 +3608,9 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3660,8 +3658,9 @@ layers width divided by a given factor (2 by default)</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3732,6 +3731,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h4 id="graphium.nn.architectures.global_architectures.GraphOutputNN" class="doc doc-heading">
           <code>GraphOutputNN</code>
 
@@ -3741,7 +3741,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -3759,8 +3759,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.concat_last_layers" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
+          <code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3785,8 +3786,9 @@ concatenate the output of different layers.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.out_dim" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3809,8 +3811,9 @@ concatenate the output of different layers.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">task_level</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">task_level</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3900,8 +3903,9 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.compute_nodepairs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_nodepairs</span><span class="p">(</span><span class="n">node_feats</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">max_num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_nodes_last_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">compute_nodepairs</span><span class="p">(</span><span class="n">node_feats</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">max_num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_nodes_last_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.compute_nodepairs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3926,7 +3930,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
         <tr>
           <td><code>node_feats</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3940,7 +3944,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
         <tr>
           <td><code>batch</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4025,7 +4029,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
     <tbody>
         <tr>
 <td><code>result</code></td>          <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4035,7 +4039,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
         </tr>
         <tr>
 <td></td>          <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4055,8 +4059,9 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.drop_graph_output_nn_layers" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">drop_graph_output_nn_layers</span><span class="p">(</span><span class="n">num_layers_to_drop</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">drop_graph_output_nn_layers</span><span class="p">(</span><span class="n">num_layers_to_drop</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.drop_graph_output_nn_layers" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4104,8 +4109,9 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.extend_graph_output_nn_layers" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">extend_graph_output_nn_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">extend_graph_output_nn_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.extend_graph_output_nn_layers" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4130,7 +4136,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
         <tr>
           <td><code>layers</code></td>
           <td>
-                <code><span title="torch.nn">nn</span>.<span title="torch.nn.ModuleList">ModuleList</span></code>
+                <code><span title="torch.nn.ModuleList">ModuleList</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4153,8 +4159,9 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4224,8 +4231,9 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4274,8 +4282,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.GraphOutputNN.set_max_num_nodes_edges_per_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.set_max_num_nodes_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4346,6 +4355,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h4 id="graphium.nn.architectures.global_architectures.TaskHeads" class="doc doc-heading">
           <code>TaskHeads</code>
 
@@ -4355,7 +4365,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -4373,8 +4383,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.out_dim" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
+          <code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4397,8 +4408,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">task_heads_kwargs</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">task_heads_kwargs</span><span class="p">,</span> <span class="n">graph_output_nn_kwargs</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4505,8 +4517,9 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4524,8 +4537,9 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4577,7 +4591,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
     <tbody>
         <tr>
 <td><code>task_head_outputs</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4597,8 +4611,9 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4647,8 +4662,9 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.global_architectures.TaskHeads.set_max_num_nodes_edges_per_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads.set_max_num_nodes_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4730,8 +4746,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h3 id="graphium.nn.architectures.pyg_architectures" class="doc doc-heading">
-            <code>graphium.nn.architectures.pyg_architectures</code>
+          <code>graphium.nn.architectures.pyg_architectures</code>
 
 
 <a href="#graphium.nn.architectures.pyg_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4750,6 +4767,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -4801,8 +4819,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h3 id="graphium.nn.architectures.encoder_manager" class="doc doc-heading">
-            <code>graphium.nn.architectures.encoder_manager</code>
+          <code>graphium.nn.architectures.encoder_manager</code>
 
 
 <a href="#graphium.nn.architectures.encoder_manager" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4824,6 +4843,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h4 id="graphium.nn.architectures.encoder_manager.EncoderManager" class="doc doc-heading">
           <code>EncoderManager</code>
 
@@ -4833,7 +4853,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+            Bases: <code><span title="torch.nn.Module">Module</span></code></p>
 
 
 
@@ -4851,8 +4871,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.in_dims" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">in_dims</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+          <code class="highlight language-python"><span class="n">in_dims</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4896,8 +4917,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.input_keys" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">input_keys</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+          <code class="highlight language-python"><span class="n">input_keys</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4941,8 +4963,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.out_dim" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4989,8 +5012,9 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;encoder_manager&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;encoder_manager&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5054,8 +5078,9 @@ purposes.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5145,8 +5170,9 @@ Must contain the following elements:</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward_positional_encoding</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward_positional_encoding</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5231,8 +5257,9 @@ using <code>self.pe_pooling</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward_simple_pooling</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward_simple_pooling</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5332,8 +5359,9 @@ using <code>self.pe_pooling</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
 

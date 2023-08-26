@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1669,21 +1657,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -2432,8 +2405,9 @@
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.gated_gcn_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.gated_gcn_pyg</code>
+          <code>graphium.nn.pyg_layers.gated_gcn_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2456,6 +2430,7 @@
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -2486,8 +2461,9 @@
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2534,8 +2510,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2582,8 +2559,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2636,8 +2614,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2778,8 +2757,9 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.aggregate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">aggregate</span><span class="p">(</span><span class="n">sigma_ij</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">Bx_j</span><span class="p">,</span> <span class="n">Bx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">aggregate</span><span class="p">(</span><span class="n">sigma_ij</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">Bx_j</span><span class="p">,</span> <span class="n">Bx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.aggregate" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2804,7 +2784,7 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
         <tr>
           <td><code>sigma_ij</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2818,7 +2798,7 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
         <tr>
           <td><code>index</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2832,7 +2812,7 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
         <tr>
           <td><code>Bx_j</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2846,7 +2826,7 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
         <tr>
           <td><code>Bx</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2873,7 +2853,7 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
     <tbody>
         <tr>
 <td><code>out</code></td>          <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2893,8 +2873,9 @@ where <code>gate_weights</code> are the weights of the gates and follow a sigmoi
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2970,8 +2951,9 @@ edge_index with dim [2, n_edges]</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3013,8 +2995,9 @@ edge_index with dim [2, n_edges]</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.message" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">Dx_i</span><span class="p">,</span> <span class="n">Ex_j</span><span class="p">,</span> <span class="n">Ce</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">Dx_i</span><span class="p">,</span> <span class="n">Ex_j</span><span class="p">,</span> <span class="n">Ce</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.message" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3039,7 +3022,7 @@ edge_index with dim [2, n_edges]</p>
         <tr>
           <td><code>Dx_i</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3053,7 +3036,7 @@ edge_index with dim [2, n_edges]</p>
         <tr>
           <td><code>Ex_j</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3067,7 +3050,7 @@ edge_index with dim [2, n_edges]</p>
         <tr>
           <td><code>Ce</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3094,7 +3077,7 @@ edge_index with dim [2, n_edges]</p>
     <tbody>
         <tr>
 <td><code>sigma_ij</code></td>          <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3114,8 +3097,9 @@ edge_index with dim [2, n_edges]</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.update" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">aggr_out</span><span class="p">,</span> <span class="n">Ax</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">aggr_out</span><span class="p">,</span> <span class="n">Ax</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg.update" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3140,7 +3124,7 @@ edge_index with dim [2, n_edges]</p>
         <tr>
           <td><code>aggr_out</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3154,7 +3138,7 @@ edge_index with dim [2, n_edges]</p>
         <tr>
           <td><code>Ax</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3227,8 +3211,9 @@ edge_index with dim [2, n_edges]</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.gps_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.gps_pyg</code>
+          <code>graphium.nn.pyg_layers.gps_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gps_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3247,6 +3232,7 @@ edge_index with dim [2, n_edges]</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -3277,8 +3263,9 @@ edge_index with dim [2, n_edges]</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3325,8 +3312,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3373,8 +3361,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3427,8 +3416,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3766,8 +3756,9 @@ default: None means biased attention is not used</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3839,8 +3830,9 @@ default: None means biased attention is not used</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3901,8 +3893,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.gin_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.gin_pyg</code>
+          <code>graphium.nn.pyg_layers.gin_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gin_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3921,6 +3914,7 @@ Always <code>True</code> for the current class</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -3951,8 +3945,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3999,8 +3994,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4047,8 +4043,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4101,8 +4098,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINConvPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4241,8 +4239,9 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINConvPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4314,8 +4313,9 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINConvPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4365,6 +4365,7 @@ Always <code>False</code> for the current class</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg" class="doc doc-heading">
           <code>GINEConvPyg</code>
 
@@ -4392,8 +4393,9 @@ Always <code>False</code> for the current class</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4440,8 +4442,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4488,8 +4491,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4542,8 +4546,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4683,8 +4688,9 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4756,8 +4762,9 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINEConvPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4818,8 +4825,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.mpnn_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.mpnn_pyg</code>
+          <code>graphium.nn.pyg_layers.mpnn_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4838,6 +4846,7 @@ Always <code>True</code> for the current class</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -4868,8 +4877,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4916,8 +4926,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -4964,8 +4975,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -5018,8 +5030,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;layer_norm&#39;</span><span class="p">,</span> <span class="n">gather_from</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">scatter_to</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">node_combine_method</span><span class="o">=</span><span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="n">num_node_mlp</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mlp_expansion_ratio</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">use_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">aggregation_method</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">],</span> <span class="n">num_edge_mlp</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_globals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edge_dropout_rate</span><span class="o">=</span><span class="mf">0.0035</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;layer_norm&#39;</span><span class="p">,</span> <span class="n">gather_from</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">scatter_to</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">node_combine_method</span><span class="o">=</span><span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="n">num_node_mlp</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mlp_expansion_ratio</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">use_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">aggregation_method</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">],</span> <span class="n">num_edge_mlp</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_globals</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edge_dropout_rate</span><span class="o">=</span><span class="mf">0.0035</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5304,8 +5317,9 @@ supported strings are:</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.aggregate_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">aggregate_features</span><span class="p">(</span><span class="n">input_features</span><span class="p">,</span> <span class="n">senders</span><span class="p">,</span> <span class="n">receivers</span><span class="p">,</span> <span class="n">sender_features</span><span class="p">,</span> <span class="n">receiver_features</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">aggregate_features</span><span class="p">(</span><span class="n">input_features</span><span class="p">,</span> <span class="n">senders</span><span class="p">,</span> <span class="n">receivers</span><span class="p">,</span> <span class="n">sender_features</span><span class="p">,</span> <span class="n">receiver_features</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.aggregate_features" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5447,8 +5461,9 @@ supported strings are:</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5520,8 +5535,9 @@ supported strings are:</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.gather_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">gather_features</span><span class="p">(</span><span class="n">input_features</span><span class="p">,</span> <span class="n">senders</span><span class="p">,</span> <span class="n">receivers</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">gather_features</span><span class="p">(</span><span class="n">input_features</span><span class="p">,</span> <span class="n">senders</span><span class="p">,</span> <span class="n">receivers</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.gather_features" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5603,8 +5619,9 @@ Gathered receiver features</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5665,8 +5682,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.pna_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.pna_pyg</code>
+          <code>graphium.nn.pyg_layers.pna_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pna_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5685,6 +5703,7 @@ Always <code>True</code> for the current class</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -5715,8 +5734,9 @@ Always <code>True</code> for the current class</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -5763,8 +5783,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -5811,8 +5832,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -5865,8 +5887,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;lin&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pretrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;lin&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pretrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6090,8 +6113,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.aggregate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">aggregate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">aggregate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.aggregate" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6205,8 +6229,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6278,8 +6303,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6321,8 +6347,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.message" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="n">x_j</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="n">x_j</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.message" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6440,8 +6467,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.pooling_pyg" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.pooling_pyg</code>
+          <code>graphium.nn.pyg_layers.pooling_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -6460,6 +6488,7 @@ The results from all scalers will be concatenated</p>
 
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -6493,8 +6522,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pooling_pyg.PoolingWrapperPyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">feature</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">feature</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.PoolingWrapperPyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6586,6 +6616,7 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg" class="doc doc-heading">
           <code>VirtualNodePyg</code>
 
@@ -6595,7 +6626,7 @@ The results from all scalers will be concatenated</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -6616,8 +6647,9 @@ The results from all scalers will be concatenated</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="p">,</span> <span class="n">vn_type</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="p">,</span> <span class="n">vn_type</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6824,8 +6856,9 @@ aggregation and update of features</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">feat</span><span class="p">,</span> <span class="n">vn_feat</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">feat</span><span class="p">,</span> <span class="n">vn_feat</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6978,8 +7011,9 @@ Edge feature tensor, after convolution and residual - if edges are used, otherwi
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.parse_pooling_layer_pyg" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parse_pooling_layer_pyg</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">parse_pooling_layer_pyg</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">feat_type</span><span class="o">=</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.parse_pooling_layer_pyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -7051,8 +7085,9 @@ in a Module that concatenates their outputs.</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.scatter_logsum_pool" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">scatter_logsum_pool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">scatter_logsum_pool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.scatter_logsum_pool" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -7159,8 +7194,9 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.scatter_std_pool" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">scatter_std_pool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">scatter_std_pool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.scatter_std_pool" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -7275,8 +7311,9 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h3 id="graphium.nn.pyg_layers.utils" class="doc doc-heading">
-            <code>graphium.nn.pyg_layers.utils</code>
+          <code>graphium.nn.pyg_layers.utils</code>
 
 
 <a href="#graphium.nn.pyg_layers.utils" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -7298,6 +7335,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.utils.GaussianLayer" class="doc doc-heading">
           <code>GaussianLayer</code>
 
@@ -7307,7 +7345,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -7328,8 +7366,9 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.utils.GaussianLayer.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_kernels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_kernels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.utils.GaussianLayer.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -7384,6 +7423,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.utils.PreprocessPositions" class="doc doc-heading">
           <code>PreprocessPositions</code>
 
@@ -7393,7 +7433,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
   
       <p>Compute 3D attention bias and 3D node features according to the 3D position information.</p>
@@ -7416,8 +7456,9 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.utils.PreprocessPositions.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_heads</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">num_kernel</span><span class="p">,</span> <span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_heads</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">num_kernel</span><span class="p">,</span> <span class="n">in_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;gelu&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.utils.PreprocessPositions.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -7528,8 +7569,9 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 
+
 <h5 id="graphium.nn.pyg_layers.utils.PreprocessPositions.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="p">,</span> <span class="n">on_ipu</span><span class="p">,</span> <span class="n">positions_3d_key</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="p">,</span> <span class="n">on_ipu</span><span class="p">,</span> <span class="n">positions_3d_key</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.utils.PreprocessPositions.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -7566,8 +7608,9 @@ positions_3d_key:
 
 
 
+
 <h4 id="graphium.nn.pyg_layers.utils.triplets" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">triplets</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">triplets</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.utils.triplets" class="headerlink" title="Permanent link">&para;</a></h4>
 

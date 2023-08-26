@@ -308,18 +308,6 @@
   </li>
 
       
-        
-  
-  
-
-
-  <li class="md-tabs__item">
-    <a href="../../cli_references.html" class="md-tabs__link">
-      CLI
-    </a>
-  </li>
-
-      
     </ul>
   </div>
 </nav>
@@ -1646,21 +1634,6 @@
   
 
     
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../cli_references.html" class="md-nav__link">
-        CLI
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -2383,8 +2356,9 @@
 
 
 
+
 <h3 id="graphium.nn.base_graph_layer" class="doc doc-heading">
-            <code>graphium.nn.base_graph_layer</code>
+          <code>graphium.nn.base_graph_layer</code>
 
 
 <a href="#graphium.nn.base_graph_layer" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2406,6 +2380,7 @@
 
 
 
+
 <h4 id="graphium.nn.base_graph_layer.BaseGraphModule" class="doc doc-heading">
           <code>BaseGraphModule</code>
 
@@ -2415,7 +2390,7 @@
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -2436,8 +2411,9 @@
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2599,6 +2575,7 @@ and outputs.</p>
 
 
 
+
 <h4 id="graphium.nn.base_graph_layer.BaseGraphStructure" class="doc doc-heading">
           <code>BaseGraphStructure</code>
 
@@ -2624,8 +2601,9 @@ and outputs.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.layer_inputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2673,8 +2651,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.layer_outputs_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
+          <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2722,8 +2701,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.max_num_edges_per_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+          <code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2744,8 +2724,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.max_num_nodes_per_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+          <code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -2766,8 +2747,9 @@ supports edges can decide to not use them.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.out_dim_factor" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -2822,8 +2804,9 @@ of heads.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2978,8 +2961,9 @@ and outputs.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2997,8 +2981,9 @@ and outputs.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">feat</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">feat</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3126,8 +3111,9 @@ output layer.</p>
 
 
 
+
 <h5 id="graphium.nn.base_graph_layer.BaseGraphStructure.layer_supports_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">layer_supports_edges</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.base_graph_layer.BaseGraphStructure.layer_supports_edges" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3179,8 +3165,9 @@ supports output edges edges or not.</p>
 
 
 
+
 <h4 id="graphium.nn.base_graph_layer.check_intpus_allow_int" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">check_intpus_allow_int</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">check_intpus_allow_int</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_graph_layer.check_intpus_allow_int" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3208,8 +3195,9 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 
+
 <h3 id="graphium.nn.base_layers" class="doc doc-heading">
-            <code>graphium.nn.base_layers</code>
+          <code>graphium.nn.base_layers</code>
 
 
 <a href="#graphium.nn.base_layers" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3231,6 +3219,7 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.DropPath" class="doc doc-heading">
           <code>DropPath</code>
 
@@ -3240,7 +3229,7 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -3261,8 +3250,9 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 
+
 <h5 id="graphium.nn.base_layers.DropPath.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.DropPath.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3313,8 +3303,9 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h5 id="graphium.nn.base_layers.DropPath.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.DropPath.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3412,8 +3403,9 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h5 id="graphium.nn.base_layers.DropPath.get_stochastic_drop_rate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_stochastic_drop_rate</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_stochastic_drop_rate</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -3501,6 +3493,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h4 id="graphium.nn.base_layers.FCLayer" class="doc doc-heading">
           <code>FCLayer</code>
 
@@ -3510,7 +3503,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -3528,8 +3521,9 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h5 id="graphium.nn.base_layers.FCLayer.in_channels" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3549,8 +3543,9 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h5 id="graphium.nn.base_layers.FCLayer.out_channels" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span></code>
+          <code class="highlight language-python"><span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -3573,8 +3568,9 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
 
 
+
 <h5 id="graphium.nn.base_layers.FCLayer.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_readout_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_readout_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.FCLayer.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3841,8 +3837,9 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
 
 
 
+
 <h5 id="graphium.nn.base_layers.FCLayer.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.FCLayer.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3867,7 +3864,7 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3896,7 +3893,7 @@ Input feature tensor, before the FC.
     <tbody>
         <tr>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3918,8 +3915,9 @@ Output feature tensor, after the FC.
 
 
 
+
 <h5 id="graphium.nn.base_layers.FCLayer.reset_parameters" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">reset_parameters</span><span class="p">(</span><span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">reset_parameters</span><span class="p">(</span><span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.FCLayer.reset_parameters" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3944,6 +3942,7 @@ Output feature tensor, after the FC.
 
 
 
+
 <h4 id="graphium.nn.base_layers.GRU" class="doc doc-heading">
           <code>GRU</code>
 
@@ -3953,7 +3952,7 @@ Output feature tensor, after the FC.
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -3974,8 +3973,9 @@ Output feature tensor, after the FC.
 
 
 
+
 <h5 id="graphium.nn.base_layers.GRU.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.GRU.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4037,8 +4037,9 @@ Output feature tensor, after the FC.
 
 
 
+
 <h5 id="graphium.nn.base_layers.GRU.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.GRU.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4129,6 +4130,7 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.MLP" class="doc doc-heading">
           <code>MLP</code>
 
@@ -4138,7 +4140,7 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -4159,8 +4161,9 @@ where Dh &lt;= hidden_dim (difference is padded)</p>
 
 
 
+
 <h5 id="graphium.nn.base_layers.MLP.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">constant_droppath_rate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">constant_droppath_rate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.MLP.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4406,8 +4409,9 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
 
 
 
+
 <h5 id="graphium.nn.base_layers.MLP.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.base_layers.MLP.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4425,8 +4429,9 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
 
 
 
+
 <h5 id="graphium.nn.base_layers.MLP.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.MLP.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4451,7 +4456,7 @@ See <code>DropPath.get_stochastic_drop_rate</code></p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4480,7 +4485,7 @@ Input feature tensor, before the MLP.
     <tbody>
         <tr>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4506,6 +4511,7 @@ Output feature tensor, after the MLP.
 </div>
 
 <div class="doc doc-object doc-class">
+
 
 
 
@@ -4553,6 +4559,7 @@ value, but won't give the same results as CPU</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.MultiheadAttentionMup" class="doc doc-heading">
           <code>MultiheadAttentionMup</code>
 
@@ -4562,7 +4569,7 @@ value, but won't give the same results as CPU</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.MultiheadAttention">MultiheadAttention</span></code></p>
+            Bases: <code><span title="torch.MultiheadAttention">MultiheadAttention</span></code></p>
 
   
       <p>Modifying the MultiheadAttention to work with the muTransfer paradigm.
@@ -4595,6 +4602,7 @@ The biased self-attention option is added to have 3D attention bias.</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.TransformerEncoderLayerMup" class="doc doc-heading">
           <code>TransformerEncoderLayerMup</code>
 
@@ -4604,7 +4612,7 @@ The biased self-attention option is added to have 3D attention bias.</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
+            Bases: <code><span title="torch.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
 
   
       <p>Modified version of <code>torch.nn.TransformerEncoderLayer</code> that uses :math:<code>1/n</code>-scaled attention
@@ -4638,8 +4646,9 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.get_activation" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_activation</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_activation</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.get_activation" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4712,8 +4721,9 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.get_activation_str" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_activation_str</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_activation_str</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.get_activation_str" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4786,8 +4796,9 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 
 
+
 <h4 id="graphium.nn.base_layers.get_norm" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_norm</span><span class="p">(</span><span class="n">normalization</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_norm</span><span class="p">(</span><span class="n">normalization</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.base_layers.get_norm" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4882,8 +4893,9 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
 
 
+
 <h3 id="graphium.nn.residual_connections" class="doc doc-heading">
-            <code>graphium.nn.residual_connections</code>
+          <code>graphium.nn.residual_connections</code>
 
 
 <a href="#graphium.nn.residual_connections" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4908,6 +4920,7 @@ Concat and DenseNet</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionBase" class="doc doc-heading">
           <code>ResidualConnectionBase</code>
 
@@ -4917,7 +4930,7 @@ Concat and DenseNet</p>
 
   <div class="doc doc-contents ">
           <p class="doc doc-class-bases">
-            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
+            Bases: <code><span title="torch.Module">Module</span></code></p>
 
 
 
@@ -4938,8 +4951,9 @@ Concat and DenseNet</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionBase.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionBase.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -4997,8 +5011,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionBase.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionBase.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5016,8 +5031,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionBase.get_true_out_dims" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_true_out_dims</span><span class="p">(</span><span class="n">out_dims</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">get_true_out_dims</span><span class="p">(</span><span class="n">out_dims</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionBase.get_true_out_dims" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5089,8 +5105,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionBase.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -5147,8 +5164,9 @@ of all previous layers.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionBase.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
@@ -5200,6 +5218,7 @@ Whether the residual connection uses weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionConcat" class="doc doc-heading">
           <code>ResidualConnectionConcat</code>
 
@@ -5230,8 +5249,9 @@ Whether the residual connection uses weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionConcat.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionConcat.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5284,8 +5304,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionConcat.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionConcat.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5310,7 +5331,7 @@ layers are connected.</p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5325,7 +5346,7 @@ The current layer features</p>
         <tr>
           <td><code>h_prev</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5402,8 +5423,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionConcat.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionConcat.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5444,8 +5466,9 @@ The dimension of the output layer is the concatenation with the previous layer.<
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionConcat.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionConcat.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5493,6 +5516,7 @@ The current class does not use weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionDenseNet" class="doc doc-heading">
           <code>ResidualConnectionDenseNet</code>
 
@@ -5523,8 +5547,9 @@ The current class does not use weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionDenseNet.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionDenseNet.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5577,8 +5602,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionDenseNet.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionDenseNet.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5603,7 +5629,7 @@ layers are connected.</p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5618,7 +5644,7 @@ The current layer features</p>
         <tr>
           <td><code>h_prev</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -5695,8 +5721,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionDenseNet.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionDenseNet.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5737,8 +5764,9 @@ The dimension of the output layer is the concatenation of all the previous layer
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionDenseNet.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionDenseNet.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5786,6 +5814,7 @@ The current class does not use weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionNone" class="doc doc-heading">
           <code>ResidualConnectionNone</code>
 
@@ -5819,8 +5848,9 @@ This class is only used for simpler code compatibility</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionNone.__repr__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionNone.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5838,8 +5868,9 @@ This class is only used for simpler code compatibility</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionNone.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionNone.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5891,8 +5922,9 @@ Return same as input.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionNone.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionNone.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5932,8 +5964,9 @@ Return same as input.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionNone.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionNone.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5981,6 +6014,7 @@ The current class does not use weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionRandom" class="doc doc-heading">
           <code>ResidualConnectionRandom</code>
 
@@ -6011,8 +6045,9 @@ The current class does not use weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionRandom.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionRandom.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6089,8 +6124,9 @@ of layers. Must be provided if <code>num_layers</code> is None.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionRandom.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionRandom.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6116,7 +6152,7 @@ similar to ResNet.</p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6131,7 +6167,7 @@ The current layer features</p>
         <tr>
           <td><code>h_prev</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6207,8 +6243,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionRandom.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionRandom.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6248,8 +6285,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionRandom.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionRandom.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6297,6 +6335,7 @@ The current class does not use weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionSimple" class="doc doc-heading">
           <code>ResidualConnectionSimple</code>
 
@@ -6327,8 +6366,9 @@ The current class does not use weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionSimple.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionSimple.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6381,8 +6421,9 @@ layers are connected.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionSimple.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionSimple.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6408,7 +6449,7 @@ similar to ResNet.</p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6423,7 +6464,7 @@ The current layer features</p>
         <tr>
           <td><code>h_prev</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6499,8 +6540,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionSimple.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionSimple.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6540,8 +6582,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionSimple.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionSimple.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6589,6 +6632,7 @@ The current class does not use weights</p>
 
 
 
+
 <h4 id="graphium.nn.residual_connections.ResidualConnectionWeighted" class="doc doc-heading">
           <code>ResidualConnectionWeighted</code>
 
@@ -6619,8 +6663,9 @@ The current class does not use weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionWeighted.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">out_dims</span><span class="p">,</span> <span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">out_dims</span><span class="p">,</span> <span class="n">skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionWeighted.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6753,8 +6798,9 @@ Whether to apply add a bias after the weights</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionWeighted.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h_prev</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionWeighted.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6780,7 +6826,7 @@ a feed-forward layer.</p>
         <tr>
           <td><code>h</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6795,7 +6841,7 @@ The current layer features</p>
         <tr>
           <td><code>h_prev</code></td>
           <td>
-                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -6871,8 +6917,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionWeighted.h_dim_increase_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">h_dim_increase_type</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionWeighted.h_dim_increase_type" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -6912,8 +6959,9 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
 
 
 
+
 <h5 id="graphium.nn.residual_connections.ResidualConnectionWeighted.has_weights" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
+          <code class="highlight language-python"><span class="n">has_weights</span><span class="p">()</span></code>
 
 <a href="#graphium.nn.residual_connections.ResidualConnectionWeighted.has_weights" class="headerlink" title="Permanent link">&para;</a></h5>
 
