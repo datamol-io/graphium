@@ -65,7 +65,7 @@ Below is the loss on the training set. One can observe that the multi-task model
 
 This is not surprising as they contain two orders of magnitude more datapoints and pose a significant challenge for the relatively small models used in this analysis. This favors the Single dataset setup (which uses a model of the same size) and we conjecture larger models to bridge this gap moving forward.
 
-|            |       | CE or BCE loss in single-task $\downarrow$ | CE or BCE loss in multi-task $\downarrow$ |
+|            |       | CE or MSE loss in single-task $\downarrow$ | CE or MSE loss in multi-task $\downarrow$ |
 |------------|-------|-----------------------------------------|-----------------------------------------|
 |            |       |                                       |                                       |
 | **Pcqm4m\_g25**    | GCN   | **0.2660 ± 0.0005** | 0.2767 ± 0.0015 |
