@@ -97,6 +97,7 @@ class BaseDataModule(lightning.LightningDataModule):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
+        multiprocessing_context: Optional[str] = None,
         collate_fn: Optional[Callable] = None,
     ):
         """
@@ -108,6 +109,7 @@ class BaseDataModule(lightning.LightningDataModule):
             num_workers: number of workers for data loading
             pin_memory: whether to pin memory
             persistent_workers: whether to use persistent workers
+            multiprocessing_context: multiprocessing context for data worker creation
             collate_fn: collate function for batching
         """
         super().__init__()
@@ -127,6 +129,7 @@ class BaseDataModule(lightning.LightningDataModule):
         self.num_workers = num_workers
         self.pin_memory = pin_memory
         self.persistent_workers = persistent_workers
+        self.multiprocessing_context = multiprocessing_context
 
         self.collate_fn = self.get_collate_fn(collate_fn)
 
@@ -498,6 +501,7 @@ class BaseDataModule(lightning.LightningDataModule):
         loader_kwargs["num_workers"] = self.get_num_workers
         loader_kwargs["pin_memory"] = self.pin_memory
         loader_kwargs["persistent_workers"] = self.persistent_workers
+        loader_kwargs["multiprocessing_context"] = self.multiprocessing_context
 
         # Update from provided parameters
         loader_kwargs.update(**kwargs)
@@ -781,6 +785,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
+        multiprocessing_context: Optional[str] = None,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
@@ -875,6 +880,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
+            multiprocessing_context=multiprocessing_context,
             collate_fn=collate_fn,
         )
         IPUDataModuleModifier.__init__(self, **kwargs)
@@ -2152,6 +2158,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
+        multiprocessing_context: Optional[str] = None,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
@@ -2231,6 +2238,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["featurization_progress"] = featurization_progress
         dm_args["featurization_backend"] = featurization_backend
         dm_args["persistent_workers"] = persistent_workers
+        dm_args["multiprocessing_context"] = multiprocessing_context
         dm_args["collate_fn"] = collate_fn
         dm_args["prepare_dict_or_graph"] = prepare_dict_or_graph
 
@@ -2412,6 +2420,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
+        multiprocessing_context: Optional[str] = None,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
@@ -2470,6 +2479,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
+            multiprocessing_context=multiprocessing_context,
             featurization_n_jobs=featurization_n_jobs,
             featurization_progress=featurization_progress,
             featurization_backend=featurization_backend,
@@ -2553,6 +2563,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
+        multiprocessing_context: Optional[str] = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         num_mols_to_generate: int = 1000000,
@@ -2567,6 +2578,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
+            multiprocessing_context=multiprocessing_context,
             collate_fn=collate_fn,
             prepare_dict_or_graph=prepare_dict_or_graph,
             **kwargs,
