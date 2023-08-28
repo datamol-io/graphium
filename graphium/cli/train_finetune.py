@@ -44,16 +44,12 @@ def run_training_finetuning(cfg: DictConfig) -> None:
 
     st = timeit.default_timer()
 
-    ckpt_path = cfg["trainer"].pop("ckpt_path", None)
-
     wandb_cfg = cfg["constants"].get("wandb")
     if wandb_cfg is not None:
         wandb.init(
             entity=wandb_cfg["entity"],
             project=wandb_cfg["project"],
             config=cfg,
-            id=wandb_cfg.pop("id", None),
-            # resume="must",
         )
 
     ## == Instantiate all required objects from their respective configs ==
@@ -104,7 +100,7 @@ def run_training_finetuning(cfg: DictConfig) -> None:
 
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.fit(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
+        trainer.fit(model=predictor, datamodule=datamodule)
 
     # Determine the max num nodes and edges in testing
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
