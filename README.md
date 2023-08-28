@@ -66,6 +66,7 @@ source enable_ipu.sh .graphium_ipu
 ```
 
 ## The Graphium CLI
+
 Installing `graphium` makes two CLI tools available: `graphium` and `graphium-train`. These CLI tools make it easy to access advanced functionality, such as _training a model_,  _extracting fingerprints from a pre-trained model_ or _precomputing the dataset_. For more information, visit [the documentation](https://graphium-docs.datamol.io/stable/cli/reference.html).
 
 ## License
