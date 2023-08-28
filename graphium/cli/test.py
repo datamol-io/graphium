@@ -50,7 +50,9 @@ def run_testing(cfg: DictConfig) -> None:
     datamodule = load_datamodule(cfg, accelerator_type)
 
     ## Load Predictor
-    predictor = PredictorModule.load_from_checkpoint(checkpoint_path=get_checkpoint_path(cfg), map_location=cfg["accelerator"]["type"])
+    predictor = PredictorModule.load_from_checkpoint(
+        checkpoint_path=get_checkpoint_path(cfg), map_location=cfg["accelerator"]["type"]
+    )
 
     ## Load Trainer
     date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
