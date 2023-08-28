@@ -1,6 +1,7 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 import fsspec
+import numpy as np
 import torch
 import tqdm
 import typer
@@ -17,7 +18,7 @@ from graphium.utils import fs
 from graphium.trainer.predictor import PredictorModule
 
 from .main import app
-from .train_finetune import run_training_finetuning
+from .train_finetune_test import run_training_finetuning_testing
 
 finetune_app = typer.Typer(help="Utility CLI for extra fine-tuning utilities.")
 app.add_typer(finetune_app, name="finetune")
@@ -31,6 +32,7 @@ def benchmark_tdc_admet_cli(
 ):
     """
     Utility CLI to easily fine-tune a model on (a subset of) the benchmarks in the TDC ADMET group.
+
     A major limitation is that we cannot use all features of the Hydra CLI, such as multiruns.
     """
     try:
@@ -59,7 +61,7 @@ def benchmark_tdc_admet_cli(
             )
 
         # Run the training loop
-        ret = run_training_finetuning(cfg)
+        ret = run_training_finetuning_testing(cfg)
         ret = {k: v.item() for k, v in ret.items()}
         results[n] = ret
 
@@ -74,14 +76,21 @@ def benchmark_tdc_admet_cli(
         yaml.dump(results, f)
 
 
-@finetune_app.command(name="fp")
+@finetune_app.command(name="fingerprint")
 def get_fingerprints_from_model(
     fingerprint_layer_spec: List[str],
     pretrained_model: str,
     save_destination: str,
+    output_type: str = typer.Option("torch", help="Either numpy (.npy) or torch (.pt) output"),
     overrides: Optional[List[str]] = typer.Option(None, "--override", "-o", help="Hydra overrides"),
 ):
-    """Endpoint for getting fingerprints from a pretrained model."""
+    """Endpoint for getting fingerprints from a pretrained model.
+
+    The pretrained model should be a `.ckpt` path or pre-specified, named model within Graphium.
+    The fingerprint layer specification should be of the format `module:layer`.
+    If specified as a list, the fingerprints from all the specified layers will be concatenated.
+    See the docs of the `graphium.finetuning.fingerprinting.Fingerprinter` class for more info.
+    """
 
     if overrides is None:
         overrides = []
@@ -104,29 +113,24 @@ def get_fingerprints_from_model(
     datamodule.setup("predict")
 
     # Model
-    model = PredictorModule.load_pretrained_model(
+    predictor = PredictorModule.load_pretrained_model(
         pretrained_model,
         device=accelerator_type,
-    ).model
+    )
 
     ## == Fingerprinter
-
-    fps = []
-    with Fingerprinter(network=model, fingerprint_spec=fingerprint_layer_spec) as fp:
-        for batch in tqdm.tqdm(datamodule.predict_dataloader(), desc="Getting fingerprints"):
-            # TODO (cwognum): This is a hack to make sure the features are float32 (instead of float16)
-            #  I'm not sure why it is needed. Maybe we should try reuse the trainer.predict() endpoint from PTL?
-            for k, v in batch["features"].items():
-                if isinstance(v, torch.Tensor) and torch.is_floating_point(v):
-                    batch["features"][k] = v.float()
-
-            feats = fp.get_fingerprints_for_batch(batch)
-            fps.append(feats)
-
-    fps = torch.cat(fps, dim=0)
+    with Fingerprinter(model=predictor, fingerprint_spec=fingerprint_layer_spec, out_type=output_type) as fp:
+        fps = fp.get_fingerprints_for_dataset(datamodule.predict_dataloader())
 
     fs.mkdir(save_destination, exist_ok=True)
-    path = fs.join(save_destination, "fingerprints.pt")
 
-    logger.info(f"Saving fingerprints to {path}")
-    torch.save(fps, path)
+    if output_type == "numpy":
+        path = fs.join(save_destination, "fingerprints.npy")
+        logger.info(f"Saving fingerprints to {path}")
+        with fsspec.open(path, "wb") as f:
+            np.save(path, fps)
+
+    else:
+        path = fs.join(save_destination, "fingerprints.pt")
+        logger.info(f"Saving fingerprints to {path}")
+        torch.save(fps, path)

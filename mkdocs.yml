@@ -41,6 +41,11 @@ nav:
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
+  - CLI: 
+    - About: cli/reference.md
+    - Commands: 
+      - graphium: cli/graphium.md
+      - graphium-train: cli/graphium-train.md
   - Contribute: contribute.md
   - License: license.md
 

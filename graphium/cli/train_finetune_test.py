@@ -46,10 +46,10 @@ def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training, fine-tuning and evaluating Graphium models.
     """
-    return run_training_finetuning(cfg)
+    return run_training_finetuning_testing(cfg)
 
 
-def run_training_finetuning(cfg: DictConfig) -> None:
+def run_training_finetuning_testing(cfg: DictConfig) -> None:
     """
     The main (pre-)training and fine-tuning loop.
     """
