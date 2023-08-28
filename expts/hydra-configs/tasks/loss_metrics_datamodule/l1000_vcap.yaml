@@ -45,5 +45,5 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: ../data/graphium/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
-        split_names: [train, val, test_seen]
+        # split_names: [train, val, test_seen]
         epoch_sampling_fraction: 1.0

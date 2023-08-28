@@ -92,6 +92,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: ../data/graphium/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        # split_names: [train, val, test_seen]
         epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
@@ -104,6 +105,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: ../data/graphium/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        # split_names: [train, val, test_seen]
         epoch_sampling_fraction: 1.0
 
       pcba_1328:
@@ -116,6 +118,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: ../data/graphium/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        # split_names: [train, val, test_seen]
         epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
@@ -128,6 +131,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: ../data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        # split_names: [train, val, test_seen]
         label_normalization:
           normalize_val_test: True
           method: "normal"
@@ -143,6 +147,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: ../data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        # split_names: [train, val, test_seen]
         seed: 42
         label_normalization:
           normalize_val_test: True
