@@ -14,6 +14,8 @@
 *.datacache.gz
 lightning_logs/
 logs/
+multirun/
+hparam-search-results/
 models_checkpoints/
 outputs/
 out/
@@ -39,7 +41,8 @@ graphium/data/neurips2023/dummy-dataset/
 graphium/data/make_data_splits/*.csv*
 graphium/data/make_data_splits/*.pt*
 graphium/data/make_data_splits/*.parquet*
-
+*.csv.gz
+*.pt
 
 # Others
 expts_untracked/

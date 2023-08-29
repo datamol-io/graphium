@@ -30,7 +30,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "click",
+    "typer",
     "loguru",
     "omegaconf >=2.0.0",
     "tqdm",
@@ -63,9 +63,8 @@ dependencies = [
 ]
 
 [project.scripts]
-graphium = "graphium.cli.main:main_cli"
- graphium-train = "graphium.cli.train_finetune:cli"
- graphium-prepare-data = "graphium.cli.prepare_data:cli"
+graphium = "graphium.cli.main:app"
+graphium-train = "graphium.cli.train_finetune:cli"
 
 [project.urls]
 Website = "https://graphium.datamol.io/"

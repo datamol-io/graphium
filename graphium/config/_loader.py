@@ -1,36 +1,35 @@
-from typing import Dict, Mapping, Tuple, Type, Union, Any, Optional, Callable
-
 # Misc
 import os
-import omegaconf
 from copy import deepcopy
-from loguru import logger
-import yaml
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union
+
 import joblib
-import pathlib
-import warnings
+import mup
+import omegaconf
 
 # Torch
 import torch
-import mup
+import yaml
 
 # Lightning
 from lightning import Trainer
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from lightning.pytorch.loggers import WandbLogger, Logger
+from lightning.pytorch.loggers import Logger, WandbLogger
+from loguru import logger
+
+from graphium.data.datamodule import BaseDataModule, MultitaskFromSmilesDataModule
+from graphium.finetuning.finetuning_architecture import FullGraphFinetuningNetwork
+from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
+from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
+from graphium.nn.architectures import FullGraphMultiTaskNetwork
+from graphium.nn.utils import MupMixin
+from graphium.trainer.metrics import MetricWrapper
+from graphium.trainer.predictor import PredictorModule
+from graphium.utils.command_line_utils import get_anchors_and_aliases, update_config
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
-from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
-from graphium.trainer.metrics import MetricWrapper
-from graphium.nn.architectures import FullGraphMultiTaskNetwork
-from graphium.finetuning.finetuning_architecture import FullGraphFinetuningNetwork
-from graphium.nn.utils import MupMixin
-from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import DATAMODULE_DICT
-from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
-from graphium.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
-from graphium.utils.command_line_utils import update_config, get_anchors_and_aliases
 
 
 def get_accelerator(
@@ -264,12 +263,12 @@ def load_architecture(
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
         pretrained_overwriting_kwargs = config["finetuning"].pop("overwriting_kwargs")
-        pretrained_model_name = pretrained_overwriting_kwargs.pop("pretrained_model_name")
+        pretrained_model = pretrained_overwriting_kwargs.pop("pretrained_model")
 
         model_kwargs = {
             "pretrained_model_kwargs": deepcopy(model_kwargs),
             "pretrained_overwriting_kwargs": pretrained_overwriting_kwargs,
-            "pretrained_model_name": pretrained_model_name,
+            "pretrained_model": pretrained_model,
             "finetuning_head_kwargs": finetuning_head_kwargs,
         }
 
@@ -372,7 +371,7 @@ def load_trainer(
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = config["trainer"]["trainer"].get("strategy", "auto")
+    strategy = cfg_trainer["trainer"].pop("strategy", "auto")
     if accelerator_type == "ipu":
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
@@ -409,7 +408,6 @@ def load_trainer(
 
     # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
-        cfg_trainer["model_checkpoint"]["dirpath"] += str(cfg_trainer["seed"]) + "/"
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
