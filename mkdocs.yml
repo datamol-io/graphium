@@ -25,6 +25,7 @@ nav:
       - graphium.config: api/graphium.config.md
       - graphium.ipu: api/graphium.ipu.md
       - graphium.visualization: api/graphium.visualization.md
+      - graphium.finetuning: api/graphium.finetuning.md
   - Tutorials:
       - feature_processing:
           - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
@@ -40,9 +41,13 @@ nav:
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
+  - CLI: 
+    - About: cli/reference.md
+    - Commands: 
+      - graphium: cli/graphium.md
+      - graphium-train: cli/graphium-train.md
   - Contribute: contribute.md
   - License: license.md
-  - CLI: cli_references.md
 
 theme:
   name: material
@@ -72,7 +77,6 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.tasklist
   - pymdownx.details
-  - mkdocs-click
   - pymdownx.arithmatex:
       generic: true
   - toc:

@@ -2,102 +2,64 @@
 
 ---
 
-### Diagram for data processing in molGPS.
+
+The library is designed with 3 things in mind:
+
+- High modularity and configurability with *YAML* files
+- Contain the state-of-the art GNNs, including positional encodings and graph Transformers
+- Massively multitasking across diverse and sparse datasets
+
+The current page will walk you through the different aspects of the design that enable that.
+
+### Diagram for data processing in Graphium.
+
+First, when working with molecules, there are tons of options regarding atomic and bond featurisation that can be extracted from the periodic table, from empirical results, or from simulated 3D structures.
+
+Second, when working with graph Transformers, there are plenty of options regarding the positional and structural encodings (PSE) that are fundamental in driving the accuracy and the generalization of the models.
+
+With this in mind, we propose a very versatile chemical and PSE encoding, alongside an encoder manager, that can be fully configured from the yaml files. The idea is to assign matching *input keys* to both the features and the encoders, then pool the outputs according to the *output keys*. It is better summarized in the image below.
 
 <img src="images/datamodule.png" alt= "Data Processing Chart" width="100%" height="100%">
 
 
 
-### Diagram for Muti-task network in molGPS
+### Diagram for Muti-task network in Graphium
+
+As mentioned, we want to be able to pperform massive multi-tasking to enable us to work across a huge diversity of datasets. The idea is to use a combination of multiple task-heads, where a different MLP is applied to each task predictions. However, it is also designed such that each task can have as many labels as desired, thus enabling to group labels together according to whether they should share weights/losses.
+
+The design is better explained in the image below. Notice how the *keys* outputed by GraphDict are used differently across the different GNN layers.
 
 <img src="images/full_graph_network.png" alt= "Full Graph Multi-task Network" width="100%" height="100%">
-
-
-
-
-
-
-**Section from the previous README:**
-
-### Data setup
-
-Then, you need to download the data needed to run the code. Right now, we have 2 sets of data folders, present in the link [here](https://drive.google.com/drive/folders/1RrbNZkEE2rf41_iroa1LbIyegW00h3Ql?usp=sharing).
-
-- **micro_ZINC** (Synthetic dataset)
-  - A small subset (1000 mols) of the ZINC dataset
-  - The score is the subtraction of the computed LogP and the synthetic accessibility score SA
-  - The data must be downloaded to the folder `./graphium/data/micro_ZINC/`
-
-- **ZINC_bench_gnn** (Synthetic dataset)
-  - A subset (12000 mols) of the ZINC dataset
-  - The score is the subtraction of the computed LogP and the synthetic accessibility score SA
-  - These are the same 12k molecules provided by the [Benchmarking-gnn](https://github.com/graphdeeplearning/benchmarking-gnns) repository.
-    - We provide the pre-processed graphs in `ZINC_bench_gnn/data_from_benchmark`
-    - We provide the SMILES in `ZINC_bench_gnn/smiles_score.csv`, with the train-val-test indexes in the file `indexes_train_val_test.csv`.
-      - The first 10k elements are the training set
-      - The next 1k the valid set
-      - The last 1k the test set.
-  - The data must be downloaded to the folder `./graphium/data/ZINC_bench_gnn/`
-
-Then, you can run the main file to make sure that all the dependancies are correctly installed and that the code works as expected.
-
-```bash
-python expts/main_micro_zinc.py
-```
-
----
-
-**TODO: explain the internal design of Graphium so people can contribute to it more easily.**
 
 ## Structure of the code
 
 The code is built to rapidly iterate on different architectures of neural networks (NN) and graph neural networks (GNN) with Pytorch. The main focus of this work is molecular tasks, and we use the package `rdkit` to transform molecular SMILES into graphs.
 
-### data_parser
+Below are a list of directory and their respective documentations:
 
-This folder contains tools that allow tdependenciesrent kind of molecular data files, such as `.csv` or `.xlsx` with SMILES data, or `.sdf` files with 3D data.
+- cli
+- [config](https://github.com/datamol-io/graphium/blob/main/graphium/config/README.md)
+- [data](https://github.com/datamol-io/graphium/blob/main/graphium/data/README.md)
+- [features](https://github.com/datamol-io/graphium/tree/main/graphium/features/README.md)
+- finetuning
+- [ipu](https://github.com/datamol-io/graphium/tree/main/graphium/ipu/README.md)
+- [nn](https://github.com/datamol-io/graphium/tree/main/graphium/nn/README.md)
+- [trainer](https://github.com/datamol-io/graphium/tree/main/graphium/trainer/README.md)
+- [utils](https://github.com/datamol-io/graphium/tree/main/graphium/features/README.md)
+- [visualization](https://github.com/datamol-io/graphium/tree/main/graphium/visualization/README.md)
 
 
-### features
+## Structure of the configs
 
-Different utilities for molecules, such as Smiles to adjacency graph transformer, molecular property extraction, atomic properties, bond properties, ...
+Making the library very modular requires to have configuration files that have >200 lines, which becomes intractable, especially when we only want to have minor changes between configurations.
 
-**_The MolecularTransformer and AdjGraphTransformer come from ivbase, but I don't like them. I think we should replace them with something simpler and give more flexibility for combining one-hot embedding with physical properties embedding._**.
+Hence, we use [hydra](https://hydra.cc/docs/intro/) to enable splitting the configurations into smaller and composable configuration files.
 
-### trainer
+Examples of possibilities include:
 
-The trainer contains the interface to the `pytorch-lightning` library, with `PredictorModule` being the main class used for any NN model, either for regression or classification. It also contains some modifications to the logger from `pytorch-lightning` to enable more flexibility.
+- Switching between accelerators (CPU, GPU and IPU)
+- Benchmarking different models on the same dataset
+- Fine-tuning a pre-trained model on a new dataset
 
-### utils
+[In this document](https://github.com/datamol-io/graphium/tree/main/expts/hydra-configs#readme), we describe in details how each of the above functionality is achieved and how users can benefit from this design to achieve the most with Graphium with as little configuration as possible.
 
-Any kind of utilities that can be used anywhere, including argument checkers and configuration loader
-
-### visualization
-
-Plot visualization tools
-
-## Modifying the code
-
-### Adding a new GNN layer
-
-Any new GNN layer must inherit from the class `graphium.nn.base_graph_layer.BaseGraphLayer` and be implemented in the folder `graphium/nn/pyg_layers`, imported in the file `graphium/nn/architectures.py`, and in the same file, added to the function `FeedForwardGraph._parse_gnn_layer`.
-
-To be used in the configuration file as a `graphium.model.layer_name`, it must also be implemented with some variable parameters in the file `expts/config_gnns.yaml`.
-
-### Adding a new NN architecture
-
-All NN and GNN architectures compatible with the `pyg` library are provided in the file `graphium/nn/global_architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `graphium.nn.architectures.FeedForwardNN` for regular neural networks, from `graphium.nn.global_architectures.FeedForwardGraph` for pyg neural network, or from any of their sub-classes.
-
-### Changing the PredictorModule and loss function
-
-The `PredictorModule` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
-
-Some loss functions are already implemented in the PredictorModule, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `graphium.trainer.predictor.PredictorModule._parse_loss_fun`.
-
-### Changing the metrics used
-
-**_!WARNING! The metrics implementation was done for pytorch-lightning v0.8. There has been major changes to how the metrics are used and defined, so the whole implementation must change._**
-
-Our current code is compatible with the metrics defined by _pytorch-lightning_, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `graphium/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `graphium.trainer.metrics.METRICS_DICT`.
-
-To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` arguments of the metric must also be added.

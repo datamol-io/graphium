@@ -6,6 +6,7 @@ constants:
   max_epochs: 100
   data_dir: expts/data/neurips2023/small-dataset
   raise_train_error: true
+  datacache_path: ../datacache/neurips2023-small/
 
 trainer:
   model_checkpoint:

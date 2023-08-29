@@ -1,25 +1,29 @@
-from graphium.trainer.metrics import MetricWrapper
-from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
-from collections import OrderedDict
-import numpy as np
-from copy import deepcopy
 import time
-from loguru import logger
+from copy import deepcopy
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
-import torch
-from torch import nn, Tensor
 import lightning
-from torch_geometric.data import Data, Batch
+import numpy as np
+import torch
+from loguru import logger
 from mup.optim import MuAdam
+from torch import Tensor, nn
+from torch_geometric.data import Batch, Data
 
 from graphium.config.config_convert import recursive_config_reformating
-from graphium.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
-from graphium.trainer.predictor_summaries import TaskSummaries
 from graphium.data.datamodule import BaseDataModule
+from graphium.trainer.metrics import MetricWrapper
+from graphium.trainer.predictor_options import (
+    EvalOptions,
+    FlagOptions,
+    ModelOptions,
+    OptimOptions,
+)
+from graphium.trainer.predictor_summaries import TaskSummaries
+from graphium.utils import fs
 from graphium.utils.moving_average_tracker import MovingAverageTracker
-from graphium.utils.tensor import dict_tensor_fp16_to_fp32
-
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
+from graphium.utils.tensor import dict_tensor_fp16_to_fp32
 
 
 class PredictorModule(lightning.LightningModule):
@@ -592,17 +596,19 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_tput_tracker.reset()
         return super().on_validation_epoch_start()
 
-    def on_validation_batch_start(self, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.validation_batch_start_time = time.time()
-        return super().on_validation_batch_start(batch, batch_idx)
+        return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
-    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_end(
+        self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
         self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
-        return super().on_validation_batch_end(outputs, batch, batch_idx)
+        return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_validation_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(
@@ -623,7 +629,7 @@ class PredictorModule(lightning.LightningModule):
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
-    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.test_step_outputs.append(outputs)
 
     def on_test_epoch_end(self) -> None:
@@ -669,25 +675,32 @@ class PredictorModule(lightning.LightningModule):
         return GRAPHIUM_PRETRAINED_MODELS_DICT
 
     @staticmethod
-    def load_pretrained_models(name: str, device: str = None):
+    def load_pretrained_model(name_or_path: str, device: str = None):
         """Load a pretrained model from its name.
 
         Args:
-            name: Name of the model to load. List available
+            name: Name of the model to load or a valid checkpoint path. List available
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        if name not in GRAPHIUM_PRETRAINED_MODELS_DICT:
-            raise ValueError(
-                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS_DICT.keys())}."
+        name = GRAPHIUM_PRETRAINED_MODELS_DICT.get(name_or_path)
+
+        if name is not None:
+            return PredictorModule.load_from_checkpoint(
+                GRAPHIUM_PRETRAINED_MODELS_DICT[name_or_path], map_location=device
             )
 
-        return PredictorModule.load_from_checkpoint(
-            GRAPHIUM_PRETRAINED_MODELS_DICT[name], map_location=device
-        )
+        if name is None and not (fs.exists(name_or_path) and fs.get_extension(name_or_path) == "ckpt"):
+            raise ValueError(
+                f"The model '{name_or_path}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS_DICT.keys())} "
+                "or pass a valid checkpoint (.ckpt) path."
+            )
+
+        return PredictorModule.load_from_checkpoint(name_or_path, map_location=device)
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
-        datamodule.setup()
+        for stage in stages:
+            datamodule.setup(stage)
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
         max_edges = datamodule.get_max_num_edges_datamodule(stages)

@@ -1,33 +1,21 @@
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
-
-from copy import deepcopy
-
-from loguru import logger
+from typing import Any, Dict, Optional, Union
 
 import torch
 import torch.nn as nn
-
 from torch import Tensor
 from torch_geometric.data import Batch
 
-from graphium.data.utils import get_keys
-from graphium.nn.base_graph_layer import BaseGraphStructure
-from graphium.nn.architectures.encoder_manager import EncoderManager
-from graphium.nn.architectures import FullGraphMultiTaskNetwork, FeedForwardNN, FeedForwardPyg, TaskHeads
-from graphium.nn.architectures.global_architectures import FeedForwardGraph
-from graphium.trainer.predictor_options import ModelOptions
 from graphium.nn.utils import MupMixin
-
 from graphium.trainer.predictor import PredictorModule
-from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT, FINETUNING_HEADS_DICT
+from graphium.utils.spaces import FINETUNING_HEADS_DICT
 
 
 class FullGraphFinetuningNetwork(nn.Module, MupMixin):
     def __init__(
         self,
-        pretrained_model_name: str,
-        pretrained_model_kwargs: Dict[str, Any],
-        pretrained_overwriting_kwargs: Dict[str, Any],
+        pretrained_model: Union[str, "PretrainedModel"],
+        pretrained_model_kwargs: Dict[str, Any] = {},
+        pretrained_overwriting_kwargs: Dict[str, Any] = {},
         finetuning_head_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
@@ -41,8 +29,8 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 
         Parameters:
 
-            pretrained_model_name:
-                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
+            pretrained_model:
+                A PretrainedModel or an identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT or a valid .ckpt checkpoint path
 
             pretrained_model_kwargs:
                 Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
@@ -79,16 +67,17 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
-        self.pretrained_model_name = pretrained_model_name
+        self.pretrained_model = pretrained_model
         self.pretrained_overwriting_kwargs = pretrained_overwriting_kwargs
         self.finetuning_head_kwargs = finetuning_head_kwargs
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
         self.finetuning_head = None
 
-        self.pretrained_model = PretrainedModel(
-            pretrained_model_name, pretrained_model_kwargs, pretrained_overwriting_kwargs
-        )
+        if not isinstance(self.pretrained_model, PretrainedModel):
+            self.pretrained_model = PretrainedModel(
+                self.pretrained_model, pretrained_model_kwargs, pretrained_overwriting_kwargs
+            )
 
         if finetuning_head_kwargs is not None:
             self.finetuning_head = FinetuningHead(finetuning_head_kwargs)
@@ -147,7 +136,7 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
             Dictionary with the kwargs to create the base model.
         """
         kwargs = dict(
-            pretrained_model_name=self.pretrained_model_name,
+            pretrained_model=self.pretrained_model,
             pretrained_model_kwargs=None,
             finetuning_head_kwargs=None,
             num_inference_to_average=self.num_inference_to_average,
@@ -186,18 +175,18 @@ class FullGraphFinetuningNetwork(nn.Module, MupMixin):
 class PretrainedModel(nn.Module, MupMixin):
     def __init__(
         self,
-        pretrained_model_name: str,
+        pretrained_model: str,
         pretrained_model_kwargs: Dict[str, Any],
         pretrained_overwriting_kwargs: Dict[str, Any],
     ):
         r"""
-        Flexible class allowing to finetune pretrained models from GRAPHIUM_PRETRAINED_MODELS_DICT.
+        Flexible class allowing to finetune pretrained models from GRAPHIUM_PRETRAINED_MODELS_DICT or from a ckeckpoint path.
         Can be any model that inherits from nn.Module, MupMixin and comes with a module map (e.g., FullGraphMultitaskNetwork)
 
         Parameters:
 
-            pretrained_model_name:
-                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT
+            pretrained_model:
+                Identifier of pretrained model within GRAPHIUM_PRETRAINED_MODELS_DICT or from a checkpoint path
 
             pretrained_model_kwargs:
                 Key-word arguments to instantiate a model of the same class as the pretrained model (e.g., FullGraphMultitaskNetwork))
@@ -210,9 +199,7 @@ class PretrainedModel(nn.Module, MupMixin):
         super().__init__()
 
         # Load pretrained model
-        pretrained_model = PredictorModule.load_from_checkpoint(
-            GRAPHIUM_PRETRAINED_MODELS_DICT[pretrained_model_name]
-        ).model
+        pretrained_model = PredictorModule.load_pretrained_model(pretrained_model).model
         pretrained_model.create_module_map()
 
         # Initialize new model with architecture after desired modifications to architecture.
@@ -318,7 +305,7 @@ class FinetuningHead(nn.Module, MupMixin):
         self.net = net(**finetuning_head_kwargs)
 
     def forward(self, g: Union[Dict[str, Union[torch.Tensor, Batch]], torch.Tensor, Batch]):
-        if isinstance(g, Union[torch.Tensor, Batch]):
+        if isinstance(g, (torch.Tensor, Batch)):
             pass
         elif isinstance(g, Dict) and len(g) == 1:
             g = list(g.values())[0]

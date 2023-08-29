@@ -204,7 +204,9 @@ class GPSLayerPyg(BaseGraphModule):
         feat_in = feat  # for first residual connection
 
         # Local MPNN with edge attributes.
-        batch_out = self.mpnn(batch.clone())
+        batch_out = batch.clone()
+        if self.mpnn is not None:
+            batch_out = self.mpnn(batch_out)
         h_local = batch_out.feat
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
@@ -237,6 +239,9 @@ class GPSLayerPyg(BaseGraphModule):
 
     def _parse_mpnn_layer(self, mpnn_type, mpnn_kwargs: Dict[str, Any]) -> Optional[Module]:
         """Parse the MPNN layer."""
+
+        if mpnn_type is None:
+            return
 
         mpnn_kwargs = deepcopy(mpnn_kwargs)
         if mpnn_kwargs is None:

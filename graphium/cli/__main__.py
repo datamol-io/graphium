@@ -1,4 +1,4 @@
-from .main import main_cli
+from graphium.cli.main import app
 
 if __name__ == "__main__":
-    main_cli()
+    app()
