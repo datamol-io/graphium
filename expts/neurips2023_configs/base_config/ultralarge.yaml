@@ -67,8 +67,9 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       pm6_83m_g62:
         df: null
-        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_1.parquet
+        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_*.parquet
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_processed_1.parquet
+        # Repeat the `wget` command for all 20 files ending with `_1.parquet` to `_20.parquet`
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
@@ -83,9 +84,9 @@ datamodule:
 
       pm6_83m_n7:
         df: null
-        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_1.parquet
+        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_*.parquet
         # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_processed_1.parquet
-        # or set path as the URL directly
+        # Repeat the `wget` command for all 20 files ending with `_1.parquet` to `_20.parquet`
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
         # sample_size: 2000 # use sample_size for test
