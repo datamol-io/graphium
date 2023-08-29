@@ -138,7 +138,9 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
-    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+    def on_validation_batch_end(
+        self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         # convert data that will be tracked
         outputs = self.convert_from_fp16(outputs)
         super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
