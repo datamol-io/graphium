@@ -4,7 +4,7 @@ constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   entity: multitask-gnn
-  datacache_path: "/localdata/neurips2023-large/"
+  datacache_path: "/localdata/neurips2023-ultralarge/"
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -67,14 +67,15 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       pm6_83m_g62:
         df: null
-        df_path: graphium/data/neurips2023/large-dataset/pm6_processed_1.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pm6_83m_g62_N4.parquet
+        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_1.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_processed_1.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/pm6_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pm6_83m_g62_n4_random_splits.pt`
+        splits_path: graphium/data/neurips2023/ultralarge-dataset/pm6_random_splits.pt
+        # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_random_splits.pt`
         label_normalization:
           normalize_val_test: True
           method: "normal"
@@ -82,15 +83,15 @@ datamodule:
 
       pm6_83m_n7:
         df: null
-        df_path: graphium/data/neurips2023/large-dataset/pm6_processed_1.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pm6_83m_g62_N4.parquet
+        df_path: graphium/data/neurips2023/ultralarge-dataset/pm6_processed_1.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_processed_1.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
         # sample_size: 2000 # use sample_size for test
         task_level: node
-        splits_path: graphium/data/neurips2023/large-dataset/pm6_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pm6_83m_g62_n4_random_splits.pt`
-        seed: ${constants.seed}
+        splits_path: graphium/data/neurips2023/ultralarge-dataset/pm6_random_splits.pt
+        # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Ultralarge-dataset-v2/pm6_random_splits.pt`
         label_normalization:
           normalize_val_test: True
           method: "normal"
@@ -295,7 +296,7 @@ metrics:
 trainer:
   seed: ${constants.seed}
   logger:
-    save_dir: logs/neurips2023-large/
+    save_dir: logs/neurips2023-ultralarge/
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
