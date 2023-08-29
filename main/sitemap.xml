@@ -51,6 +51,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://github.com/datamol-io/graphium/main/api/graphium.finetuning.html</loc>
+         <lastmod>2023-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.ipu.html</loc>
          <lastmod>2023-08-29</lastmod>
          <changefreq>daily</changefreq>
@@ -87,6 +92,21 @@
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.nn/pyg_layers.html</loc>
+         <lastmod>2023-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/datamol-io/graphium/main/cli/graphium-train.html</loc>
+         <lastmod>2023-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/datamol-io/graphium/main/cli/graphium.html</loc>
+         <lastmod>2023-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/datamol-io/graphium/main/cli/reference.html</loc>
          <lastmod>2023-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>

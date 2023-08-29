@@ -10,24 +10,24 @@
       
       
       
-        <link rel="canonical" href="https://github.com/datamol-io/graphium/main/baseline.html">
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/main/api/graphium.finetuning.html">
       
       
-        <link rel="prev" href="index.html">
+        <link rel="prev" href="graphium.visualization.html">
       
       
-        <link rel="next" href="api/graphium.nn/graphium.nn.html">
+        <link rel="next" href="../tutorials/feature_processing/add_new_positional_encoding.html">
       
-      <link rel="icon" href="images/logo.png">
+      <link rel="icon" href="../images/logo.png">
       <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.1.21">
     
     
       
-        <title>Baseline - graphium</title>
+        <title>graphium.finetuning - graphium</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.eebd395e.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -43,13 +43,13 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="_assets/css/custom.css">
+      <link rel="stylesheet" href="../_assets/css/custom.css">
     
-      <link rel="stylesheet" href="_assets/css/custom-graphium.css">
+      <link rel="stylesheet" href="../_assets/css/custom-graphium.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#toymix-baseline-test-set-metrics" class="md-skip">
+        <a href="#graphium.finetuning.fingerprinting.Fingerprinter" class="md-skip">
           Skip to content
         </a>
       
@@ -89,9 +89,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
+    <a href="../index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
       
-  <img src="images/logo.svg" alt="logo">
+  <img src="../images/logo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Baseline
+              graphium.finetuning
             
           </span>
         </div>
@@ -182,7 +182,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="index.html" class="md-tabs__link">
+    <a href="../index.html" class="md-tabs__link">
       Overview
     </a>
   </li>
@@ -191,12 +191,10 @@
         
   
   
-    
-  
 
 
   <li class="md-tabs__item">
-    <a href="baseline.html" class="md-tabs__link md-tabs__link--active">
+    <a href="../baseline.html" class="md-tabs__link">
       Baseline
     </a>
   </li>
@@ -204,6 +202,8 @@
       
         
   
+  
+    
   
 
 
@@ -216,7 +216,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="api/graphium.nn/graphium.nn.html" class="md-tabs__link">
+      <a href="graphium.nn/graphium.nn.html" class="md-tabs__link md-tabs__link--active">
         API
       </a>
     </li>
@@ -239,7 +239,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -254,7 +254,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="design.html" class="md-tabs__link">
+    <a href="../design.html" class="md-tabs__link">
       Design
     </a>
   </li>
@@ -266,7 +266,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="datasets.html" class="md-tabs__link">
+    <a href="../datasets.html" class="md-tabs__link">
       Datasets
     </a>
   </li>
@@ -278,7 +278,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="pretrained_models.html" class="md-tabs__link">
+    <a href="../pretrained_models.html" class="md-tabs__link">
       Pretrained Models
     </a>
   </li>
@@ -293,7 +293,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="cli/reference.html" class="md-tabs__link">
+      <a href="../cli/reference.html" class="md-tabs__link">
         CLI
       </a>
     </li>
@@ -306,7 +306,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="contribute.html" class="md-tabs__link">
+    <a href="../contribute.html" class="md-tabs__link">
       Contribute
     </a>
   </li>
@@ -318,7 +318,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="license.html" class="md-tabs__link">
+    <a href="../license.html" class="md-tabs__link">
       License
     </a>
   </li>
@@ -345,9 +345,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
+    <a href="../index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
       
-  <img src="images/logo.svg" alt="logo">
+  <img src="../images/logo.svg" alt="logo">
 
     </a>
     graphium
@@ -375,7 +375,7 @@
   
   
     <li class="md-nav__item">
-      <a href="index.html" class="md-nav__link">
+      <a href="../index.html" class="md-nav__link">
         Overview
       </a>
     </li>
@@ -388,21 +388,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="baseline.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../baseline.html" class="md-nav__link">
         Baseline
       </a>
-      
     </li>
   
 
@@ -413,16 +403,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
       
       
       
@@ -431,7 +421,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           API
@@ -473,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.nn/graphium.nn.html" class="md-nav__link">
+      <a href="graphium.nn/graphium.nn.html" class="md-nav__link">
         graphium.nn
       </a>
     </li>
@@ -487,7 +477,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.nn/architectures.html" class="md-nav__link">
+      <a href="graphium.nn/architectures.html" class="md-nav__link">
         graphium.nn.architectures
       </a>
     </li>
@@ -501,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.nn/encoders.html" class="md-nav__link">
+      <a href="graphium.nn/encoders.html" class="md-nav__link">
         graphium.nn.encoders
       </a>
     </li>
@@ -515,7 +505,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.nn/pyg_layers.html" class="md-nav__link">
+      <a href="graphium.nn/pyg_layers.html" class="md-nav__link">
         graphium.nn.pyg_layers
       </a>
     </li>
@@ -536,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.features.html" class="md-nav__link">
+      <a href="graphium.features.html" class="md-nav__link">
         graphium.features
       </a>
     </li>
@@ -550,7 +540,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.trainer.html" class="md-nav__link">
+      <a href="graphium.trainer.html" class="md-nav__link">
         graphium.trainer
       </a>
     </li>
@@ -564,7 +554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.data.html" class="md-nav__link">
+      <a href="graphium.data.html" class="md-nav__link">
         graphium.data
       </a>
     </li>
@@ -578,7 +568,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.utils.html" class="md-nav__link">
+      <a href="graphium.utils.html" class="md-nav__link">
         graphium.utils
       </a>
     </li>
@@ -592,7 +582,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.config.html" class="md-nav__link">
+      <a href="graphium.config.html" class="md-nav__link">
         graphium.config
       </a>
     </li>
@@ -606,7 +596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.ipu.html" class="md-nav__link">
+      <a href="graphium.ipu.html" class="md-nav__link">
         graphium.ipu
       </a>
     </li>
@@ -620,7 +610,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/graphium.visualization.html" class="md-nav__link">
+      <a href="graphium.visualization.html" class="md-nav__link">
         graphium.visualization
       </a>
     </li>
@@ -632,11 +622,82 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="api/graphium.finetuning.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          graphium.finetuning
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="graphium.finetuning.html" class="md-nav__link md-nav__link--active">
         graphium.finetuning
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter" class="md-nav__link">
+    Fingerprinter
+  </a>
+  
+    <nav class="md-nav" aria-label="Fingerprinter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.setup" class="md-nav__link">
+    setup()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_batch" class="md-nav__link">
+    get_fingerprints_for_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_dataset" class="md-nav__link">
+    get_fingerprints_for_dataset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.teardown" class="md-nav__link">
+    teardown()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -714,7 +775,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
         Add new positional encoding
       </a>
     </li>
@@ -728,7 +789,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+      <a href="../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
         Convert CSV to Parquet files
       </a>
     </li>
@@ -742,7 +803,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+      <a href="../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
         Timing parallel processing
       </a>
     </li>
@@ -792,7 +853,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+      <a href="../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
         Creating GNN layers
       </a>
     </li>
@@ -806,7 +867,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+      <a href="../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
         Making GNN Networks
       </a>
     </li>
@@ -820,7 +881,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+      <a href="../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
         Using GNN layers
       </a>
     </li>
@@ -870,7 +931,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
         Building and training a simple model from configurations
       </a>
     </li>
@@ -884,7 +945,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+      <a href="../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
         Multitask Molecular Modelling with Graphium on the IPU
       </a>
     </li>
@@ -913,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="design.html" class="md-nav__link">
+      <a href="../design.html" class="md-nav__link">
         Design
       </a>
     </li>
@@ -928,7 +989,7 @@
   
   
     <li class="md-nav__item">
-      <a href="datasets.html" class="md-nav__link">
+      <a href="../datasets.html" class="md-nav__link">
         Datasets
       </a>
     </li>
@@ -943,7 +1004,7 @@
   
   
     <li class="md-nav__item">
-      <a href="pretrained_models.html" class="md-nav__link">
+      <a href="../pretrained_models.html" class="md-nav__link">
         Pretrained Models
       </a>
     </li>
@@ -987,7 +1048,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cli/reference.html" class="md-nav__link">
+      <a href="../cli/reference.html" class="md-nav__link">
         About
       </a>
     </li>
@@ -1030,7 +1091,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cli/graphium.html" class="md-nav__link">
+      <a href="../cli/graphium.html" class="md-nav__link">
         graphium
       </a>
     </li>
@@ -1044,7 +1105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cli/graphium-train.html" class="md-nav__link">
+      <a href="../cli/graphium-train.html" class="md-nav__link">
         graphium-train
       </a>
     </li>
@@ -1073,7 +1134,7 @@
   
   
     <li class="md-nav__item">
-      <a href="contribute.html" class="md-nav__link">
+      <a href="../contribute.html" class="md-nav__link">
         Contribute
       </a>
     </li>
@@ -1088,7 +1149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="license.html" class="md-nav__link">
+      <a href="../license.html" class="md-nav__link">
         License
       </a>
     </li>
@@ -1112,8 +1173,55 @@
   
   
   
-    
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter" class="md-nav__link">
+    Fingerprinter
+  </a>
+  
+    <nav class="md-nav" aria-label="Fingerprinter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.setup" class="md-nav__link">
+    setup()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_batch" class="md-nav__link">
+    get_fingerprints_for_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_dataset" class="md-nav__link">
+    get_fingerprints_for_dataset()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.finetuning.fingerprinting.Fingerprinter.teardown" class="md-nav__link">
+    teardown()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1131,545 +1239,250 @@
   
 
 
-<h1 id="toymix-baseline-test-set-metrics">ToyMix Baseline - Test set metrics<a class="headerlink" href="#toymix-baseline-test-set-metrics" title="Permanent link">&para;</a></h1>
-<p>From the paper to be released soon. Below, you can see the baselines for the <code>ToyMix</code> dataset, a multitasking dataset comprising of <code>QM9</code>, <code>Zinc12k</code> and <code>Tox21</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>. The following baselines are all for models with ~150k parameters.</p>
-<p>One can observe that the smaller datasets (<code>Zinc12k</code> and <code>Tox21</code>) beneficiate from adding another unrelated task (<code>QM9</code>), where the labels are computed from DFT simulations.</p>
-<table>
-<thead>
-<tr>
-<th>Dataset</th>
-<th>Model</th>
-<th>MAE ↓</th>
-<th>Pearson ↑</th>
-<th>R² ↑</th>
-<th>MAE ↓</th>
-<th>Pearson ↑</th>
-<th>R² ↑</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-</tr>
-<tr>
-<td><strong>QM9</strong></td>
-<td>GCN</td>
-<td>0.102 ± 0.0003</td>
-<td>0.958 ± 0.0007</td>
-<td>0.920 ± 0.002</td>
-<td>0.119 ± 0.01</td>
-<td>0.955 ± 0.001</td>
-<td>0.915 ± 0.001</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.0976 ± 0.0006</td>
-<td><strong>0.959 ± 0.0002</strong></td>
-<td><strong>0.922 ± 0.0004</strong></td>
-<td>0.117 ± 0.01</td>
-<td>0.950 ± 0.002</td>
-<td>0.908 ± 0.003</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.0959 ± 0.0002</strong></td>
-<td>0.955 ± 0.002</td>
-<td>0.918 ± 0.004</td>
-<td>0.102 ± 0.01</td>
-<td>0.956 ± 0.0009</td>
-<td>0.918 ± 0.002</td>
-</tr>
-<tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-</tr>
-<tr>
-<td><strong>Zinc12k</strong></td>
-<td>GCN</td>
-<td>0.348 ± 0.02</td>
-<td>0.941 ± 0.002</td>
-<td>0.863 ± 0.01</td>
-<td>0.226 ± 0.004</td>
-<td>0.973 ± 0.0005</td>
-<td>0.940 ± 0.003</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.303 ± 0.007</td>
-<td>0.950 ± 0.003</td>
-<td>0.889 ± 0.003</td>
-<td>0.189 ± 0.004</td>
-<td>0.978 ± 0.006</td>
-<td>0.953 ± 0.002</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td>0.266 ± 0.02</td>
-<td>0.961 ± 0.003</td>
-<td>0.915 ± 0.01</td>
-<td><strong>0.147 ± 0.009</strong></td>
-<td><strong>0.987 ± 0.001</strong></td>
-<td><strong>0.971 ± 0.003</strong></td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th></th>
-<th></th>
-<th>BCE ↓</th>
-<th>AUROC ↑</th>
-<th>AP ↑</th>
-<th>BCE ↓</th>
-<th>AUROC ↑</th>
-<th>AP ↑</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-</tr>
-<tr>
-<td><strong>Tox21</strong></td>
-<td>GCN</td>
-<td>0.202 ± 0.005</td>
-<td>0.773 ± 0.006</td>
-<td>0.334 ± 0.03</td>
-<td><strong>0.176 ± 0.001</strong></td>
-<td><strong>0.850 ± 0.006</strong></td>
-<td>0.446 ± 0.01</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.200 ± 0.002</td>
-<td>0.789 ± 0.009</td>
-<td>0.350 ± 0.01</td>
-<td>0.176 ± 0.001</td>
-<td>0.841 ± 0.005</td>
-<td>0.454 ± 0.009</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td>0.201 ± 0.007</td>
-<td>0.783 ± 0.007</td>
-<td>0.345 ± 0.02</td>
-<td>0.177 ± 0.0008</td>
-<td>0.836 ± 0.004</td>
-<td><strong>0.455 ± 0.008</strong></td>
-</tr>
-</tbody>
-</table>
-<h1 id="largemix-baseline">LargeMix Baseline<a class="headerlink" href="#largemix-baseline" title="Permanent link">&para;</a></h1>
-<h2 id="largemix-test-set-metrics">LargeMix test set metrics<a class="headerlink" href="#largemix-test-set-metrics" title="Permanent link">&para;</a></h2>
-<p>From the paper to be released soon. Below, you can see the baselines for the <code>LargeMix</code> dataset, a multitasking dataset comprising of <code>PCQM4M_N4</code>, <code>PCQM4M_G25</code>, <code>PCBA_1328</code>, <code>L1000_VCAP</code>, and <code>L1000_MCF7</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>. The following baselines are all for models with 4-6M parameters.</p>
-<p>One can observe that the smaller datasets (<code>L1000_VCAP</code> and <code>L1000_MCF7</code>) beneficiate tremendously from the multitasking. Indeed, the lack of molecular samples means that it is very easy for a model to overfit.</p>
-<p>While <code>PCQM4M_G25</code> has no noticeable changes, the node predictions of <code>PCQM4M_N4</code> and assay predictions of <code>PCBA_1328</code> take a hit, but it is most likely due to underfitting since the training loss is also increased. It seems that 4-6M parameters is far from sufficient to capturing all of the tasks simultaneously, which motivates the need for a larger model.</p>
-<table>
-<thead>
-<tr>
-<th>Dataset</th>
-<th>Model</th>
-<th>MAE ↓</th>
-<th>Pearson ↑</th>
-<th>R² ↑</th>
-<th>MAE ↓</th>
-<th>Pearson ↑</th>
-<th>R² ↑</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-</tr>
-<tr>
-<td>Pcqm4m_g25</td>
-<td>GCN</td>
-<td>0.2362 ± 0.0003</td>
-<td>0.8781 ± 0.0005</td>
-<td>0.7803 ± 0.0006</td>
-<td>0.2458 ± 0.0007</td>
-<td>0.8701 ± 0.0002</td>
-<td><strong>0.8189 ± 0.0726</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.2270 ± 0.0003</td>
-<td>0.8854 ± 0.0004</td>
-<td>0.7912 ± 0.0006</td>
-<td>0.2352 ± 0.0006</td>
-<td>0.8802 ± 0.0007</td>
-<td>0.7827 ± 0.0005</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.2223 ± 0.0007</strong></td>
-<td><strong>0.8874 ± 0.0003</strong></td>
-<td>0.7949 ± 0.0001</td>
-<td>0.2315 ± 0.0002</td>
-<td>0.8823 ± 0.0002</td>
-<td>0.7864 ± 0.0008</td>
-</tr>
-<tr>
-<td>Pcqm4m_n4</td>
-<td>GCN</td>
-<td>0.2080 ± 0.0003</td>
-<td>0.5497 ± 0.0010</td>
-<td>0.2942 ± 0.0007</td>
-<td>0.2040 ± 0.0001</td>
-<td>0.4796 ± 0.0006</td>
-<td>0.2185 ± 0.0002</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.1912 ± 0.0027</td>
-<td><strong>0.6138 ± 0.0088</strong></td>
-<td><strong>0.3688 ± 0.0116</strong></td>
-<td>0.1966 ± 0.0003</td>
-<td>0.5198 ± 0.0008</td>
-<td>0.2602 ± 0.0012</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.1910 ± 0.0001</strong></td>
-<td>0.6127 ± 0.0003</td>
-<td>0.3666 ± 0.0008</td>
-<td>0.1941 ± 0.0003</td>
-<td>0.5303 ± 0.0023</td>
-<td>0.2701 ± 0.0034</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th></th>
-<th></th>
-<th>BCE ↓</th>
-<th>AUROC ↑</th>
-<th>AP ↑</th>
-<th>BCE ↓</th>
-<th>AUROC ↑</th>
-<th>AP ↑</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-</tr>
-<tr>
-<td>Pcba_1328</td>
-<td>GCN</td>
-<td><strong>0.0316 ± 0.0000</strong></td>
-<td><strong>0.7960 ± 0.0020</strong></td>
-<td><strong>0.3368 ± 0.0027</strong></td>
-<td>0.0349 ± 0.0002</td>
-<td>0.7661 ± 0.0031</td>
-<td>0.2527 ± 0.0041</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.0324 ± 0.0000</td>
-<td>0.7941 ± 0.0018</td>
-<td>0.3328 ± 0.0019</td>
-<td>0.0342 ± 0.0001</td>
-<td>0.7747 ± 0.0025</td>
-<td>0.2650 ± 0.0020</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td>0.0320 ± 0.0001</td>
-<td>0.7944 ± 0.0023</td>
-<td>0.3337 ± 0.0027</td>
-<td>0.0341 ± 0.0001</td>
-<td>0.7737 ± 0.0007</td>
-<td>0.2611 ± 0.0043</td>
-</tr>
-<tr>
-<td>L1000_vcap</td>
-<td>GCN</td>
-<td>0.1900 ± 0.0002</td>
-<td>0.5788 ± 0.0034</td>
-<td>0.3708 ± 0.0007</td>
-<td>0.1872 ± 0.0020</td>
-<td>0.6362 ± 0.0012</td>
-<td>0.4022 ± 0.0008</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.1909 ± 0.0005</td>
-<td>0.5734 ± 0.0029</td>
-<td>0.3731 ± 0.0014</td>
-<td>0.1870 ± 0.0010</td>
-<td>0.6351 ± 0.0014</td>
-<td>0.4062 ± 0.0001</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td>0.1907 ± 0.0006</td>
-<td>0.5708 ± 0.0079</td>
-<td>0.3705 ± 0.0015</td>
-<td><strong>0.1862 ± 0.0007</strong></td>
-<td><strong>0.6398 ± 0.0043</strong></td>
-<td><strong>0.4068 ± 0.0023</strong></td>
-</tr>
-<tr>
-<td>L1000_mcf7</td>
-<td>GCN</td>
-<td>0.1869 ± 0.0003</td>
-<td>0.6123 ± 0.0051</td>
-<td>0.3866 ± 0.0010</td>
-<td>0.1863 ± 0.0011</td>
-<td><strong>0.6401 ± 0.0021</strong></td>
-<td>0.4194 ± 0.0004</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.1862 ± 0.0003</td>
-<td>0.6202 ± 0.0091</td>
-<td>0.3876 ± 0.0017</td>
-<td>0.1874 ± 0.0013</td>
-<td>0.6367 ± 0.0066</td>
-<td><strong>0.4198 ± 0.0036</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.1856 ± 0.0005</strong></td>
-<td>0.6166 ± 0.0017</td>
-<td>0.3892 ± 0.0035</td>
-<td>0.1873 ± 0.0009</td>
-<td>0.6347 ± 0.0048</td>
-<td>0.4177 ± 0.0024</td>
-</tr>
-</tbody>
-</table>
-<h2 id="largemix-training-set-loss">LargeMix training set loss<a class="headerlink" href="#largemix-training-set-loss" title="Permanent link">&para;</a></h2>
-<p>Below is the loss on the training set. One can observe that the multi-task model always underfits the single-task, except on the two <code>L1000</code> datasets.</p>
-<p>This is not surprising as they contain two orders of magnitude more datapoints and pose a significant challenge for the relatively small models used in this analysis. This favors the Single dataset setup (which uses a model of the same size) and we conjecture larger models to bridge this gap moving forward.</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th></th>
-<th>CE or MSE loss in single-task <span class="arithmatex">\(\downarrow\)</span></th>
-<th>CE or MSE loss in multi-task <span class="arithmatex">\(\downarrow\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><strong>Pcqm4m_g25</strong></td>
-<td>GCN</td>
-<td><strong>0.2660 ± 0.0005</strong></td>
-<td>0.2767 ± 0.0015</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td><strong>0.2439 ± 0.0004</strong></td>
-<td>0.2595 ± 0.0016</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.2424 ± 0.0007</strong></td>
-<td>0.2568 ± 0.0012</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><strong>Pcqm4m_n4</strong></td>
-<td>GCN</td>
-<td><strong>0.2515 ± 0.0002</strong></td>
-<td>0.2613 ± 0.0008</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td><strong>0.2317 ± 0.0003</strong></td>
-<td>0.2512 ± 0.0008</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.2272 ± 0.0001</strong></td>
-<td>0.2483 ± 0.0004</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><strong>Pcba_1328</strong></td>
-<td>GCN</td>
-<td><strong>0.0284 ± 0.0010</strong></td>
-<td>0.0382 ± 0.0005</td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td><strong>0.0249 ± 0.0017</strong></td>
-<td>0.0359 ± 0.0011</td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.0258 ± 0.0017</strong></td>
-<td>0.0361 ± 0.0008</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><strong>L1000_vcap</strong></td>
-<td>GCN</td>
-<td>0.1906 ± 0.0036</td>
-<td><strong>0.1854 ± 0.0148</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.1854 ± 0.0030</td>
-<td><strong>0.1833 ± 0.0185</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td><strong>0.1860 ± 0.0025</strong></td>
-<td>0.1887 ± 0.0200</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><strong>L1000_mcf7</strong></td>
-<td>GCN</td>
-<td>0.1902 ± 0.0038</td>
-<td><strong>0.1829 ± 0.0095</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GIN</td>
-<td>0.1873 ± 0.0033</td>
-<td><strong>0.1701 ± 0.0142</strong></td>
-</tr>
-<tr>
-<td></td>
-<td>GINE</td>
-<td>0.1883 ± 0.0039</td>
-<td><strong>0.1771 ± 0.0010</strong></td>
-</tr>
-</tbody>
-</table>
-<h1 id="ultralarge-baseline">UltraLarge Baseline<a class="headerlink" href="#ultralarge-baseline" title="Permanent link">&para;</a></h1>
-<p>Coming soon!</p>
+  <h1>graphium.finetuning</h1>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h3 id="graphium.finetuning.fingerprinting.Fingerprinter" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">graphium.finetuning.fingerprinting.Fingerprinter</span>
+
+
+<a href="#graphium.finetuning.fingerprinting.Fingerprinter" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">Fingerprinter</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">FullGraphMultiTaskNetwork</span><span class="p">,</span> <span class="n">PredictorModule</span><span class="p">],</span>
+    <span class="n">fingerprint_spec</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span>
+    <span class="n">out_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;torch&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;torch&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents first">
+
+  
+      <p>Extract fingerprints from a <a class="autorefs autorefs-internal" href="graphium.nn/architectures.html#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork"><code>FullGraphMultiTaskNetwork</code></a></p>
+<p>Fingerprints are hidden representations of a pre-trained network.
+They can be used as an additional representation for task-specific ML models
+in downstream tasks.</p>
+
+<details class="info" open>
+  <summary>Connection to linear probing.</summary>
+  <p>This two-stage process is similar in concept to linear-probing,
+but pre-computing the fingerprints further decouples the two stages
+and allows for more flexibility.</p>
+</details>
+<details class="note" open>
+  <summary>CLI support</summary>
+  <p>You can extract fingerprints easily with the CLI. For more info, see
+<div class="highlight"><pre><span></span><code>graphium<span class="w"> </span>finetune<span class="w"> </span>fingerprint<span class="w"> </span>--help
+</code></pre></div></p>
+</details>      <p>To return intermediate representations, the network will be altered
+to save the readouts of the specified layers. This class is designed to be used
+as a context manager that automatically reverts the network to its original state.</p>
+
+
+
+<p><strong>Examples:</strong></p>
+    <p>Basic usage:
+<div class="highlight"><pre><span></span><code><span class="c1"># Return layer 1 of the gcn submodule.</span>
+<span class="c1"># For a full list of options, see the `_module_map` attribute of the FullGraphMultiTaskNetwork.</span>
+<span class="n">fp_spec</span> <span class="o">=</span> <span class="s2">&quot;gcn:1&quot;</span>
+
+<span class="c1"># Create the object</span>
+<span class="n">fingerprinter</span> <span class="o">=</span> <span class="n">Fingerprinter</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="s2">&quot;gcn:1&quot;</span><span class="p">)</span>
+
+<span class="c1"># Setup, run and teardown the fingerprinting process</span>
+<span class="n">fingerprinter</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+<span class="n">fp</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_fingerprints_for_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+<span class="n">fingerprinter</span><span class="o">.</span><span class="n">teardown</span><span class="p">()</span>
+</code></pre></div></p>
+<p>As context manager:
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">Fingerprinter</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="s2">&quot;gcn:1&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fingerprinter</span><span class="p">:</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_fingerprints_for_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Concatenating multiple hidden representations:
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">Fingerprinter</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;gcn:0&quot;</span><span class="p">,</span> <span class="s2">&quot;gcn:1&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">fingerprinter</span><span class="p">:</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_fingerprints_for_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+</code></pre></div></p>
+<p>For an entire dataset (expects a PyG dataloader):
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">Fingerprinter</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;gcn:0&quot;</span><span class="p">,</span> <span class="s2">&quot;gcn:1&quot;</span><span class="p">])</span> <span class="k">as</span> <span class="n">fingerprinter</span><span class="p">:</span>
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_fingerprints_for_dataset</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
+</code></pre></div></p>
+<p>Returning numpy arrays instead of torch tensors:
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">Fingerprinter</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;gcn:0&quot;</span><span class="p">,</span> <span class="s2">&quot;gcn:1&quot;</span><span class="p">],</span> <span class="n">out_type</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fingerprinter</span><span class="p">:</span>
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">get_fingerprints_for_dataset</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
+</code></pre></div></p>
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" href="graphium.nn/architectures.html#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork">FullGraphMultiTaskNetwork</a>, <a class="autorefs autorefs-internal" title="graphium.trainer.predictor.PredictorModule" href="graphium.trainer.html#graphium.trainer.predictor.PredictorModule">PredictorModule</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Either a <code>FullGraphMultiTaskNetwork</code> or a <code>PredictorModule</code> that contains one. The benefit
+of using a <code>PredictorModule</code> is that it will automatically convert the features to the correct dtype.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fingerprint_spec</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The fingerprint specification. Of the format <code>module:layer</code>. If specified as a list,
+the fingerprints from all the specified layers will be concatenated.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>out_type</code></td>
+          <td>
+                <code><span title="typing.Literal">Literal</span>[&#39;torch&#39;, &#39;numpy&#39;]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The output type of the fingerprints. Either <code>torch</code> or <code>numpy</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;torch&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.finetuning.fingerprinting.Fingerprinter.setup" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">setup</span>
+
+
+<a href="#graphium.finetuning.fingerprinting.Fingerprinter.setup" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">setup</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Prepare the network for fingerprinting</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_batch" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">get_fingerprints_for_batch</span>
+
+
+<a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">get_fingerprints_for_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the fingerprints for a single batch</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_dataset" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">get_fingerprints_for_dataset</span>
+
+
+<a href="#graphium.finetuning.fingerprinting.Fingerprinter.get_fingerprints_for_dataset" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">get_fingerprints_for_dataset</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the fingerprints for an entire dataset</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.finetuning.fingerprinting.Fingerprinter.teardown" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">teardown</span>
+
+
+<a href="#graphium.finetuning.fingerprinting.Fingerprinter.teardown" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="n">teardown</span><span class="p">()</span>
+</code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Restore the network to its original state</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
 
 
 
@@ -1711,10 +1524,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.expand"], "search": "assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.220ee61c.min.js"></script>
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -1725,7 +1538,7 @@
         
       
         
-          <script src="_assets/js/google-analytics.js"></script>
+          <script src="../_assets/js/google-analytics.js"></script>
         
       
     
