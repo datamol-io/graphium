@@ -4,7 +4,7 @@ constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   entity: multitask-gnn
-  datacache_path: "/localdata/neurips2023-ultralarge/"
+  datacache_path: "/localdata/neurips2023-ultralarge-part1/"
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -296,7 +296,7 @@ metrics:
 trainer:
   seed: ${constants.seed}
   logger:
-    save_dir: logs/neurips2023-ultralarge/
+    save_dir: logs/neurips2023-ultralarge-part1/
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
