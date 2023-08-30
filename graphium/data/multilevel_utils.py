@@ -38,6 +38,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         return data.apply(unpack)
 
     def merge_columns(data: pd.Series):
+        data_name = data.name
         data = data.to_list()
         missing_label_idx = [i for i, d in enumerate(data) if not isinstance(d, np.ndarray) and math.isnan(d)]
         data = [np.array([np.nan]) if i in missing_label_idx else d for i, d in enumerate(data)]
@@ -50,7 +51,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                 continue
             if size != maxsize:
                 raise ValueError(
-                    f"Size mismatch between columns in {task_level} columns {data.name} sizes: {sizes}"
+                    f"Size mismatch between columns in {task_level} columns {data_name} sizes: {sizes}"
                 )
 
         # Pad all arrays to the same size
