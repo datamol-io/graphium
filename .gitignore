@@ -49,6 +49,7 @@ expts_untracked/
 debug/
 change_commits.sh
 graphium/features/test_new_pes.ipynb
+profiling/*.csv
 
 # IPU related ignores and profiler outputs
 *.a

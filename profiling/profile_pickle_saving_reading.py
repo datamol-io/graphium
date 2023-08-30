@@ -201,7 +201,7 @@ def bench_saving_loading(num_files_list, num_processes_list, save_path):
 
 # main
 if __name__ == "__main__":
-    # bench_saving_loading(num_files_list=[32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000], num_processes_list=[1, 2, 4, 8, 16, 32], save_path='benchmark_save_load.csv')
+    # bench_saving_loading(num_files_list=[32, 100, 320, 1000, 3200, 10000, 32000, 100000, 320000], num_processes_list=[1, 2, 4, 8, 16, 32], save_path='profiling/benchmark_save_load.csv')
     bench_saving_loading(
-        num_files_list=[100000], num_processes_list=[1, 2, 4, 8, 16, 32], save_path="benchmark_save_load.csv"
+        num_files_list=[100000], num_processes_list=[1, 2, 4, 8, 16, 32], save_path="profiling/benchmark_save_load.csv"
     )
