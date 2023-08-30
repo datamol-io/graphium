@@ -7,7 +7,8 @@ import math
 
 
 def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
-    """Extracts labels in label_cols from dataframe df for a given task_level.
+    """
+    Extracts labels in label_cols from dataframe df for a given task_level.
     Returns a list of numpy arrays converted to the correct shape. Multiple
     targets are concatenated for each graph.
     """
@@ -39,6 +40,17 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     def merge_columns(data: pd.Series):
         data = data.to_list()
         data = [np.array([np.nan]) if not isinstance(d, np.ndarray) and math.isnan(d) else d for d in data]
+
+        # Ensure that all shapes are either the same, or 1
+        sizes = [d.shape[0] for d in data]
+        maxsize = max(sizes)
+        for size in sizes:
+            if (size != maxsize) and (size != 1):
+                raise ValueError(
+                    f"Size mismatch between columns in {task_level} columns {data.name} sizes: {sizes}"
+                )
+
+        # Pad all arrays to the same size
         padded_data = itertools.zip_longest(*data, fillvalue=np.nan)
         data = np.stack(list(padded_data), 1).T
         return data

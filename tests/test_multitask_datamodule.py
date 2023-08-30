@@ -330,16 +330,18 @@ class Test_Multitask_DataModule(ut.TestCase):
                 for missing_col in label_cols[:replace]:
                     df.loc[drop_index, missing_col] = None
 
+                msg = f"level={level}, replace={replace}"
+
                 output = graphium.data.datamodule.extract_labels(df, level, label_cols)
 
                 for idx in drop_index:
-                    assert len(output[idx].shape) == 2
-                    assert output[idx].shape[1] == len(label_cols)
+                    self.assertEqual(len(output[idx].shape), 2, msg=msg)
+                    self.assertEqual(output[idx].shape[1], len(label_cols), msg=msg)
 
                     # Check that number of labels is adjusted correctly
                     if replace == 1:
                         non_missing_col = label_cols[1]
-                        assert output[idx].shape[0] == len(df[non_missing_col][idx])
+                        self.assertEqual(output[idx].shape[0], len(df[non_missing_col][idx]), msg=msg)
 
     def test_tdc_admet_benchmark_data_module(self):
         """
