@@ -130,7 +130,7 @@ def found_size_mismatch(task: str, features: Union[Data, GraphDict], labels: np.
 
     mismatch = False
 
-    if np.isnan(labels).any():
+    if np.isnan(labels).all():
         pass
 
     elif task.startswith("graph_"):
