@@ -45,8 +45,10 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         # Ensure that all shapes are either the same, or 1
         sizes = [d.shape[0] for d in data]
         maxsize = max(sizes)
-        for size in sizes:
-            if (size != maxsize) and (size != 1):
+        for i, size in enumerate(sizes):
+            if i in missing_label_idx:
+                continue
+            if (size != maxsize):
                 raise ValueError(
                     f"Size mismatch between columns in {task_level} columns {data.name} sizes: {sizes}"
                 )
