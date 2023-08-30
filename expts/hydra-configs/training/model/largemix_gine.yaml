@@ -15,4 +15,4 @@ constants:
 
 trainer:
   model_checkpoint:
-    dirpath: model_checkpoints/large-dataset/gine/
+    dirpath: model_checkpoints/large-dataset/gine/${now:%Y-%m-%d_%H-%M-%S}/
