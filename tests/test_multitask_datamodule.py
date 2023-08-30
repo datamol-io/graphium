@@ -330,11 +330,6 @@ class Test_Multitask_DataModule(ut.TestCase):
                 for missing_col in label_cols[:replace]:
                     df.loc[drop_index, missing_col] = None
 
-                if replace == 1:
-                    with self.assertRaises(ValueError):
-                        graphium.data.datamodule.extract_labels(df, level, label_cols)
-                    continue
-
                 msg = f"level={level}, replace={replace}"
 
                 output = graphium.data.datamodule.extract_labels(df, level, label_cols)

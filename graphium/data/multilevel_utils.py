@@ -40,14 +40,12 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     def merge_columns(data: pd.Series):
         data_name = data.name
         data = data.to_list()
-        missing_label_idx = [i for i, d in enumerate(data) if not isinstance(d, np.ndarray) and math.isnan(d)]
-        data = [np.array([np.nan]) if i in missing_label_idx else d for i, d in enumerate(data)]
-
+        data = [np.array([np.nan]) if not isinstance(d, np.ndarray) and math.isnan(d) else d for d in data]
         # Ensure that all shapes are either the same, or 1
         sizes = [d.shape[0] for d in data]
         maxsize = max(sizes)
         for i, size in enumerate(sizes):
-            if i in missing_label_idx:
+            if size == 1 and np.isnan(data[i]).all():
                 continue
             if size != maxsize:
                 raise ValueError(
