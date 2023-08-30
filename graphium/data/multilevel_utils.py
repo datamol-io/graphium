@@ -48,7 +48,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         for i, size in enumerate(sizes):
             if i in missing_label_idx:
                 continue
-            if (size != maxsize):
+            if size != maxsize:
                 raise ValueError(
                     f"Size mismatch between columns in {task_level} columns {data.name} sizes: {sizes}"
                 )
