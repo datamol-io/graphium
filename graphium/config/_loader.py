@@ -589,15 +589,15 @@ def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> 
 
     cfg_trainer = config["trainer"]
 
+    path = config.get("ckpt_name_for_testing", "last.ckpt")
+    if path in GRAPHIUM_PRETRAINED_MODELS_DICT or fs.exists(path):
+        return path
+
     if "model_checkpoint" in cfg_trainer.keys():
-        dirpath = cfg_trainer["model_checkpoint"]["dirpath"] + str(cfg_trainer["seed"]) + "/"
-        filename = config.get("ckpt_name_for_testing", "last") + ".ckpt"
-    else:
-        raise ValueError("Empty checkpoint section in config file")
+        dirpath = cfg_trainer["model_checkpoint"]["dirpath"]
+        path = fs.join(dirpath, path)
 
-    checkpoint_path = fs.join(dirpath, filename)
+    if not fs.exists(path):
+        raise ValueError(f"Checkpoint path `{path}` does not exist")
 
-    if not fs.exists(checkpoint_path):
-        raise ValueError(f"Checkpoint path `{checkpoint_path}` does not exist")
-
-    return checkpoint_path
+    return path
