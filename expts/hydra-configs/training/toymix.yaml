@@ -21,6 +21,6 @@ trainer:
     save_last: True
   trainer:
     precision: 16
-    max_epochs: ${constants.max_epochs}-{epoch}
+    max_epochs: ${constants.max_epochs}
     min_epochs: 1
     check_val_every_n_epoch: 20
