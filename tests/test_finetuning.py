@@ -95,7 +95,7 @@ class Test_Finetuning(ut.TestCase):
         ################################################
 
         # Load pretrained & replace in predictor
-        pretrained_model = PredictorModule.load_pretrained_models(
+        pretrained_model = PredictorModule.load_pretrained_model(
             cfg["finetuning"]["pretrained_model"], device="cpu"
         ).model
 
@@ -283,7 +283,7 @@ class Test_Finetuning(ut.TestCase):
         ################################################
 
         # Load pretrained & replace in predictor
-        pretrained_model = PredictorModule.load_pretrained_models(
+        pretrained_model = PredictorModule.load_pretrained_model(
             cfg["finetuning"]["pretrained_model_name"], device="cpu"
         ).model
 

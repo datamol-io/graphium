@@ -56,7 +56,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
 
     # Load pretrained model
     pretrained_model = cfg_finetune["pretrained_model"]
-    pretrained_predictor = PredictorModule.load_pretrained_models(pretrained_model, device="cpu")
+    pretrained_predictor = PredictorModule.load_pretrained_model(pretrained_model, device="cpu")
 
     # Inherit shared configuration from pretrained
     # Architecture

@@ -1,7 +1,10 @@
 # Running the gcn model with the largemix dataset on IPU.
 
 defaults:
-  - base_config: large
+  # - base_config: large
+  # - base_config: large_pcqm_g25
+  # - base_config: large_pcqm_n4
+  - base_config: large_pcba
   - _self_
 
 constants:

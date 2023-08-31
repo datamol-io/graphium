@@ -1,5 +1,5 @@
 import hydra
-from graphium.cli.train_finetune import run_training_finetuning
+from graphium.cli.train_finetune_test import run_training_finetuning_testing
 import pytest
 
 FINETUNING_CONFIG_KEY = "finetuning"
@@ -47,4 +47,4 @@ def test_cli(acc_type, acc_prec) -> None:
             cfg["accelerator"]["ipu_config"].append("useIpuModel(True)")
             cfg["accelerator"]["ipu_inference_config"].append("useIpuModel(True)")
 
-        run_training_finetuning(cfg)
+        run_training_finetuning_testing(cfg)

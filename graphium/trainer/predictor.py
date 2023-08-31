@@ -598,17 +598,19 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_tput_tracker.reset()
         return super().on_validation_epoch_start()
 
-    def on_validation_batch_start(self, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.validation_batch_start_time = time.time()
-        return super().on_validation_batch_start(batch, batch_idx)
+        return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
-    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_end(
+        self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
         self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
-        return super().on_validation_batch_end(outputs, batch, batch_idx)
+        return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_validation_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
@@ -627,7 +629,7 @@ class PredictorModule(lightning.LightningModule):
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
-    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.test_step_outputs.append(outputs)
 
     def on_test_epoch_end(self) -> None:
@@ -673,7 +675,7 @@ class PredictorModule(lightning.LightningModule):
         return GRAPHIUM_PRETRAINED_MODELS_DICT
 
     @staticmethod
-    def load_pretrained_models(name_or_path: str, device: str = None):
+    def load_pretrained_model(name_or_path: str, device: str = None):
         """Load a pretrained model from its name.
 
         Args:
@@ -697,7 +699,8 @@ class PredictorModule(lightning.LightningModule):
         return PredictorModule.load_from_checkpoint(name_or_path, map_location=device)
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
-        datamodule.setup()
+        for stage in stages:
+            datamodule.setup(stage)
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
         max_edges = datamodule.get_max_num_edges_datamodule(stages)
