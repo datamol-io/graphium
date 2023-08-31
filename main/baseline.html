@@ -1159,14 +1159,14 @@
 <td></td>
 </tr>
 <tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
 <td><strong>QM9</strong></td>
@@ -1199,14 +1199,14 @@
 <td>0.918 ± 0.002</td>
 </tr>
 <tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
 <td><strong>Zinc12k</strong></td>
@@ -1265,14 +1265,14 @@
 <td></td>
 </tr>
 <tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
 <td><strong>Tox21</strong></td>
@@ -1336,17 +1336,17 @@
 <td></td>
 </tr>
 <tr>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
-<td><hi></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td>Pcqm4m_g25</td>
+<td><strong>Pcqm4m_g25</strong></td>
 <td>GCN</td>
 <td>0.2362 ± 0.0003</td>
 <td>0.8781 ± 0.0005</td>
@@ -1376,7 +1376,7 @@
 <td>0.7864 ± 0.0008</td>
 </tr>
 <tr>
-<td>Pcqm4m_n4</td>
+<td><strong>Pcqm4m_n4</strong></td>
 <td>GCN</td>
 <td>0.2080 ± 0.0003</td>
 <td>0.5497 ± 0.0010</td>
@@ -1442,7 +1442,7 @@
 <td><hi></td>
 </tr>
 <tr>
-<td>Pcba_1328</td>
+<td><strong>Pcba_1328</strong></td>
 <td>GCN</td>
 <td><strong>0.0316 ± 0.0000</strong></td>
 <td><strong>0.7960 ± 0.0020</strong></td>
@@ -1472,7 +1472,7 @@
 <td>0.2611 ± 0.0043</td>
 </tr>
 <tr>
-<td>L1000_vcap</td>
+<td><strong>L1000_vcap</strong></td>
 <td>GCN</td>
 <td>0.1900 ± 0.0002</td>
 <td>0.5788 ± 0.0034</td>
@@ -1502,7 +1502,7 @@
 <td><strong>0.4068 ± 0.0023</strong></td>
 </tr>
 <tr>
-<td>L1000_mcf7</td>
+<td><strong>L1000_mcf7</strong></td>
 <td>GCN</td>
 <td>0.1869 ± 0.0003</td>
 <td>0.6123 ± 0.0051</td>
@@ -1669,7 +1669,184 @@
 </tbody>
 </table>
 <h1 id="ultralarge-baseline">UltraLarge Baseline<a class="headerlink" href="#ultralarge-baseline" title="Permanent link">&para;</a></h1>
-<p>Coming soon!</p>
+<h2 id="ultralarge-test-set-metrics">UltraLarge test set metrics<a class="headerlink" href="#ultralarge-test-set-metrics" title="Permanent link">&para;</a></h2>
+<p>For <code>UltraLarge</code>, we provide results for the same GNN baselines as for
+<code>LargeMix</code>. Each model is trained for 50 epochs and results are averaged over 3 seeds. The remaining
+setup is the same as for TOYMIX (Section E.1), reporting metrics on the Single Dataset and Multi Dataset using the same performance metrics. We further use the same models (in terms of size) as used for <code>LargeMix</code>.</p>
+<p>For now, we report only the results for a subset representing 5% of the total dataset due to computational constraint, but aim to provide the full results soon.</p>
+<p>Results discussion. <code>UltraLarge</code> results can be found in Table 6. Interestingly, on both graph- and node-level tasks we observe that there is no advantage of multi-tasking in terms of performance. We
+expect that for this ultra-large dataset, significantly larger models are needed to successfully leverage the multi-task setup. This could be attributed to underfitting, as already demonstrated for <code>LargeMix</code>. Nonetheless, our baselines set the stage for large-scale pre-training on <code>UltraLarge</code>.</p>
+<p>The results presented used approximately 500 GPU hours of compute, with
+more compute used for development and hyperparameter search.</p>
+<p>We further note that the graph-level tasks results are very strong. Regarding the node-level tasks, they are expected to underperform in low-parameters regime, due to clear signs of underfitting, a very large amount of labels to learn, and susceptibility to over-smoothing from traditional GNNs.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td><strong>Pm6_83m_g62</strong></td>
+<td>GCN</td>
+<td>.2606 ± .0011</td>
+<td>.9004 ± .0003</td>
+<td>.7997 ± .0009</td>
+<td>.2625 ± .0011</td>
+<td>.8896 ± .0001</td>
+<td>.7982 ± .0001</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>.2546 ± .0021</td>
+<td>.9051 ± .0019</td>
+<td>.8064 ± .0037</td>
+<td>.2562 ± .0000</td>
+<td>.8901 ± .0000</td>
+<td>.806 ± .0000</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>.2538 ± .0006</strong></td>
+<td><strong>.9059 ± .0010</strong></td>
+<td><strong>.8082 ± .0015</strong></td>
+<td>.258 ± .0011</td>
+<td>.904 ± .0000</td>
+<td>.8048 ± .0001</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Pm6_83m_n7</strong></td>
+<td>GCN</td>
+<td>.5803 ± .0001</td>
+<td>.3372 ± .0004</td>
+<td>.1191 ± .0002</td>
+<td>.5971 ± .0002</td>
+<td>.3164 ± .0001</td>
+<td>.1019 ± .0011</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>.573 ± .0002</td>
+<td>.3478 ± .0001</td>
+<td><strong>.1269 ± .0002</strong></td>
+<td>.5831 ± .0001</td>
+<td>.3315 ± .0005</td>
+<td>.1141 ± .0000</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>.572 ± .0004</strong></td>
+<td><strong>.3487 ± .0002</strong></td>
+<td>.1266 ± .0001</td>
+<td>.5839 ± .0004</td>
+<td>.3294 ± .0002</td>
+<td>.1104 ± .0000</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ultralarge-training-set-loss">UltraLarge training set loss<a class="headerlink" href="#ultralarge-training-set-loss" title="Permanent link">&para;</a></h2>
+<p>In the table below, we observe that the multi-task model slightly underfits the single-task model, indicating that parameters can be efficiently shared between the node-level and graph-level tasks. We further note that the training loss and the test MAE are almost equal for all tasks, indicating further benefits as we scale both the model and the data.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th><strong>MAE loss in single-task ↓</strong></th>
+<th><strong>MAE loss in multi-task ↓</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Pm6_83m_g62</td>
+<td>GCN</td>
+<td><strong>.2679 ± .0020</strong></td>
+<td>.2713 ± .0017</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td><strong>.2582 ± .0018</strong></td>
+<td>.2636 ± .0014</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>.2567 ± .0036</strong></td>
+<td>.2603 ± .0021</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Pm6_83m_n7</td>
+<td>GCN</td>
+<td><strong>.5818 ± .0021</strong></td>
+<td>.5955 ± .0023</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td><strong>.5707 ± .0019</strong></td>
+<td>.5851 ± .0038</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>.5724 ± .0015</strong></td>
+<td>.5832 ± .0027</td>
+</tr>
+</tbody>
+</table>
 
 
 
