@@ -3,7 +3,7 @@ from graphium.cli.train_finetune_test import cli
 import sys
 
 
-def call_cli_with_overrides(acc_type: str, acc_prec: int) -> None:
+def call_cli_with_overrides(acc_type: str, acc_prec: str, load_type: str) -> None:
     overrides = [
         f"accelerator={acc_type}",
         "tasks=toymix",
@@ -29,7 +29,8 @@ def call_cli_with_overrides(acc_type: str, acc_prec: int) -> None:
         "+datamodule.args.task_specific_args.tox21.sample_size=1000",
         "+datamodule.args.task_specific_args.zinc.sample_size=1000",
         "trainer.trainer.check_val_every_n_epoch=1",
-        f"trainer.trainer.precision={acc_prec}",  # perhaps you can make this 32 for CPU and 16 for IPU
+        f"trainer.trainer.precision={acc_prec}",
+        f"datamodule.args.dataloading_from={load_type}",
     ]
 
     # Backup the original sys.argv
@@ -45,10 +46,12 @@ def call_cli_with_overrides(acc_type: str, acc_prec: int) -> None:
     sys.argv = original_argv
 
 
-def test_cpu_cli_training():
-    call_cli_with_overrides("cpu", 32)
+@pytest.mark.parametrize("load_type", ["RAM", "disk"])
+def test_cpu_cli_training(load_type):
+    call_cli_with_overrides("cpu", "32", load_type)
 
 
 @pytest.mark.ipu
-def test_ipu_cli_training():
-    call_cli_with_overrides("ipu", 16)
+@pytest.mark.parametrize("load_type", ["RAM", "disk"])
+def test_ipu_cli_training(load_type):
+    call_cli_with_overrides("ipu", "16-true", load_type)
