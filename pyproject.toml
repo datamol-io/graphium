@@ -64,7 +64,7 @@ dependencies = [
 
 [project.scripts]
 graphium = "graphium.cli.main:app"
-graphium-train = "graphium.cli.train_finetune_test:cli"
+graphium-train = "graphium.cli.train_finetune:cli"
 
 [project.urls]
 Website = "https://graphium.datamol.io/"
@@ -94,6 +94,7 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+addopts = "--verbose --durations=10 -n 1 --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",

@@ -79,9 +79,9 @@ class TestCLITraining:
         # Restore the original sys.argv
         sys.argv = original_argv
 
-    # @pytest.mark.parametrize("load_type", ["RAM", "disk"])
-    # def test_cpu_cli_training(self, load_type):
-    #     self.call_cli_with_overrides("cpu", "32", load_type)
+    @pytest.mark.parametrize("load_type", ["RAM", "disk"])
+    def test_cpu_cli_training(self, load_type):
+        self.call_cli_with_overrides("cpu", "32", load_type)
 
     @pytest.mark.ipu
     @pytest.mark.parametrize("load_type", ["RAM", "disk"])

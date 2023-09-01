@@ -67,7 +67,6 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         )
         # We pause here briefly, to make sure the notification is seen as there's lots of logs afterwards
         time.sleep(5)
-    import ipdb; ipdb.set_trace()
     # Modify the config for finetuning
     if FINETUNING_CONFIG_KEY in cfg:
         cfg = modify_cfg_for_finetuning(cfg)
