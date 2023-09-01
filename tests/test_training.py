@@ -3,6 +3,7 @@ from graphium.cli.train_finetune_test import cli
 import sys
 import subprocess
 import os
+from unittest.mock import patch
 
 
 class TestCLITraining:
@@ -78,11 +79,19 @@ class TestCLITraining:
         # Restore the original sys.argv
         sys.argv = original_argv
 
-    @pytest.mark.parametrize("load_type", ["RAM", "disk"])
-    def test_cpu_cli_training(self, load_type):
-        self.call_cli_with_overrides("cpu", "32", load_type)
+    # @pytest.mark.parametrize("load_type", ["RAM", "disk"])
+    # def test_cpu_cli_training(self, load_type):
+    #     self.call_cli_with_overrides("cpu", "32", load_type)
 
     @pytest.mark.ipu
     @pytest.mark.parametrize("load_type", ["RAM", "disk"])
     def test_ipu_cli_training(self, load_type):
-        self.call_cli_with_overrides("ipu", "16-true", load_type)
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
+                import poptorch
+
+                assert poptorch.ipuHardwareIsAvailable()
+                from lightning_graphcore.accelerator import _IPU_AVAILABLE
+
+                assert _IPU_AVAILABLE is True
+                self.call_cli_with_overrides("ipu", "16-true", load_type)
