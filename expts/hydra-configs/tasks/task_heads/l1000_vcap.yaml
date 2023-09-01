@@ -1,0 +1,15 @@
+# @package _global_
+
+architecture:
+  task_heads:
+    l1000_vcap:
+      task_level: graph
+      out_dim: 2934
+      hidden_dims: 128
+      depth: 2
+      activation: none
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: "none"
+      residual_type: none

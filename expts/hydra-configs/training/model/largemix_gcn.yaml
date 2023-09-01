@@ -1,0 +1,18 @@
+# @package _global_
+
+constants:
+  name: large_data_gcn
+  wandb:
+    name: ${constants.name}
+    project: neurips2023-expts
+    entity: multitask-gnn
+    save_dir: logs/${constants.name}
+  entity: multitask-gnn
+  seed: 42
+  max_epochs: 200
+  data_dir: expts/data/large-dataset
+  raise_train_error: true
+
+trainer:
+  model_checkpoint:
+    dirpath: model_checkpoints/large-dataset/gcn/${now:%Y-%m-%d_%H-%M-%S}/

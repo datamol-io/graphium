@@ -1,0 +1,49 @@
+# @package _global_
+
+predictor:
+  metrics_on_progress_bar:
+    l1000_mcf7: []
+  metrics_on_training_set:
+    l1000_mcf7: []
+  loss_fun:
+    l1000_mcf7:
+      name: hybrid_ce_ipu
+      n_brackets: 3
+      alpha: 0.5
+
+metrics:
+  l1000_mcf7:
+    - name: auroc
+      metric: auroc
+      num_classes: 3
+      task: multiclass
+      target_to_int: True
+      target_nan_mask: -1000
+      ignore_index: -1000
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: avpr
+      metric: averageprecision
+      num_classes: 3
+      task: multiclass
+      target_to_int: True
+      target_nan_mask: -1000
+      ignore_index: -1000
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+
+datamodule:
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      l1000_mcf7:
+        df: null
+        df_path: ../data/graphium/large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        epoch_sampling_fraction: 1.0
