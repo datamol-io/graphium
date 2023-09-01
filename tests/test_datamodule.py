@@ -55,8 +55,7 @@ class Test_DataModule(ut.TestCase):
             rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
         # Reset the datamodule
-        ds._data_is_prepared = False
-        ds._data_is_cached = False
+        ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
         ds.prepare_data(save_smiles_and_ids=True)
 
@@ -299,8 +298,7 @@ class Test_DataModule(ut.TestCase):
             rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
         # Reset the datamodule
-        ds._data_is_prepared = False
-        ds._data_is_cached = False
+        ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
 
         ds.prepare_data(save_smiles_and_ids=True)
 
