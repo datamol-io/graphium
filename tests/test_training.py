@@ -63,7 +63,8 @@ class TestCLITraining:
             f"trainer.trainer.precision={acc_prec}",
             f"datamodule.args.dataloading_from={load_type}",
         ]
-
+        if acc_type == "ipu":
+            overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
