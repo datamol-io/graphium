@@ -1,0 +1,15 @@
+# @package _global_
+
+architecture:
+  task_heads:
+    pcba_1328:
+      task_level: graph
+      out_dim: 1328
+      hidden_dims: 64
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: "none"
+      residual_type: none

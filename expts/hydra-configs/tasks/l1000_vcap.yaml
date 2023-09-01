@@ -1,0 +1,7 @@
+# NOTE: We cannot have a single config, since for fine-tuning we will
+#  only want to override the loss_metrics_datamodule, whereas for training we will
+#  want to override both. 
+
+defaults:
+  - task_heads: l1000_vcap
+  - loss_metrics_datamodule: l1000_vcap
