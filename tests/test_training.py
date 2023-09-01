@@ -65,6 +65,7 @@ class TestCLITraining:
         ]
         if acc_type == "ipu":
             overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
+            overrides.append("accelerator.ipu_inference_config=['useIpuModel(True)']")
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
