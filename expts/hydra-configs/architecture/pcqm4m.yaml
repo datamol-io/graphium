@@ -88,7 +88,6 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    dataloading_from: "disk"
     processed_graph_data_path: ${constants.datacache_path}
     num_workers: 40 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
