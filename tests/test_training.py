@@ -51,7 +51,7 @@ class TestCLITraining:
             "architecture.pre_nn.out_dim=16",
             "architecture.gnn.in_dim=16",
             "architecture.gnn.out_dim=16",
-            "architecture.gnn.depth=2",
+            "architecture.gnn.depth=1",
             "architecture.task_heads.qm9.depth=1",
             "architecture.task_heads.tox21.depth=1",
             "architecture.task_heads.zinc.depth=1",
