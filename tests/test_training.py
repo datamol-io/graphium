@@ -50,7 +50,7 @@ class TestCLITraining:
             "architecture.pre_nn.depth=1",
             "architecture.pre_nn.out_dim=16",
             "architecture.gnn.in_dim=16",
-            "architecture.gnn.hidden_dim=16",
+            "architecture.gnn.hidden_dims=16",
             "architecture.gnn.out_dim=16",
             "architecture.gnn.depth=1",
             "architecture.task_heads.qm9.depth=1",
