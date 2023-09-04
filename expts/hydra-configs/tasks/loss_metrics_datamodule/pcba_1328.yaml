@@ -1,0 +1,41 @@
+# @package _global_
+
+predictor:
+  metrics_on_progress_bar:
+    pcba_1328: []
+  metrics_on_training_set:
+    pcba_1328: []
+  loss_fun:
+    pcba_1328: bce_logits_ipu
+
+metrics:
+  pcba_1328:
+  # use auroc and averageprecision (non_ipu version) so tha nans are handled correctly
+    - name: auroc
+      metric: auroc
+      task: binary
+      multitask_handling: mean-per-label
+      target_nan_mask: ignore
+      threshold_kwargs: null
+    - name: avpr
+      metric: averageprecision
+      task: binary
+      multitask_handling: mean-per-label
+      target_nan_mask: ignore
+      threshold_kwargs: null
+
+datamodule:
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      pcba_1328:
+        df: null
+        df_path: ../data/graphium/large-dataset/PCBA_1328_1564k.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        epoch_sampling_fraction: 1.0

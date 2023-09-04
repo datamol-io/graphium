@@ -28,7 +28,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQ4Mv2/
+    dirpath: models_checkpoints/PCMQ4Mv2/${now:%Y-%m-%d_%H-%M-%S}/
     filename: ${constants.name}
     #monitor: *monitor
     #mode: *mode

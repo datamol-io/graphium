@@ -10,4 +10,4 @@ constants:
 
 trainer:
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gcn/
+    dirpath: models_checkpoints/small-dataset/gcn/${now:%Y-%m-%d_%H-%M-%S}/

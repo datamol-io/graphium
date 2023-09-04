@@ -33,7 +33,7 @@ constants:
 
 trainer:
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gin/
+    dirpath: models_checkpoints/neurips2023-small-gin/${now:%Y-%m-%d_%H-%M-%S}/
 ```
 We can now utilize `hydra` to e.g., run a sweep over our models on the ToyMix dataset via
 
@@ -43,7 +43,7 @@ graphium-train -m model=gcn,gin
 where the ToyMix dataset is pre-configured in `main.yaml`. Read on to find out how to define new datasets and architectures for pre-training and fine-tuning.
 
 ## Pre-training / Fine-tuning
-Say you trained a model with the following command: 
+Say you trained a model with the following command:
 ```bash
 graphium-train --config-name "main"
 ```
