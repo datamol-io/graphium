@@ -84,7 +84,7 @@ class TestCLITraining:
         self.call_cli_with_overrides("cpu", "32", load_type)
 
     @pytest.mark.ipu
-    @pytest.mark.skip
+    #@pytest.mark.skip
     @pytest.mark.parametrize("load_type", ["RAM", "disk"])
     def test_ipu_cli_training(self, load_type):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
