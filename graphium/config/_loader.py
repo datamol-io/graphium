@@ -251,8 +251,6 @@ def load_architecture(
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
-    # Get accelerator_kwargs if they exist
-    accelerator_kwargs = config["accelerator"].get("accelerator_kwargs", None)
     # Set all the input arguments for the model
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
@@ -260,9 +258,12 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         graph_output_nn_kwargs=graph_output_nn_kwargs,
-        task_heads_kwargs=task_heads_kwargs,
-        accelerator_kwargs=accelerator_kwargs
+        task_heads_kwargs=task_heads_kwargs
     )
+    # Get accelerator_kwargs if they exist
+    accelerator_kwargs = config["accelerator"].get("accelerator_kwargs", None)
+    if accelerator_kwargs is not None:
+        model_kwargs["accelerator_kwargs"] = accelerator_kwargs
 
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
