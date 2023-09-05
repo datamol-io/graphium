@@ -593,15 +593,15 @@ class FeedForwardGraph(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
-    
+
     def get_nested_key(self, d, target_key):
         """
         Get the value associated with a key in a nested dictionary.
-        
+
         Parameters:
         - d: The dictionary to search in
         - target_key: The key to search for
-        
+
         Returns:
         - The value associated with the key if found, None otherwise
         """
@@ -653,7 +653,6 @@ class FeedForwardGraph(FeedForwardNN):
 
             # Find the edge key-word arguments depending on the layer type and residual connection
             this_edge_kwargs = {}
-            # import ipdb; ipdb.set_trace()
             if self.layer_class.layer_supports_edges and self.in_dim_edges > 0:
                 this_edge_kwargs["in_dim_edges"] = this_in_dim_edges
                 if "out_dim_edges" in inspect.signature(self.layer_class.__init__).parameters.keys():
@@ -664,7 +663,6 @@ class FeedForwardGraph(FeedForwardNN):
                         this_out_dim_edges = self.get_nested_key(self.layer_kwargs, "out_dim_edges")
                         this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     layer_out_dims_edges.append(this_out_dim_edges)
-            # import ipdb; ipdb.set_trace()
 
             # Create the GNN layer
             self.layers.append(
@@ -683,7 +681,6 @@ class FeedForwardGraph(FeedForwardNN):
 
             # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
-                # import ipdb; ipdb.set_trace()
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
                         in_dim=this_out_dim * self.layers[-1].out_dim_factor,
