@@ -258,7 +258,7 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         graph_output_nn_kwargs=graph_output_nn_kwargs,
-        task_heads_kwargs=task_heads_kwargs
+        task_heads_kwargs=task_heads_kwargs,
     )
     # Get accelerator_kwargs if they exist
     accelerator_kwargs = config["accelerator"].get("accelerator_kwargs", None)
