@@ -260,6 +260,10 @@ def load_architecture(
         graph_output_nn_kwargs=graph_output_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
     )
+    # Get accelerator_kwargs if they exist
+    accelerator_kwargs = config["accelerator"].get("accelerator_kwargs", None)
+    if accelerator_kwargs is not None:
+        model_kwargs["accelerator_kwargs"] = accelerator_kwargs
 
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)

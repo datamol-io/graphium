@@ -12,6 +12,7 @@ from collections import OrderedDict
 from torch import Tensor, nn
 import torch
 from torch_geometric.data import Data
+from omegaconf import DictConfig, OmegaConf
 
 # graphium imports
 from graphium.data.utils import get_keys
@@ -593,6 +594,26 @@ class FeedForwardGraph(FeedForwardNN):
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
 
+    def get_nested_key(self, d, target_key):
+        """
+        Get the value associated with a key in a nested dictionary.
+
+        Parameters:
+        - d: The dictionary to search in
+        - target_key: The key to search for
+
+        Returns:
+        - The value associated with the key if found, None otherwise
+        """
+        if target_key in d:
+            return d[target_key]
+        for key, value in d.items():
+            if isinstance(value, (dict, DictConfig)):
+                nested_result = self.get_nested_key(value, target_key)
+                if nested_result is not None:
+                    return nested_result
+        return None
+
     def _create_layers(self):
         r"""
         Create all the necessary layers for the network.
@@ -639,7 +660,8 @@ class FeedForwardGraph(FeedForwardNN):
                         this_out_dim_edges = self.full_dims_edges[ii + 1]
                         this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     else:
-                        this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
+                        this_out_dim_edges = self.get_nested_key(self.layer_kwargs, "out_dim_edges")
+                        this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     layer_out_dims_edges.append(this_out_dim_edges)
 
             # Create the GNN layer
