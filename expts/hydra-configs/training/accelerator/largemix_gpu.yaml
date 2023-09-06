@@ -5,10 +5,10 @@ accelerator:
 
 datamodule:
   args:
-    batch_size_training: 960
-    batch_size_inference: 960
-    featurization_n_jobs: 6
-    num_workers: 6
+    batch_size_training: 2000
+    batch_size_inference: 2000
+    featurization_n_jobs: 4
+    num_workers: 4
 
 predictor:
   metrics_every_n_train_steps: 1000
@@ -18,5 +18,4 @@ predictor:
 trainer:
   trainer:
     precision: 16-mixed
-    # accumulate_grad_batches: 2
     max_epochs: ${constants.max_epochs}

@@ -10,8 +10,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization layer_norm
-    last_normalization: *normalization
+    normalization: ${constants.norm}
+    last_normalization: ${constants.norm}
     residual_type: none
 
   pre_nn_edges: null
@@ -40,8 +40,8 @@ architecture:
         out_dim: 32
         num_layers: 2
         dropout: 0.1
-        normalization: "layer_norm" #"batch_norm" or "layer_norm"
-        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        normalization: ${constants.norm} #"batch_norm" or "layer_norm"
+        first_normalization: ${constants.norm} #"batch_norm" or "layer_norm"
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
@@ -51,32 +51,32 @@ architecture:
     activation: gelu
     last_activation: none
     dropout: 0.1
-    normalization: "layer_norm"
-    last_normalization: *normalization
+    normalization: ${constants.norm}
+    last_normalization: ${constants.norm}
     residual_type: simple
     virtual_node: 'none'
 
   graph_output_nn:
     graph:
       pooling: [sum]
-      out_dim: *gnn_dim
+      out_dim: 1024
       hidden_dims: *gnn_dim
-      depth: 1
+      depth: 2
       activation: relu
       last_activation: none
       dropout: *dropout
-      normalization: *normalization
+      normalization: ${constants.norm}
       last_normalization: "none"
       residual_type: none
     node:
       pooling: [sum]
-      out_dim: *gnn_dim
+      out_dim: 64
       hidden_dims: *gnn_dim
-      depth: 1
+      depth: 2
       activation: relu
       last_activation: none
       dropout: *dropout
-      normalization: *normalization
+      normalization: ${constants.norm}
       last_normalization: "none"
       residual_type: none
 
@@ -87,7 +87,7 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/large-dataset/"
+    processed_graph_data_path: ${constants.datacache_path}
     dataloading_from: "disk"
     num_workers: 20 # -1 to use all
     persistent_workers: True

@@ -35,6 +35,7 @@ PYG_LAYERS_DICT = {
     "pyg:pna-msgpass": PygLayers.PNAMessagePassingPyg,
     "pyg:gps": PygLayers.GPSLayerPyg,
     "pyg:dimenet": PygLayers.DimeNetPyg,
+    "pyg:mpnnplus": PygLayers.MPNNPlusPyg,
 }
 
 LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
