@@ -13,9 +13,10 @@ architecture:
     residual_type: none
 
   gnn:
-    out_dim: 704
-    hidden_dims: ${architecture.gnn.out_dim}
-    layer_type: 'pyg:gine'
+    out_dim: 704 # &gnn_dim 704
+    hidden_dims: ${architecture.gnn.out_dim} # *gnn_dim
+    hidden_dims_edges: 256
+    layer_type: 'pyg:gated-gcn'
 
   graph_output_nn:
     graph:
