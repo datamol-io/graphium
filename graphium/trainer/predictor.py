@@ -543,18 +543,16 @@ class PredictorModule(lightning.LightningModule):
     def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
-    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
+    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str, device: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
-        device = device = outputs[0]["preds"][self.tasks[0]].device  # should be better way to do this
-        # device = 0
         for task in self.tasks:
-            preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
-            targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
+            preds[task] = torch.cat([out["preds"][task].to(device) for out in outputs], dim=0)
+            targets[task] = torch.cat([out["targets"][task].to(device) for out in outputs], dim=0)
         if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
-            weights = torch.cat([out["weights"] for out in outputs], dim=0)
+            weights = torch.cat([out["weights"].to(device) for out in outputs], dim=0)
         else:
             weights = None
 
@@ -598,20 +596,24 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_tput_tracker.reset()
         return super().on_validation_epoch_start()
 
-    def on_validation_batch_start(self, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.validation_batch_start_time = time.time()
-        return super().on_validation_batch_start(batch, batch_idx)
+        return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
-    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_end(
+        self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
         self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
-        return super().on_validation_batch_end(outputs, batch, batch_idx)
+        return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_validation_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
+        metrics_logs = self._general_epoch_end(
+            outputs=self.validation_step_outputs, step_name="val", device="cpu"
+        )
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
@@ -627,11 +629,11 @@ class PredictorModule(lightning.LightningModule):
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
-    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.test_step_outputs.append(outputs)
 
     def on_test_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test")
+        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test", device="cpu")
         self.test_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
@@ -673,7 +675,7 @@ class PredictorModule(lightning.LightningModule):
         return GRAPHIUM_PRETRAINED_MODELS_DICT
 
     @staticmethod
-    def load_pretrained_models(name_or_path: str, device: str = None):
+    def load_pretrained_model(name_or_path: str, device: str = None):
         """Load a pretrained model from its name.
 
         Args:

@@ -1200,14 +1200,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         labels_dtype = {}
         if stage == "fit" or stage is None:
-            # if self.train_ds is None:
-            self.train_ds = self._make_multitask_dataset(
-                self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
-            )
-            # if self.val_ds is None:
-            self.val_ds = self._make_multitask_dataset(
-                self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
-            )
+            if self.train_ds is None:
+                self.train_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
+                )
+
+            if self.val_ds is None:
+                self.val_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
+                )
 
             logger.info(self.train_ds)
             logger.info(self.val_ds)
@@ -1219,10 +1220,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_dtype.update(self.val_ds.labels_dtype)
 
         if stage == "test" or stage is None:
-            # if self.test_ds is None:
-            self.test_ds = self._make_multitask_dataset(
-                self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
-            )
+            if self.test_ds is None:
+                self.test_ds = self._make_multitask_dataset(
+                    self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
+                )
 
             logger.info(self.test_ds)
 
@@ -1341,7 +1342,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.save_featurized_data(temp_datasets[stage], self._path_to_load_from_file(stage))
             temp_datasets[stage].save_metadata(self._path_to_load_from_file(stage))
         # self.train_ds, self.val_ds, self.test_ds will be created during `setup()`
-        del temp_datasets
+
+        if self.dataloading_from == "disk":
+            del temp_datasets
+        else:
+            self.train_ds = temp_datasets["train"]
+            self.val_ds = temp_datasets["val"]
+            self.test_ds = temp_datasets["test"]
 
     def get_folder_size(self, path):
         # check if the data items are actually saved into the folders

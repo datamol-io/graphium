@@ -1,0 +1,155 @@
+# @package _global_
+
+predictor:
+  metrics_on_progress_bar:
+    l1000_vcap: []
+    l1000_mcf7: []
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: []
+  metrics_on_training_set:
+    l1000_vcap: []
+    l1000_mcf7: []
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: []
+  loss_fun:
+    l1000_vcap:
+      name: hybrid_ce_ipu
+      n_brackets: 3
+      alpha: 0.5
+    l1000_mcf7:
+      name: hybrid_ce_ipu
+      n_brackets: 3
+      alpha: ${predictor.loss_fun.l1000_vcap.alpha}
+    pcba_1328: bce_logits_ipu
+    pcqm4m_g25: mae_ipu
+    pcqm4m_n4: mae_ipu
+
+metrics:
+  l1000_vcap: &classif_metrics
+    - name: auroc
+      metric: auroc
+      num_classes: 3
+      task: multiclass
+      target_to_int: True
+      target_nan_mask: -1000
+      ignore_index: -1000
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: avpr
+      metric: averageprecision
+      num_classes: 3
+      task: multiclass
+      target_to_int: True
+      target_nan_mask: -1000
+      ignore_index: -1000
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+  l1000_mcf7: *classif_metrics
+  pcba_1328:
+  # use auroc and averageprecision (non_ipu version) so tha nans are handled correctly
+    - name: auroc
+      metric: auroc
+      task: binary
+      multitask_handling: mean-per-label
+      target_nan_mask: ignore
+      threshold_kwargs: null
+    - name: avpr
+      metric: averageprecision
+      task: binary
+      multitask_handling: mean-per-label
+      target_nan_mask: ignore
+      threshold_kwargs: null
+  pcqm4m_g25: &pcqm_metrics
+    - name: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2
+      metric: r2_score_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+  pcqm4m_n4: *pcqm_metrics
+
+datamodule:
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      l1000_vcap:
+        df: null
+        df_path: ../data/graphium/large-dataset/LINCS_L1000_VCAP_0-2_th2.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        epoch_sampling_fraction: 1.0
+
+      l1000_mcf7:
+        df: null
+        df_path: ../data/graphium/large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        epoch_sampling_fraction: 1.0
+
+      pcba_1328:
+        df: null
+        df_path: ../data/graphium/large-dataset/PCBA_1328_1564k.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        epoch_sampling_fraction: 1.0
+
+      pcqm4m_g25:
+        df: null
+        df_path: ../data/graphium/large-dataset/PCQM4M_G25_N4.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+        # or set path as the URL directly
+        smiles_col: "ordered_smiles"
+        label_cols: graph_*  # graph_* means all columns starting with "graph_"
+        # sample_size: 2000 # use sample_size for test
+        task_level: graph
+        splits_path: ../data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"
+        epoch_sampling_fraction: 1.0
+
+      pcqm4m_n4:
+        df: null
+        df_path: ../data/graphium/large-dataset/PCQM4M_G25_N4.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+        # or set path as the URL directly
+        smiles_col: "ordered_smiles"
+        label_cols: node_* # node_* means all columns starting with "node_"
+        # sample_size: 2000 # use sample_size for test
+        task_level: node
+        splits_path: ../data/graphium/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        # split_names: [train, val, test_seen]
+        seed: 42
+        label_normalization:
+          normalize_val_test: True
+          method: "normal"
+        epoch_sampling_fraction: 1.0

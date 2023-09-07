@@ -192,7 +192,7 @@ class MultitaskDataset(Dataset):
                 self.features = None
                 self.labels = None
             elif dataloading_from == "ram":
-                logger.info("Transferring data from DISK to RAM...")
+                logger.info(f"Transferring {about} from DISK to RAM...")
                 self.transfer_from_disk_to_ram()
 
         else:

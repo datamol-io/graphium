@@ -1,15 +1,24 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 import fsspec
+import numpy as np
+import torch
+import tqdm
 import typer
 import yaml
 from datamol.utils import fs
 from hydra import compose, initialize
 from hydra.core.hydra_config import HydraConfig
 from loguru import logger
+from omegaconf import OmegaConf
+
+from graphium.config._loader import load_accelerator, load_datamodule
+from graphium.finetuning.fingerprinting import Fingerprinter
+from graphium.utils import fs
+from graphium.trainer.predictor import PredictorModule
 
 from .main import app
-from .train_finetune import run_training_finetuning
+from .train_finetune_test import run_training_finetuning_testing
 
 finetune_app = typer.Typer(help="Utility CLI for extra fine-tuning utilities.")
 app.add_typer(finetune_app, name="finetune")
@@ -23,6 +32,7 @@ def benchmark_tdc_admet_cli(
 ):
     """
     Utility CLI to easily fine-tune a model on (a subset of) the benchmarks in the TDC ADMET group.
+
     A major limitation is that we cannot use all features of the Hydra CLI, such as multiruns.
     """
     try:
@@ -51,7 +61,7 @@ def benchmark_tdc_admet_cli(
             )
 
         # Run the training loop
-        ret = run_training_finetuning(cfg)
+        ret = run_training_finetuning_testing(cfg)
         ret = {k: v.item() for k, v in ret.items()}
         results[n] = ret
 
@@ -64,3 +74,63 @@ def benchmark_tdc_admet_cli(
 
     with fsspec.open(path, "w") as f:
         yaml.dump(results, f)
+
+
+@finetune_app.command(name="fingerprint")
+def get_fingerprints_from_model(
+    fingerprint_layer_spec: List[str],
+    pretrained_model: str,
+    save_destination: str,
+    output_type: str = typer.Option("torch", help="Either numpy (.npy) or torch (.pt) output"),
+    overrides: Optional[List[str]] = typer.Option(None, "--override", "-o", help="Hydra overrides"),
+):
+    """Endpoint for getting fingerprints from a pretrained model.
+
+    The pretrained model should be a `.ckpt` path or pre-specified, named model within Graphium.
+    The fingerprint layer specification should be of the format `module:layer`.
+    If specified as a list, the fingerprints from all the specified layers will be concatenated.
+    See the docs of the `graphium.finetuning.fingerprinting.Fingerprinter` class for more info.
+    """
+
+    if overrides is None:
+        overrides = []
+
+    with initialize(version_base=None, config_path="../../expts/hydra-configs"):
+        cfg = compose(config_name="main", overrides=overrides)
+        cfg = OmegaConf.to_container(cfg, resolve=True)
+
+    ## == Instantiate all required objects from their respective configs ==
+
+    # Accelerator
+    cfg, accelerator_type = load_accelerator(cfg)
+
+    # Data-module
+    datamodule = load_datamodule(cfg, accelerator_type)
+    datamodule.prepare_data()
+
+    # The predict_dataloader() returns either predict or test, so we need to run both.
+    datamodule.setup("test")
+    datamodule.setup("predict")
+
+    # Model
+    predictor = PredictorModule.load_pretrained_model(
+        pretrained_model,
+        device=accelerator_type,
+    )
+
+    ## == Fingerprinter
+    with Fingerprinter(model=predictor, fingerprint_spec=fingerprint_layer_spec, out_type=output_type) as fp:
+        fps = fp.get_fingerprints_for_dataset(datamodule.predict_dataloader())
+
+    fs.mkdir(save_destination, exist_ok=True)
+
+    if output_type == "numpy":
+        path = fs.join(save_destination, "fingerprints.npy")
+        logger.info(f"Saving fingerprints to {path}")
+        with fsspec.open(path, "wb") as f:
+            np.save(path, fps)
+
+    else:
+        path = fs.join(save_destination, "fingerprints.pt")
+        logger.info(f"Saving fingerprints to {path}")
+        torch.save(fps, path)

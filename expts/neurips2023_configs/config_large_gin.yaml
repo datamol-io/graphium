@@ -5,6 +5,10 @@ defaults:
 
 constants:
   name: neurips2023_large_data_gin
+  wandb:
+    name: ${constants.name}
+    project: neurips2023_large_graphcore
+    entity: multitask-gnn
 
 architecture:
   gnn:  # Set as null to avoid a post-nn network
