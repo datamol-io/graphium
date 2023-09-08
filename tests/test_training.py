@@ -93,13 +93,13 @@ class TestCLITraining:
     def test_ipu_cli_training(self, load_type):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
-        import poptorch
+                import poptorch
 
-        assert poptorch.ipuHardwareIsAvailable()
-        from lightning_graphcore.accelerator import _IPU_AVAILABLE
+                assert poptorch.ipuHardwareIsAvailable()
+                from lightning_graphcore.accelerator import _IPU_AVAILABLE
 
-        assert _IPU_AVAILABLE is True
-        self.call_cli_with_overrides("ipu", "16-true", load_type)
+                assert _IPU_AVAILABLE is True
+                self.call_cli_with_overrides("ipu", "16-true", load_type)
 
     def test_ipu_mlp(self):
 
