@@ -68,8 +68,8 @@ class TestCLITraining:
         if acc_type == "ipu":
             overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
             overrides.append("accelerator.ipu_inference_config=['useIpuModel(True)']")
-            overrides.append("datamodule.args.batch_size_training=1")
-            overrides.append("datamodule.args.batch_size_inference=1")
+            overrides.append("datamodule.args.batch_size_training=2")
+            overrides.append("datamodule.args.batch_size_inference=2")
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
