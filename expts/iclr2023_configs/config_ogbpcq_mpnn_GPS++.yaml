@@ -238,6 +238,7 @@ architecture:
     activation: gelu
     last_activation: none
     dropout: 0.1
+    droppath_rate_ffn: 0.3
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
