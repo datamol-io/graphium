@@ -77,7 +77,7 @@ datamodule:
         split_names: ["train", "valid", "test-dev"]
         seed: ${constants.seed}
         label_normalization:
-          normalize_val_test: true
+          normalize_val_test: false
           method: "normal"
 
     # Featurization
@@ -238,7 +238,6 @@ architecture:
     activation: gelu
     last_activation: none
     dropout: 0.1
-    droppath_rate_ffn: 0.3
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -256,6 +255,7 @@ architecture:
       attn_type: "none" # "full-attention", "none"
       # biased_attention: false
       attn_kwargs: null
+      droppath_rate_ffn: 0.3
 
   graph_output_nn:
     graph:
