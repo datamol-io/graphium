@@ -1,0 +1,47 @@
+# Running the mpnn model with the largemix dataset on IPU.
+
+defaults:
+ - base_config: ogbpcqm4mv2_GPS++
+ - _self_
+
+constants:
+  name: ogb_pcqm4mv2_mpnn_GPS++
+
+architecture:
+
+  pre_nn_edges:
+    out_dim: 128
+    hidden_dims: 32
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: 0.18
+    normalization: ${architecture.pre_nn.normalization}
+    last_normalization: ${architecture.pre_nn.normalization}
+    residual_type: none
+
+  gnn:  # Set as null to avoid a post-nn network
+  #    in_dim: 1024 # should be consistent with pre_nn.out_dim
+  #    out_dim: 256
+  #    hidden_dims: &gnn_dim 64 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
+  #    depth: 4
+  #    activation: gelu
+  #    last_activation: none
+  #    dropout: 0.1
+  #    normalization: "layer_norm"
+  #    last_normalization: *normalization
+  #    residual_type: simple
+    layer_type: 'pyg:gps'
+    layer_kwargs:
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 1024 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        out_dim: 1024 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
+        in_dim_edges: 128 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+        out_dim_edges: 128 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null
+    virtual_node: 'sum'
+    use_virtual_edges: true  

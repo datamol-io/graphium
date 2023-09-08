@@ -1,0 +1,101 @@
+# Running the mpnn model with the largemix dataset on IPU.
+
+defaults:
+ - base_config: ogbpcqm4mv2
+ - _self_
+
+constants:
+  name: ogb_pcqm4mv2_mpnn
+
+architecture:
+  model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
+  pre_nn:   # Set as null to avoid a pre-nn network
+    out_dim: 256
+    hidden_dims: 1024
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.1
+    normalization: &normalization layer_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 128
+    hidden_dims: 512
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: 0.18
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
+
+  pe_encoders:
+    out_dim: 32
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        encoder_type: "laplacian_pe"
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
+        output_keys: ["feat"]
+        hidden_dim: 64
+        out_dim: 32
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 2
+        num_layers_post: 1 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        encoder_type: "mlp"
+        input_keys: ["rw_return_probs"]
+        output_keys: ["feat"]
+        hidden_dim: 64
+        out_dim: 32
+        num_layers: 2
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+
+
+
+  gnn:  # Set as null to avoid a post-nn network
+    out_dim: 256
+    hidden_dims: 256
+    depth: 4
+    activation: gelu
+    last_activation: none
+    dropout: 0.1
+    normalization: "layer_norm"
+    last_normalization: *normalization
+    residual_type: simple
+    layer_type: 'pyg:gps'
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 256
+        out_dim: 256
+        in_dim_edges: 128
+        out_dim_edges: 128
+      attn_type: "none" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs: null
+    virtual_node: 'sum'
+    use_virtual_edges: true
+
+  graph_output_nn:
+    graph:
+      pooling: [sum]
+      out_dim: 256
+      hidden_dims: 256
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+  
