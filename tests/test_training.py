@@ -68,6 +68,8 @@ class TestCLITraining:
         if acc_type == "ipu":
             overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
             overrides.append("accelerator.ipu_inference_config=['useIpuModel(True)']")
+            overrides.append("datamodule.args.batch_size_training=1")
+            overrides.append("datamodule.args.batch_size_inference=1")
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
@@ -85,7 +87,7 @@ class TestCLITraining:
         self.call_cli_with_overrides("cpu", "32", load_type)
 
     @pytest.mark.ipu
-    @pytest.mark.skip
+    #@pytest.mark.skip
     #@pytest.mark.parametrize("load_type", ["RAM", "disk"])
     @pytest.mark.parametrize("load_type", ["disk"])
     def test_ipu_cli_training(self, load_type):
