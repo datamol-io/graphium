@@ -70,6 +70,11 @@ class TestCLITraining:
             overrides.append("accelerator.ipu_inference_config=['useIpuModel(True)']")
             overrides.append("datamodule.args.batch_size_training=2")
             overrides.append("datamodule.args.batch_size_inference=2")
+            overrides.append("datamodule.args.ipu_dataloader_training_opts.max_num_nodes=120")
+            overrides.append("datamodule.args.ipu_dataloader_training_opts.max_num_edges=240")
+            overrides.append("datamodule.args.ipu_dataloader_inference_opts.max_num_nodes=120")
+            overrides.append("datamodule.args.ipu_dataloader_inference_opts.max_num_edges=240")
+            
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
