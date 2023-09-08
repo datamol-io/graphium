@@ -133,6 +133,7 @@ class TestCLITraining:
 
         mlp = MLP()
         o1 = poptorch.Options()
+        o1.useIpuModel(True)
         o2 = poptorch.optim.SGD(mlp.parameters(), lr=1e-4)
         popmlp = poptorch.trainingModel(mlp, o1, o2)
 
