@@ -91,8 +91,8 @@ class TestCLITraining:
     #@pytest.mark.parametrize("load_type", ["RAM", "disk"])
     @pytest.mark.parametrize("load_type", ["disk"])
     def test_ipu_cli_training(self, load_type):
-        #with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
-        #    with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
         import poptorch
 
         assert poptorch.ipuHardwareIsAvailable()
