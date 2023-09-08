@@ -74,6 +74,10 @@ class TestCLITraining:
             overrides.append("+datamodule.args.ipu_dataloader_training_opts.max_num_edges=240")
             overrides.append("+datamodule.args.ipu_dataloader_inference_opts.max_num_nodes=120")
             overrides.append("+datamodule.args.ipu_dataloader_inference_opts.max_num_edges=240")
+            overrides.append("~datamodule.args.ipu_dataloader_training_opts.max_num_nodes_per_graph")
+            overrides.append("~datamodule.args.ipu_dataloader_training_opts.max_num_edges_per_graph")
+            overrides.append("~datamodule.args.ipu_dataloader_inference_opts.max_num_nodes_per_graph")
+            overrides.append("~datamodule.args.ipu_dataloader_inference_opts.max_num_edges_per_graph")
             
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
