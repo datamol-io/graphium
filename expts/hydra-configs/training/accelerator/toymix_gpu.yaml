@@ -5,10 +5,10 @@ accelerator:
 
 datamodule:
   args:
-    batch_size_training: 200
-    batch_size_inference: 200
-    featurization_n_jobs: 4
-    num_workers: 4
+    batch_size_training: 2000
+    batch_size_inference: 2000
+    featurization_n_jobs: 24
+    num_workers: 24
 
 predictor:
   optim_kwargs: {}
@@ -18,5 +18,5 @@ predictor:
 
 trainer:
   trainer:
-    accumulate_grad_batches: 1
+    # accumulate_grad_batches: 1
     max_epochs: ${constants.max_epochs}

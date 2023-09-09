@@ -5,13 +5,13 @@ architecture:
   mup_base_path: null
   pre_nn:
     out_dim: 64
-    hidden_dims: 256
-    depth: 2
+    hidden_dims: 128
+    depth: 1
     activation: relu
     last_activation: none
     dropout: 0.18
-    normalization: layer_norm
-    last_normalization: ${architecture.pre_nn.normalization}
+    normalization: ${constants.norm}
+    last_normalization: ${constants.norm}
     residual_type: none
 
   pre_nn_edges: null
@@ -40,8 +40,8 @@ architecture:
         out_dim: 32
         num_layers: 2
         dropout: 0.1
-        normalization: "layer_norm" #"batch_norm" or "layer_norm"
-        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        normalization: ${constants.norm} #"batch_norm" or "layer_norm"
+        first_normalization: ${constants.norm} #"batch_norm" or "layer_norm"
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
@@ -51,8 +51,8 @@ architecture:
     activation: gelu
     last_activation: none
     dropout: 0.1
-    normalization: "layer_norm"
-    last_normalization: ${architecture.pre_nn.normalization}
+    normalization: ${constants.norm}
+    last_normalization: ${constants.norm}
     residual_type: simple
     virtual_node: 'none'
     layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
@@ -67,7 +67,7 @@ architecture:
       activation: relu
       last_activation: none
       dropout: ${architecture.pre_nn.dropout}
-      normalization: ${architecture.pre_nn.normalization}
+      normalization: ${constants.norm}
       last_normalization: "none"
       residual_type: none
 

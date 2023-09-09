@@ -44,11 +44,15 @@ hydra:
     direction: minimize
     study_name: ${constants.name}
     storage: null
-    n_trials: 100
+    n_trials: 10
     n_jobs: 1
 
     # The hyper-parameter search space definition
     # See https://hydra.cc/docs/plugins/optuna_sweeper/#search-space-configuration for the options
     params:
       predictor.optim_kwargs.lr: tag(log, interval(0.00001, 0.001))
+      # architecture.gnn.depth: [4, 6, 8] 
+      architecture.gnn.normalization: ['batch_norm', 'layer_norm'] 
+
+
 
