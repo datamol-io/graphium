@@ -51,8 +51,7 @@ hydra:
     # See https://hydra.cc/docs/plugins/optuna_sweeper/#search-space-configuration for the options
     params:
       predictor.optim_kwargs.lr: tag(log, interval(0.00001, 0.001))
-      # architecture.gnn.depth: [4, 6, 8] 
-      architecture.gnn.normalization: ['batch_norm', 'layer_norm'] 
+      architecture.gnn.normalization: choice(layer_norm, batch_norm)
 
 
 

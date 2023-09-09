@@ -4,8 +4,10 @@
 #SBATCH --error=graphium_train_error.txt
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00   
-#SBATCH --constraint="dgampere,nvlink,dgx,40gb"
-#SBATCH --partition=main # You can adjust this as per your requirements
+#SBATCH --mem=32Gb
+#SBATCH --partition=unkillable
+#SBATCH --gres=gpu:a100l:1
+#SBATCH --cpus-per-task=6
 
 # Activate the conda environment
 source /home/mila/h/hussein-mohamu.jama/miniconda3/etc/profile.d/conda.sh

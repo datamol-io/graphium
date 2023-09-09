@@ -7,8 +7,8 @@ datamodule:
   args:
     batch_size_training: 2000
     batch_size_inference: 2000
-    featurization_n_jobs: 24
-    num_workers: 24
+    featurization_n_jobs: 6
+    num_workers: 6
 
 predictor:
   optim_kwargs: {}
