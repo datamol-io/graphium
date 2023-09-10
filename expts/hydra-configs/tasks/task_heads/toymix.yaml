@@ -6,7 +6,7 @@ architecture:
       task_level: graph
       out_dim: 19
       hidden_dims: 128
-      depth: 1
+      depth: 2
       activation: relu
       last_activation: none
       dropout: ${architecture.pre_nn.dropout}
@@ -17,7 +17,7 @@ architecture:
       task_level: graph
       out_dim: 12
       hidden_dims: 64
-      depth: 1
+      depth: 2
       activation: relu
       last_activation: none
       dropout: ${architecture.pre_nn.dropout}
@@ -28,7 +28,7 @@ architecture:
       task_level: graph
       out_dim: 3
       hidden_dims: 32
-      depth: 1
+      depth: 2
       activation: relu
       last_activation: none
       dropout: ${architecture.pre_nn.dropout}
