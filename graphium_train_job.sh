@@ -3,7 +3,7 @@
 #SBATCH --output=graphium_train_output.txt
 #SBATCH --error=graphium_train_error.txt
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00   
+#SBATCH --time=48:00:00   
 #SBATCH --mem=32Gb
 #SBATCH --partition=unkillable
 #SBATCH --gres=gpu:a100l:1
