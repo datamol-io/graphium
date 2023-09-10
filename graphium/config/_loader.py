@@ -13,7 +13,7 @@ import yaml
 
 # Lightning
 from lightning import Trainer
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, LearningRateMonitor
 from lightning.pytorch.loggers import Logger, WandbLogger
 from loguru import logger
 
@@ -414,6 +414,11 @@ def load_trainer(
     # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
+
+    if "learning_rate_monitor" in cfg_trainer.keys():
+        callbacks.append(LearningRateMonitor(**cfg_trainer["learning_rate_monitor"]))
+    else:
+        callbacks.append(LearningRateMonitor())
 
     # Define the logger parameters
     wandb_cfg = config["constants"].get("wandb")
