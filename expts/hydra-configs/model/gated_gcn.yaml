@@ -13,9 +13,9 @@ architecture:
     residual_type: none
   pre_nn:
     out_dim: 64
-    hidden_dims: 54
+    hidden_dims: 62
     depth: 2
   gnn:  # Set as null to avoid a post-nn network
     layer_type: 'pyg:gated-gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    hidden_dims: 58
-    depth: 6
+    hidden_dims: 48
+    depth: 8

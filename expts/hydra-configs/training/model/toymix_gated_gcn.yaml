@@ -1,7 +1,7 @@
 # @package _global_
 
 constants:
-  name: toy_data_gated_gcn_depth_6
+  name: toy_data_gated_gcn_depth_8
   wandb:
     name: ${constants.name}
     project: neurips2023-expts

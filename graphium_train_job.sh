@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=graphium_training
-#SBATCH --output=graphium_train_output.txt
-#SBATCH --error=graphium_train_error.txt
+#SBATCH --job-name=graphium_training_depth_8
+#SBATCH --output=graphium_train_output_depth_8.txt
+#SBATCH --error=graphium_train_error_depth_8.txt
 #SBATCH --ntasks=1
 #SBATCH --time=48:00:00   
 #SBATCH --mem=32Gb
