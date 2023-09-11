@@ -1,10 +1,10 @@
 # @package _global_
 
 constants:
-  name: toy_data_gated_gcn_depth_4
+  name: toy_data_gated_gcn
   wandb:
     name: ${constants.name}
-    project: neurips2023-expts
+    project: toymix_baseline_1
     entity: jmohamud
   entity: multitask-gnn
   seed: 42
