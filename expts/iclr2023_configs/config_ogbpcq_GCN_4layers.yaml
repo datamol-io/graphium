@@ -7,10 +7,10 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   datacache_path: "/localdata/PCQM4Mv2/"
   epochs: 100
-  name: ogb_pcqm4mv2_mpnn
+  name: ogb_pcqm4mv2_gcn
   wandb:
     entity: multitask-gnn
-    name: neurips2023_scaling_mpnn
+    name: neurips2023_scaling_gcn
     project: neurips2023_graphcore_scaling_mpnn
 
 
@@ -37,11 +37,11 @@ accelerator:
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 8
+        accumulate_grad_batches: 2
 
   ipu_config:
     - deviceIterations(60) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -56,9 +56,9 @@ accelerator:
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
 
-  accelerator_kwargs:
-    _accelerator: "ipu"
-    gnn_layers_per_ipu: [4, 4, 4, 4]      
+      #  accelerator_kwargs:
+      #    _accelerator: "ipu"
+      #    gnn_layers_per_ipu: [4, 4, 4, 4]      
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -181,27 +181,18 @@ trainer:
 architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
-  pre_nn:
-    out_dim: 256
-    hidden_dims: 1024
+  pre_nn:   # Set as null to avoid a pre-nn network
+    out_dim: 64
+    hidden_dims: 256
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.1
+    dropout: &dropout 0.18
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges:
-    out_dim: 128
-    hidden_dims: 512
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: 0.18
-    normalization: ${architecture.pre_nn.normalization}
-    last_normalization: ${architecture.pre_nn.normalization}
-    residual_type: none
+  pre_nn_edges: null
 
   pe_encoders:
     out_dim: 32
@@ -231,45 +222,22 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
 
   gnn:  # Set as null to avoid a post-nn network
-  #    in_dim: 256 # should be consistent with pre_nn.out_dim
-    out_dim: 256
-    hidden_dims: &gnn_dim 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
-    depth: 16
+    in_dim: 64 # or otherwise the correct value
+    out_dim: &gnn_dim 768
+    hidden_dims: *gnn_dim
+    depth: 4
     activation: gelu
     last_activation: none
     dropout: 0.1
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
-    virtual_node: 'sum'
-    use_virtual_edges: true
-    layer_type: 'pyg:gps'
-    layer_kwargs:
-      node_residual: false
-      mpnn_type: 'pyg:mpnnplus'
-      mpnn_kwargs:
-        in_dim: 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
-        out_dim: 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
-        in_dim_edges: 128 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
-        out_dim_edges: 128 # should consistent with pre_nn_edges.out_dim when multi-layer mpnn is used (edge_model layer)
-      attn_type: "none" # "full-attention", "none"
-      # biased_attention: false
-      attn_kwargs: null
-      droppath_rate_ffn: 0.3
+    virtual_node: 'none'
+    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+
 
   graph_output_nn:
     graph:
-      pooling: [sum]
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-      depth: 1
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    node:
       pooling: [sum]
       out_dim: *gnn_dim
       hidden_dims: *gnn_dim
