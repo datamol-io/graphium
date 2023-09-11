@@ -1,0 +1,24 @@
+# @package _global_
+
+datamodule:
+    args:
+      ipu_dataloader_training_opts:
+        mode: async
+        max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
+        max_num_edges_per_graph: 100
+      ipu_dataloader_inference_opts:
+        mode: async
+        max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
+        max_num_edges_per_graph: 100
+      # Data handling-related
+      batch_size_training: 30
+      batch_size_inference: 30
+
+predictor:
+  optim_kwargs:
+    loss_scaling: 1024
+
+trainer:
+  trainer:
+      precision: 16-true
+      accumulate_grad_batches: 2

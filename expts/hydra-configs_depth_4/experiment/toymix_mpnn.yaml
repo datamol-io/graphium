@@ -1,0 +1,13 @@
+# @package _global_
+
+constants:
+  name: neurips2023_small_data_mpnn
+  entity: "multitask-gnn"
+  seed: 42
+  max_epochs: 100
+  data_dir: expts/data/neurips2023/small-dataset
+  raise_train_error: true
+
+trainer:
+  model_checkpoint:
+    dirpath: models_checkpoints/neurips2023-small-mpnn/${now:%Y-%m-%d_%H-%M-%S}/
