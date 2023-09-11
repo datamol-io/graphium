@@ -1,0 +1,15 @@
+# @package _global_
+
+architecture:
+  task_heads:
+    pcqm4m_n4:
+      task_level: node
+      out_dim: 4
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: ${architecture.pre_nn.dropout}
+      normalization: ${architecture.pre_nn.normalization}
+      last_normalization: "none"
+      residual_type: none

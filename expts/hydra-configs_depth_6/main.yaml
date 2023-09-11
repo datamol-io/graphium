@@ -1,0 +1,16 @@
+defaults:
+
+  # Accelerators
+  - accelerator: cpu
+
+  # Pre-training/fine-tuning
+  - architecture: toymix
+  - tasks: toymix
+  - training: toymix
+
+  # Benchmarking
+  - model: gcn
+
+  # Specializations
+  - training/accelerator: ${training}_${accelerator}
+  - training/model: ${training}_${model}

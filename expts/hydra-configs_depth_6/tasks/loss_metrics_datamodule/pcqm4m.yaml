@@ -1,0 +1,48 @@
+# @package _global_
+
+#Task-specific
+predictor:
+  metrics_on_progress_bar:
+    homolumo: []
+  metrics_on_training_set:
+    homolumo: ["pearsonr"]  
+  loss_fun:
+    homolumo: mae_ipu
+
+# Task-specific
+metrics:
+  homolumo:
+    - name: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+
+datamodule:
+  module_type: "MultitaskFromSmilesDataModule"
+  # module_type: "FakeDataModule"  # Option to use generated data
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      homolumo:
+        df: null
+        task_level: "graph"
+        df_path: graphium/data/PCQM4M/pcqm4mv2.csv
+        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
+        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap"]
+        # sample_size: 8000 # use sample_size for test
+        splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        split_names: ["train", "valid", "test-dev"]
+        # graphium/data/PCQM4Mv2/split_dict.pt
+        # graphium/data/PCQM4Mv2/pcqm4m_split.csv
+        # split_val: 0.1
+        # split_test: 0.1
+        seed: ${constants.seed}
+        label_normalization:
+          method: "normal"

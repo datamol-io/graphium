@@ -1,0 +1,91 @@
+# @package _global_
+
+# == Fine-tuning configs in Graphium ==
+# 
+# A fine-tuning config is a appendum to a (pre-)training config.
+# Since many things (e.g. the architecture), will stay constant between (pre-)training and fine-tuning,
+# this config should be as minimal as possible to avoid unnecessary duplication. It only specifies
+# what to override with regards to the config used for (pre-)training.
+# 
+# Given the following training command: 
+# >>> graphium-train --cfg /path/to/train.yaml
+# 
+# Fine-tuning now is as easy as: 
+# >>> graphium-train --cfg /path/to/train.yaml +finetune=admet
+#
+# NOTE: This config can be used for each of the benchmarks in the TDC ADMET benchmark suite.
+#     The only thing that needs to be changed is the `constants.task` key.
+
+
+## == Overrides == 
+
+defaults:
+  # This file contains all metrics and loss function info for all ADMET tasks.
+  # This config is filtered at runtime based on the `constants.task` key.
+  - override /tasks/loss_metrics_datamodule: admet
+
+constants:
+  
+  # For now, we assume a model is always fine-tuned on a single task at a time.
+  # You can override this value with any of the benchmark names in the TDC benchmark suite.
+  # See also https://tdcommons.ai/benchmark/admet_group/overview/
+  task: lipophilicity_astrazeneca
+
+  name: finetuning_${constants.task}_gcn
+  wandb:
+    name: ${constants.name}
+    project: ${constants.task}
+    entity: multitask-gnn
+    save_dir: logs/${constants.task}
+  seed: 42
+  max_epochs: 100
+  data_dir: expts/data/admet/${constants.task}
+  raise_train_error: true
+
+predictor:
+  optim_kwargs:
+    lr: 4.e-5
+
+# == Fine-tuning config == 
+
+finetuning:
+
+  # For now, we assume a model is always fine-tuned on a single task at a time.
+  # You can override this value with any of the benchmark names in the TDC benchmark suite.
+  # See also https://tdcommons.ai/benchmark/admet_group/overview/
+  task: ${constants.task}
+  level: graph
+
+  # Pretrained model
+  pretrained_model: dummy-pretrained-model
+  finetuning_module: task_heads # gnn  
+  sub_module_from_pretrained: zinc # optional
+  new_sub_module: ${constants.task} # optional
+  
+  # keep_modules_after_finetuning_module: # optional
+  #   graph_output_nn/graph: {}
+  #   task_heads/zinc:
+  #     new_sub_module: lipophilicity_astrazeneca
+  #     out_dim: 1
+
+
+  # Changes to finetuning_module                                                 
+  drop_depth: 1
+  new_out_dim: 8
+  added_depth: 2
+
+  # Training
+  unfreeze_pretrained_depth: 0
+  epoch_unfreeze_all: none
+
+  # Optional finetuning head appended to model after finetuning_module
+  finetuning_head:
+    task: ${constants.task}
+    previous_module: task_heads
+    incoming_level: graph
+    model_type: mlp
+    in_dim: 8
+    out_dim: 1
+    hidden_dims: 8
+    depth: 2
+    last_layer_is_readout: true
