@@ -12,6 +12,6 @@
 # Activate the conda environment
 source /home/mila/h/hussein-mohamu.jama/miniconda3/etc/profile.d/conda.sh
 conda activate graphium
-
+git checkout gated_gcn_depth_4
 # Execute the training command
 graphium-train model=gated_gcn accelerator=gpu +hparam_search=optuna
