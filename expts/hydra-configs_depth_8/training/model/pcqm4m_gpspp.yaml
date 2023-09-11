@@ -1,0 +1,13 @@
+# @package _global_
+
+# GPS++ model with the PCQMv2 dataset.
+constants:
+  name: pcqm4mv2_gpspp_4layer
+  seed: 42
+  max_epochs: 100
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  datacache_path: "/localdata/PCQM4Mv2/"
+
+trainer:
+  model_checkpoint:
+    dirpath: models_checkpoints/PCMQ4Mv2/gpspp/${now:%Y-%m-%d_%H-%M-%S}/

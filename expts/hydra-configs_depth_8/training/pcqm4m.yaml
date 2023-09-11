@@ -1,0 +1,40 @@
+# @package _global_
+
+predictor:
+  random_seed: ${constants.seed}
+  optim_kwargs:
+    lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
+    # weight_decay: 1.e-7
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: ${constants.max_epochs}
+    warmup_epochs: 10
+    verbose: False
+  scheduler_kwargs:
+  #  monitor: &monitor homolumo/mae/train
+  #  mode: min
+  #  frequency: 1
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  flag_kwargs:
+    n_steps: 0 # 1
+    alpha: 0.0 # 0.01
+
+
+trainer:
+  seed: ${constants.seed}
+  #early_stopping:
+  #  monitor: *monitor
+  #  min_delta: 0
+  #  patience: 10
+  #  mode: &mode min
+  model_checkpoint:
+    dirpath: models_checkpoints/PCMQ4Mv2/${now:%Y-%m-%d_%H-%M-%S}/
+    filename: ${constants.name}
+    #monitor: *monitor
+    #mode: *mode
+    save_top_k: 1
+    every_n_epochs: 100
+  trainer:
+    max_epochs: ${constants.max_epochs}
+    min_epochs: 1
+    check_val_every_n_epoch: 20

@@ -1,0 +1,13 @@
+# @package _global_
+
+constants:
+  name: neurips2023_small_data_gin
+  seed: 42
+  max_epochs: 100
+  data_dir: expts/data/neurips2023/small-dataset
+  raise_train_error: true
+  datacache_path: ../datacache/neurips2023-small/
+
+trainer:
+  model_checkpoint:
+    dirpath: models_checkpoints/neurips2023-small-gin/${now:%Y-%m-%d_%H-%M-%S}/

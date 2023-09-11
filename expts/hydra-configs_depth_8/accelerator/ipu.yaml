@@ -1,0 +1,18 @@
+type: ipu
+ipu_config:
+    - deviceIterations(60) # IPU would require large batches to be ready for the model.
+    # 60 for PCQM4mv2
+    # 30 for largemix
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 96)
+    - Precision.enableStochasticRounding(True)
+
+ipu_inference_config:
+    # set device iteration and replication factor to 1 during inference
+    # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
