@@ -12,6 +12,8 @@ constants:
   data_dir: ../data/graphium/large-dataset/
   raise_train_error: true
   datacache_path: ../datacache/large-dataset/
+  gnn_dim: 512
+  gnn_edge_dim: 256
   norm: "layer_norm"
 
 trainer:

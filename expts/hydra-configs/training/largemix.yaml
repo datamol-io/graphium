@@ -8,7 +8,7 @@ predictor:
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
-    warmup_epochs: 10
+    warmup_epochs: 5
     verbose: False
   scheduler_kwargs:
   target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label

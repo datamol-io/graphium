@@ -13,9 +13,9 @@ architecture:
     residual_type: none
 
   gnn:
-    out_dim: 704
+    out_dim: ${constants.gnn_dim}
     hidden_dims: ${architecture.gnn.out_dim}
-    hidden_dims_edges: 128
+    hidden_dims_edges: ${constants.gnn_edge_dim}
     layer_type: 'pyg:mpnnplus'
 
   graph_output_nn:
