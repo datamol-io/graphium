@@ -7,10 +7,10 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   datacache_path: "/localdata/PCQM4Mv2/"
   epochs: 100
-  name: ogb_pcqm4mv2_mpnn_no1hot
+  name: ogb_pcqm4mv2_mpnn_NewData_4layers
   wandb:
     entity: multitask-gnn
-    name: neurips2023_scaling_mpnn_no1hot
+    name: neurips2023_scaling_mpnn_NewData_4layers
     project: neurips2023_graphcore_scaling_mpnn
 
 
@@ -37,11 +37,11 @@ accelerator:
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 8
+        accumulate_grad_batches: 2
 
   ipu_config:
     - deviceIterations(60) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -52,13 +52,13 @@ accelerator:
   ipu_inference_config:
   # set device iteration and replication factor to 1 during inference
   # gradient accumulation was set to 1 in the code
-    - deviceIterations(30)
+    - deviceIterations(1)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
 
-  accelerator_kwargs:
-    _accelerator: "ipu"
-    gnn_layers_per_ipu: [4, 4, 4, 4]      
+      #  accelerator_kwargs:
+      #    _accelerator: "ipu"
+      #    gnn_layers_per_ipu: [4, 4, 4, 4]      
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -68,12 +68,12 @@ datamodule:
       homolumo:
         df: null
         task_level: graph
-        df_path: graphium/data/PCQM4M/pcqm4mv2.csv
+        df_path: /nethome/kerstink/QM9_finetuning/ogb-lsc/pcqm4mv2_conformers_28features/raw/data.csv
         # Download with  `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv`
-        smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap"]  # graph_*  # graph_* means all columns starting with "graph_"
+        smiles_col: "smiles"
+        label_cols: ["homolumogap"]  # graph_*  # graph_* means all columns starting with "graph_"
         #        sample_size: 100000 # use sample_size for test
-        splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        splits_path: /nethome/kerstink/QM9_finetuning/ogb-lsc/pcqm4mv2_conformers_28features/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_names: ["train", "valid", "test-dev"]
         seed: ${constants.seed}
         label_normalization:
@@ -91,8 +91,8 @@ datamodule:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
     # 'num_chiral_centers (not included yet)']
-    #  atom_property_list_onehot: [atomic-number, group, period, total-valence]
-      atom_property_list_float: [atomic-number, group, period, total-valence, degree, formal-charge, radical-electron, aromatic, in-ring]
+      atom_property_list_onehot: [atomic-number, group, period, total-valence]
+      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
@@ -234,7 +234,7 @@ architecture:
   #    in_dim: 256 # should be consistent with pre_nn.out_dim
     out_dim: 256
     hidden_dims: &gnn_dim 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
-    depth: 16
+    depth: 4
     activation: gelu
     last_activation: none
     dropout: 0.1
