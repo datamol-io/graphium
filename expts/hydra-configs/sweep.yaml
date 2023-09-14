@@ -1,0 +1,30 @@
+command:
+  - bash
+  - ${program}
+  - model=gated_gcn
+  - architecture=toymix
+  - tasks=toymix
+  - training=toymix
+  - accelerator=gpu
+  - datamodule.args.num_workers=8
+  - ${args_no_hyphens}
+method: bayes
+metric:
+  goal: minimize
+  name: loss/val
+name: gated_gcn
+parameters:
+  architecture.gnn.depth:
+    values:
+      - 4
+      - 6
+      - 8
+  constants.norm:
+    values:
+      - layer_norm
+      - batch_norm
+  predictor.optim_kwargs.lr:
+    distribution: log_uniform_values
+    max: 0.001
+    min: 1e-05
+program: scripts/balance_params_and_train.sh

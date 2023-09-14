@@ -5,8 +5,8 @@ accelerator:
 
 datamodule:
   args:
-    batch_size_training: 2000
-    batch_size_inference: 2000
+    batch_size_training: 2048
+    batch_size_inference: 2048
     featurization_n_jobs: 8
     num_workers: 8
 

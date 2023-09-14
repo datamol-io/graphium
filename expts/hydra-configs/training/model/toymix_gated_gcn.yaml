@@ -4,7 +4,7 @@ constants:
   name: toy_data_gated_gcn
   wandb:
     name: ${constants.name}
-    project: toymix_baseline_1
+    project: toymix_baseline_2
     entity: jmohamud
   entity: multitask-gnn
   seed: 42
@@ -12,6 +12,8 @@ constants:
   data_dir: ../graphium/expts/data/neurips2023/small-dataset
   raise_train_error: true
   datacache_path: ../datacache/small-dataset/
+  gnn_dim: 128
+  gnn_edge_dim: 64
   norm: "layer_norm"
 
 trainer:

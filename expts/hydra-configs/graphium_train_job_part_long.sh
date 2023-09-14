@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=graphium_training_depth_4
-#SBATCH --output=graphium_train_output_depth_4.txt
-#SBATCH --error=graphium_train_error_depth_4.txt
+#SBATCH --job-name=graphium_training
+#SBATCH --output=graphium_train_output.txt
+#SBATCH --error=graphium_train_error.txt
 #SBATCH --ntasks=1
 #SBATCH --time=48:00:00   
 #SBATCH --mem=48Gb
@@ -12,6 +12,5 @@
 # Activate the conda environment
 source /home/mila/h/hussein-mohamu.jama/miniconda3/etc/profile.d/conda.sh
 conda activate graphium
-git checkout gated_gcn_depth_4
 # Execute the training command
 graphium-train model=gated_gcn accelerator=gpu +hparam_search=optuna
