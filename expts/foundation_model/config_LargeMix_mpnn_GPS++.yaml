@@ -5,12 +5,12 @@
 constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  datacache_path: "/localdata/PCQM4Mv2/"
+  datacache_path: "/localdata/neurips2023-large/"
   epochs: 100
-  name: ogb_pcqm4mv2_mpnn_NewData
+  name: LargeMix_mpnn_40M
   wandb:
     entity: multitask-gnn
-    name: neurips2023_scaling_mpnn_NewData
+    name: LargeMix_mpnn_40M
     project: neurips2023_graphcore_scaling_mpnn
 
 
@@ -28,8 +28,8 @@ accelerator:
           max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 30
-        batch_size_inference: 30
+        batch_size_training: 16
+        batch_size_inference: 16
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
@@ -37,7 +37,7 @@ accelerator:
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 8
+        accumulate_grad_batches: 16
 
   ipu_config:
     - deviceIterations(30) # IPU would require large batches to be ready for the model.
@@ -58,7 +58,7 @@ accelerator:
 
   accelerator_kwargs:
     _accelerator: "ipu"
-    gnn_layers_per_ipu: [4, 4, 4, 4]      
+    gnn_layers_per_ipu: [4,4,4,4]      
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -170,7 +170,7 @@ datamodule:
             ksteps: 16
 
     num_workers: 32 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch.
+    persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
 #Task-specific
