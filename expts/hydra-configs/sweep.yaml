@@ -15,11 +15,11 @@ metric:
 name: gated_gcn
 parameters:
   architecture.gnn.depth:
-    values:
-      - 4
-      - 6
-      - 8
+    distribution: int_uniform
+    max: 8
+    min: 4
   constants.norm:
+    distribution: categorical
     values:
       - layer_norm
       - batch_norm

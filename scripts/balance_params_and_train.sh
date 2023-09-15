@@ -4,7 +4,7 @@ set -e
 
 old_dim=0
 num_params=155000
-rel_error=0.005
+rel_error=0.05
 rel_step=0.5
 
 out=$(graphium params balance "${@}" "$num_params" "$rel_error" "$rel_step" "$old_dim")

@@ -14,5 +14,4 @@ source /home/mila/h/hussein-mohamu.jama/miniconda3/etc/profile.d/conda.sh
 conda activate graphium
 
 # Execute the training command
-# graphium-train model=gated_gcn accelerator=gpu +hparam_search=optuna
-wandb agent jmohamud/toymix_baselines/36mbenzy
+wandb agent --count 40 jmohamud/toymix_baselines/vzxy3b72
