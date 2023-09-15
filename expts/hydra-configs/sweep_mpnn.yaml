@@ -1,0 +1,31 @@
+command:
+  - bash
+  - ${program}
+  - model=mpnn
+  - architecture=toymix
+  - tasks=toymix
+  - training=toymix
+  - accelerator=gpu
+  - datamodule.args.num_workers=8
+  - +architecture.gnn.layer_kwargs.mlp_expansion_ratio=2
+  - ${args_no_hyphens}
+method: bayes
+metric:
+  goal: minimize
+  name: loss/val
+name: MPNN
+parameters:
+  architecture.gnn.depth:
+    distribution: int_uniform
+    max: 8
+    min: 4
+  constants.norm:
+    distribution: categorical
+    values:
+      - layer_norm
+      - batch_norm
+  predictor.optim_kwargs.lr:
+    distribution: log_uniform_values
+    max: 0.001
+    min: 1e-05
+program: scripts/balance_params_and_train.sh
