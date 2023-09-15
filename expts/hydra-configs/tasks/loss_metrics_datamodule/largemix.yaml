@@ -85,7 +85,7 @@ datamodule:
       l1000_vcap:
         df: null
         df_path: ../data/graphium/large-dataset/LINCS_L1000_VCAP_0-2_th2.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-2_th2.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
@@ -98,7 +98,7 @@ datamodule:
       l1000_mcf7:
         df: null
         df_path: ../data/graphium/large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-2_th2.csv.gz
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"

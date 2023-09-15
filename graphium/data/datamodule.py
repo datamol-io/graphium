@@ -1054,9 +1054,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             logger.info(f"Prepare single-task dataset for task '{task}' with {len(df)} data points.")
 
-            logger.info("Filtering the molecules for Hydrogen")
-            logger.info(f"Looking at column {df.columns[0]}")
-            logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(

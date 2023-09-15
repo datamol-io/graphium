@@ -189,8 +189,6 @@ def load_architecture(
         architecture: The datamodule used to process and load the data
     """
 
-    if isinstance(config, dict):
-        config = omegaconf.OmegaConf.create(config)
     cfg_arch = config["architecture"]
 
     # Select the architecture
@@ -247,9 +245,6 @@ def load_architecture(
         pre_nn_edges_kwargs.setdefault("in_dim", edge_in_dim)
     else:
         gnn_kwargs.setdefault("in_dim", edge_in_dim)
-
-    # Set the parameters for the full network
-    task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
     # Set all the input arguments for the model
     model_kwargs = dict(
