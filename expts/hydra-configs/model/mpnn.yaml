@@ -21,3 +21,5 @@ architecture:
   graph_output_nn:
     graph:
       hidden_dims: ${architecture.gnn.out_dim}
+    node:
+      hidden_dims: ${architecture.gnn.out_dim}
