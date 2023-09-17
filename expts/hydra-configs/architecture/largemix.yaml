@@ -25,8 +25,8 @@ architecture:
         encoder_type: "laplacian_pe"
         input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: &la_pos_hidden 64
+        out_dim: *la_pos_hidden
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
@@ -36,8 +36,8 @@ architecture:
         encoder_type: "mlp"
         input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: &rw_pos_hidden 64
+        out_dim: *rw_pos_hidden
         num_layers: 2
         dropout: 0.1
         normalization: ${constants.norm} #"batch_norm" or "layer_norm"
