@@ -56,7 +56,9 @@ jobs:
           pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
-          python3 -m pytest -m 'not skip_ipu'
+          export HYDRA_FULL_ERROR=1
+          export POPLAR_LOG_LEVEL=DEBUG POPART_LOG_LEVEL=DEBUG POPTORCH_LOG_LEVEL=DEBUG GCDA_LOG_LEVEL=DEBUG
+	  python3 -m pytest -m 'not skip_ipu' -s
 
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
