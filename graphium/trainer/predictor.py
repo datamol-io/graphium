@@ -618,11 +618,6 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-
-        if hasattr(self.optimizers(), "param_groups"):
-            lr = self.optimizers().param_groups[0]["lr"]
-            concatenated_metrics_logs["lr"] = torch.tensor(lr)
-        concatenated_metrics_logs["n_epochs"] = torch.tensor(self.current_epoch, dtype=torch.float32)
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries
