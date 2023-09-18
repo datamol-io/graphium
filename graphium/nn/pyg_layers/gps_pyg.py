@@ -29,6 +29,7 @@ PYG_LAYERS_DICT = {
     "pyg:gated-gcn": GatedGCNPyg,
     "pyg:pna-msgpass": PNAMessagePassingPyg,
     "pyg:mpnnplus": MPNNPlusPyg,
+    "none": None,
 }
 
 ATTENTION_LAYERS_DICT = {
@@ -189,6 +190,8 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the MPNN and Attention layers
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
+        if self.mpnn is None and self.attn_layer is None:
+            raise ValueError("At least one of MPNN or Attention layer must be specified")
 
     def forward(self, batch: Batch) -> Batch:
         r"""
@@ -258,6 +261,8 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Initialize the MPNN layer
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
+        if mpnn_class is None:
+            return
         mpnn_layer = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
 
         return mpnn_layer
