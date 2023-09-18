@@ -78,7 +78,7 @@ class TestCLITraining:
             overrides.append("~datamodule.args.ipu_dataloader_training_opts.max_num_edges_per_graph")
             overrides.append("~datamodule.args.ipu_dataloader_inference_opts.max_num_nodes_per_graph")
             overrides.append("~datamodule.args.ipu_dataloader_inference_opts.max_num_edges_per_graph")
-            
+
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
@@ -110,7 +110,6 @@ class TestCLITraining:
 
     @pytest.mark.ipu
     def test_ipu_mlp(self):
-
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             import torch
             from torch import nn
@@ -119,22 +118,19 @@ class TestCLITraining:
             dim = 32
 
             class MLP(nn.Module):
-
                 def __init__(self):
-
                     super().__init__()
 
                     self.lin1 = nn.Linear(dim, dim)
                     self.lin2 = nn.Linear(dim, dim)
 
                 def forward(self, x, y):
-
                     out = self.lin1(x).maximum(torch.zeros(1))
                     out = self.lin2(out)
 
                     if self.training:
                         loss = (out - y).pow(2)
-                        loss = poptorch.identity_loss(loss, reduction='sum')
+                        loss = poptorch.identity_loss(loss, reduction="sum")
                         return out, loss
 
                     return out
