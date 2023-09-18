@@ -96,9 +96,7 @@ class TestCLITraining:
         self.call_cli_with_overrides("cpu", "32", load_type)
 
     @pytest.mark.ipu
-    #@pytest.mark.skip
-    #@pytest.mark.parametrize("load_type", ["RAM", "disk"])
-    @pytest.mark.parametrize("load_type", ["disk"])
+    @pytest.mark.parametrize("load_type", ["RAM", "disk"])
     def test_ipu_cli_training(self, load_type):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
@@ -110,42 +108,44 @@ class TestCLITraining:
                 assert _IPU_AVAILABLE is True
                 self.call_cli_with_overrides("ipu", "16-true", load_type)
 
+    @pytest.mark.ipu
     def test_ipu_mlp(self):
 
-        import torch
-        from torch import nn
-        import poptorch
+        with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
+            import torch
+            from torch import nn
+            import poptorch
 
-        dim = 32
+            dim = 32
 
-        class MLP(nn.Module):
+            class MLP(nn.Module):
 
-            def __init__(self):
+                def __init__(self):
 
-                super().__init__()
+                    super().__init__()
 
-                self.lin1 = nn.Linear(dim, dim)
-                self.lin2 = nn.Linear(dim, dim)
+                    self.lin1 = nn.Linear(dim, dim)
+                    self.lin2 = nn.Linear(dim, dim)
 
-            def forward(self, x, y):
+                def forward(self, x, y):
 
-                out = self.lin1(x).maximum(torch.zeros(1))
-                out = self.lin2(out)
+                    out = self.lin1(x).maximum(torch.zeros(1))
+                    out = self.lin2(out)
 
-                if self.training:
-                    loss = (out - y).pow(2)
-                    loss = poptorch.identity_loss(loss, reduction='sum')
-                    return out, loss
+                    if self.training:
+                        loss = (out - y).pow(2)
+                        loss = poptorch.identity_loss(loss, reduction='sum')
+                        return out, loss
 
-                return out
+                    return out
 
-        x = torch.rand(dim)
-        y = torch.rand(dim)
+            x = torch.rand(dim)
+            y = torch.rand(dim)
 
-        mlp = MLP()
-        o1 = poptorch.Options()
-        o1.useIpuModel(True)
-        o2 = poptorch.optim.SGD(mlp.parameters(), lr=1e-4)
-        popmlp = poptorch.trainingModel(mlp, o1, o2)
+            mlp = MLP()
+            o1 = poptorch.Options()
+            o1.useIpuModel(True)
+            o2 = poptorch.optim.SGD(mlp.parameters(), lr=1e-4)
+            popmlp = poptorch.trainingModel(mlp, o1, o2)
 
-        z = popmlp(x, y)
+            z = popmlp(x, y)
