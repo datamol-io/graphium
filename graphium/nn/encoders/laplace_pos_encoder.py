@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
 
-from graphium.nn.base_layers import MLP, get_norm, FCLayer
+from graphium.nn.base_layers import MLP, get_norm, FCLayer, TransformerEncoderLayerMup
 from graphium.nn.encoders.base_encoder import BaseEncoder
 
 
@@ -70,14 +70,14 @@ class LapPENodeEncoder(BaseEncoder):
         if self.model_type == "Transformer":
             # Transformer model for LapPE
             model_kwargs.setdefault("nhead", 1)
-            encoder_layer = nn.TransformerEncoderLayer(
+            encoder_layer = TransformerEncoderLayerMup(
                 d_model=hidden_dim,
                 batch_first=True,
                 dropout=dropout,
                 activation=self.activation,
                 **model_kwargs,
             )
-            self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+            self.pe_encoder = TransformerEncoderLayerMup(encoder_layer, num_layers=num_layers)
         elif self.model_type == "DeepSet":
             # DeepSet model for LapPE (this will be followed by a sum pooling)
             self.pe_encoder = MLP(

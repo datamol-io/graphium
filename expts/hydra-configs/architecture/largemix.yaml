@@ -103,16 +103,16 @@ datamodule:
           lap_eigvec:
             pos_level: node
             pos_type: laplacian_eigvec
-            num_pos: 8
+            num_pos: &lap_num_pos 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           lap_eigval:
             pos_level: node
             pos_type: laplacian_eigval
-            num_pos: 8
+            num_pos: *lap_num_pos
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
             pos_level: node
             pos_type: rw_return_probs
-            ksteps: 16
+            ksteps: &rw_ksteps 16
