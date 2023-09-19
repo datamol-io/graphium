@@ -96,6 +96,40 @@ This is not surprising as they contain two orders of magnitude more datapoints a
 |             | GIN   | 0.1873 ± 0.0033 | **0.1701 ± 0.0142** |
 |             | GINE  | 0.1883 ± 0.0039 | **0.1771 ± 0.0010** |
 
+## NEW: Largemix improved sweep - 2023/08-18
+
+Unsatisfied with the prior results, we ran a bayesian search over a broader set of parameters, and including only more expressive models, namely GINE, GatedGCN and MPNN++. We further increase the number of parameters to 10M due to evidence of underfitting. We evaluate only the multitask setting.
+
+We observe a significant improvement over all tasks, with a very notable r2-score increase of +0.53 (0.27 -> 0.80) compared to the best node-level property prediction on PCQM4M_N4.
+
+The results are reported below over 1 seed. We are currently running more seeds of the same models.
+
+| Dataset       | Model          | MAE ↓     | Pearson ↑ | R² ↑     |
+|---------------|----------------|--------|---------|--------|
+| **PCQM4M_G25**    | GINE           | 0.2250 | 0.8840  | 0.7911 |
+|               | GatedGCN       | 0.2457 | 0.8698  | 0.7688 |
+|               | MPNN++ (sum)   | 0.2269 | 0.8802  | 0.7855 |
+|
+| **PCQM4M_N4**     | GINE           | 0.2699 | 0.8475  | 0.7182 |
+|               | GatedGCN       | 0.3337 | 0.8102  | 0.6566 |
+|               | MPNN++ (sum)   | 0.2114 | 0.8942  | 0.8000 |
+
+| Dataset       | Model          | BCE ↓     | AUROC ↑ | AP ↑     |
+|---------------|----------------|--------|---------|--------|
+| **PCBA_1328**     | GINE           | 0.0334 | 0.7879  | 0.2808 |
+|               | GatedGCN       | 0.0351 | 0.7788  | 0.2611 |
+|               | MPNN++ (sum)   | 0.0344 | 0.7815  | 0.2666 |
+|
+| **L1000_VCAP**    | GINE           | 0.1907 | 0.6416  | 0.4042 |
+|               | GatedGCN       | 0.1866 | 0.6395  | 0.4092 |
+|               | MPNN++ (sum)   | 0.1867 | 0.6478  | 0.4131 |
+|
+| **L1000_MCF7**    | GINE           | 0.1931 | 0.6352  | 0.4235 |
+|               | GatedGCN       | 0.1859 | 0.6547  | 0.4224 |
+|               | MPNN++ (sum)   | 0.1870 | 0.6593  | 0.4254 |
+
+
+
 # UltraLarge Baseline
 
 ## UltraLarge test set metrics
