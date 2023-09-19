@@ -4,6 +4,8 @@ From the paper to be released soon. Below, you can see the baselines for the `To
 
 One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate from adding another unrelated task (`QM9`), where the labels are computed from DFT simulations.
 
+**NEW baselines added 2023/09/18**: Multitask baselines have been added for GatedGCN and MPNN++ (sum aggretator) using 3 random seeds. They achieve the best performance by a significant margin on Zinc12k and Tox21, while sacrificing a little on QM9.
+
 | Dataset   | Model | MAE ↓     | Pearson ↑ | R² ↑     | MAE ↓   | Pearson ↑ | R² ↑   |
 |-----------|-------|-----------|-----------|-----------|---------|-----------|---------|
 |    | <th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th>   |
