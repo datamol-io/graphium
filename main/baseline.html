@@ -1413,6 +1413,7 @@
 <h1 id="toymix-baseline-test-set-metrics">ToyMix Baseline - Test set metrics<a class="headerlink" href="#toymix-baseline-test-set-metrics" title="Permanent link">&para;</a></h1>
 <p>From the paper to be released soon. Below, you can see the baselines for the <code>ToyMix</code> dataset, a multitasking dataset comprising of <code>QM9</code>, <code>Zinc12k</code> and <code>Tox21</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>. The following baselines are all for models with ~150k parameters.</p>
 <p>One can observe that the smaller datasets (<code>Zinc12k</code> and <code>Tox21</code>) beneficiate from adding another unrelated task (<code>QM9</code>), where the labels are computed from DFT simulations.</p>
+<p><strong>NEW baselines added 2023/09/18</strong>: Multitask baselines have been added for GatedGCN and MPNN++ (sum aggretator) using 3 random seeds. They achieve the best performance by a significant margin on Zinc12k and Tox21, while sacrificing a little on QM9.</p>
 <table>
 <thead>
 <tr>
@@ -1479,13 +1480,23 @@
 </tr>
 <tr>
 <td></td>
+<td>GatedGCN</td>
 <td></td>
 <td></td>
 <td></td>
+<td>0.1212 ± 0.0009</td>
+<td>0.9457 ± 0.0002</td>
+<td>0.8964 ± 0.0006</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
 <td></td>
 <td></td>
 <td></td>
-<td></td>
+<td>0.1174 ± 0.0012</td>
+<td>0.9460 ± 0.0005</td>
+<td>0.8989 ± 0.0008</td>
 </tr>
 <tr>
 <td><strong>Zinc12k</strong></td>
@@ -1513,9 +1524,29 @@
 <td>0.266 ± 0.02</td>
 <td>0.961 ± 0.003</td>
 <td>0.915 ± 0.01</td>
-<td><strong>0.147 ± 0.009</strong></td>
-<td><strong>0.987 ± 0.001</strong></td>
-<td><strong>0.971 ± 0.003</strong></td>
+<td>0.147 ± 0.009</td>
+<td>0.987 ± 0.001</td>
+<td>0.971 ± 0.003</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0.1282 ± 0.0045</td>
+<td>0.9850 ± 0.0006</td>
+<td>0.9639 ± 0.0024</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>0.1002 ± 0.0025</strong></td>
+<td><strong>0.9909 ± 0.0004</strong></td>
+<td><strong>0.9777 ± 0.0014</strong></td>
 </tr>
 </tbody>
 </table>
@@ -1559,8 +1590,8 @@
 <td>0.202 ± 0.005</td>
 <td>0.773 ± 0.006</td>
 <td>0.334 ± 0.03</td>
-<td><strong>0.176 ± 0.001</strong></td>
-<td><strong>0.850 ± 0.006</strong></td>
+<td>0.176 ± 0.001</td>
+<td>0.850 ± 0.006</td>
 <td>0.446 ± 0.01</td>
 </tr>
 <tr>
@@ -1581,7 +1612,27 @@
 <td>0.345 ± 0.02</td>
 <td>0.177 ± 0.0008</td>
 <td>0.836 ± 0.004</td>
-<td><strong>0.455 ± 0.008</strong></td>
+<td>0.455 ± 0.008</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0.1733 ± 0.0015</td>
+<td>0.8522 ± 0.0022</td>
+<td><strong>0.4620 ± 0.0118</strong></td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td></td>
+<td></td>
+<td></td>
+<td><strong>0.1725 ± 0.0012</strong></td>
+<td><strong>0.8569 ± 0.0005</strong></td>
+<td>0.4598 ± 0.0044</td>
 </tr>
 </tbody>
 </table>
@@ -1944,6 +1995,162 @@
 <td>GINE</td>
 <td>0.1883 ± 0.0039</td>
 <td><strong>0.1771 ± 0.0010</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="new-largemix-improved-sweep-202308-18">NEW: Largemix improved sweep - 2023/08-18<a class="headerlink" href="#new-largemix-improved-sweep-202308-18" title="Permanent link">&para;</a></h2>
+<p>Unsatisfied with the prior results, we ran a bayesian search over a broader set of parameters, and including only more expressive models, namely GINE, GatedGCN and MPNN++. We further increase the number of parameters to 10M due to evidence of underfitting. We evaluate only the multitask setting.</p>
+<p>We observe a significant improvement over all tasks, with a very notable r2-score increase of +0.53 (0.27 -&gt; 0.80) compared to the best node-level property prediction on PCQM4M_N4.</p>
+<p>The results are reported below over 1 seed. We are currently running more seeds of the same models.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PCQM4M_G25</strong></td>
+<td>GINE</td>
+<td>0.2250</td>
+<td>0.8840</td>
+<td>0.7911</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td>0.2457</td>
+<td>0.8698</td>
+<td>0.7688</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td>0.2269</td>
+<td>0.8802</td>
+<td>0.7855</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>PCQM4M_N4</strong></td>
+<td>GINE</td>
+<td>0.2699</td>
+<td>0.8475</td>
+<td>0.7182</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td>0.3337</td>
+<td>0.8102</td>
+<td>0.6566</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td>0.2114</td>
+<td>0.8942</td>
+<td>0.8000</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>BCE ↓</th>
+<th>AUROC ↑</th>
+<th>AP ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PCBA_1328</strong></td>
+<td>GINE</td>
+<td>0.0334</td>
+<td>0.7879</td>
+<td>0.2808</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td>0.0351</td>
+<td>0.7788</td>
+<td>0.2611</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td>0.0344</td>
+<td>0.7815</td>
+<td>0.2666</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>L1000_VCAP</strong></td>
+<td>GINE</td>
+<td>0.1907</td>
+<td>0.6416</td>
+<td>0.4042</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td>0.1866</td>
+<td>0.6395</td>
+<td>0.4092</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td>0.1867</td>
+<td>0.6478</td>
+<td>0.4131</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>L1000_MCF7</strong></td>
+<td>GINE</td>
+<td>0.1931</td>
+<td>0.6352</td>
+<td>0.4235</td>
+</tr>
+<tr>
+<td></td>
+<td>GatedGCN</td>
+<td>0.1859</td>
+<td>0.6547</td>
+<td>0.4224</td>
+</tr>
+<tr>
+<td></td>
+<td>MPNN++ (sum)</td>
+<td>0.1870</td>
+<td>0.6593</td>
+<td>0.4254</td>
 </tr>
 </tbody>
 </table>
