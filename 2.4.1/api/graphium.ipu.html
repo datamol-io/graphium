@@ -1,0 +1,6395 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Graphium: Scaling molecular GNNs to infinity.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/2.4.1/api/graphium.ipu.html">
+      
+      
+        <link rel="prev" href="graphium.config.html">
+      
+      
+        <link rel="next" href="graphium.visualization.html">
+      
+      
+      <link rel="icon" href="../images/logo.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.3.1">
+    
+    
+      
+        <title>graphium.ipu - graphium</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.046329b4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom-graphium.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#graphiumipu" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            graphium
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              graphium.ipu
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../index.html" class="md-tabs__link">
+        
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../baseline.html" class="md-tabs__link">
+        
+  
+    
+  
+  Baseline
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="graphium.nn/graphium.nn.html" class="md-tabs__link">
+          
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+          
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../design.html" class="md-tabs__link">
+        
+  
+    
+  
+  Design
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../datasets.html" class="md-tabs__link">
+        
+  
+    
+  
+  Datasets
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../pretrained_models.html" class="md-tabs__link">
+        
+  
+    
+  
+  Pretrained Models
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../cli/reference.html" class="md-tabs__link">
+          
+  
+  CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../contribute.html" class="md-tabs__link">
+        
+  
+    
+  
+  Contribute
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../license.html" class="md-tabs__link">
+        
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    graphium
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Baseline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+        
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    graphium.nn
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            graphium.nn
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.nn
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/architectures.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.nn.architectures
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/encoders.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.nn.encoders
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/pyg_layers.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.nn.pyg_layers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.features.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.features
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.trainer.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.trainer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.data.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.config.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    graphium.ipu
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="graphium.ipu.html" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    graphium.ipu
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-dataloader" class="md-nav__link">
+    IPU Dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader" class="md-nav__link">
+    ipu_dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="md-nav__link">
+    CombinedBatchingCollator
+  </a>
+  
+    <nav class="md-nav" aria-label="CombinedBatchingCollator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.IPUDataloaderOptions" class="md-nav__link">
+    IPUDataloaderOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad" class="md-nav__link">
+    Pad
+  </a>
+  
+    <nav class="md-nav" aria-label="Pad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.create_ipu_dataloader" class="md-nav__link">
+    create_ipu_dataloader()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-losses" class="md-nav__link">
+    IPU Losses
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Losses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses" class="md-nav__link">
+    ipu_losses
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_losses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCELossIPU" class="md-nav__link">
+    BCELossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="md-nav__link">
+    BCEWithLogitsLossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU" class="md-nav__link">
+    HybridCELossIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridCELossIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.L1LossIPU" class="md-nav__link">
+    L1LossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.MSELossIPU" class="md-nav__link">
+    MSELossIPU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-metrics" class="md-nav__link">
+    IPU Metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics" class="md-nav__link">
+    ipu_metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor" class="md-nav__link">
+    NaNTensor
+  </a>
+  
+    <nav class="md-nav" aria-label="NaNTensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.get_nans" class="md-nav__link">
+    get_nans
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.__lt__" class="md-nav__link">
+    __lt__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.__torch_function__" class="md-nav__link">
+    __torch_function__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.argsort" class="md-nav__link">
+    argsort()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.max" class="md-nav__link">
+    max()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.mean" class="md-nav__link">
+    mean()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.min" class="md-nav__link">
+    min()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.numel" class="md-nav__link">
+    numel()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.size" class="md-nav__link">
+    size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.sum" class="md-nav__link">
+    sum()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.accuracy_ipu" class="md-nav__link">
+    accuracy_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.auroc_ipu" class="md-nav__link">
+    auroc_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.average_precision_ipu" class="md-nav__link">
+    average_precision_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.f1_score_ipu" class="md-nav__link">
+    f1_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.fbeta_score_ipu" class="md-nav__link">
+    fbeta_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.get_confusion_matrix" class="md-nav__link">
+    get_confusion_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.mean_absolute_error_ipu" class="md-nav__link">
+    mean_absolute_error_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.mean_squared_error_ipu" class="md-nav__link">
+    mean_squared_error_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.pearson_ipu" class="md-nav__link">
+    pearson_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.precision_ipu" class="md-nav__link">
+    precision_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.r2_score_ipu" class="md-nav__link">
+    r2_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.recall_ipu" class="md-nav__link">
+    recall_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.spearman_ipu" class="md-nav__link">
+    spearman_ipu()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-simple-lightning" class="md-nav__link">
+    IPU Simple Lightning
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Simple Lightning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_simple_lightning" class="md-nav__link">
+    ipu_simple_lightning
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-utils" class="md-nav__link">
+    IPU Utils
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils" class="md-nav__link">
+    ipu_utils
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.import_poptorch" class="md-nav__link">
+    import_poptorch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.ipu_options_list_to_file" class="md-nav__link">
+    ipu_options_list_to_file()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.is_running_on_ipu" class="md-nav__link">
+    is_running_on_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options" class="md-nav__link">
+    load_ipu_options()
+  </a>
+  
+    <nav class="md-nav" aria-label="load_ipu_options()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" class="md-nav__link">
+    ? see the tutorial for IPU options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" class="md-nav__link">
+    https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" class="md-nav__link">
+    ? see the full documentation for ipu options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" class="md-nav__link">
+    https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-wrapper" class="md-nav__link">
+    IPU Wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper" class="md-nav__link">
+    ipu_wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="md-nav__link">
+    PredictorModuleIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModuleIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.convert_from_fp16" class="md-nav__link">
+    convert_from_fp16()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.get_num_graphs" class="md-nav__link">
+    get_num_graphs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser" class="md-nav__link">
+    PyGArgsParser
+  </a>
+  
+    <nav class="md-nav" aria-label="PyGArgsParser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.reconstruct" class="md-nav__link">
+    reconstruct()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.sortedTensorKeys" class="md-nav__link">
+    sortedTensorKeys()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.yieldTensors" class="md-nav__link">
+    yieldTensors()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to-dense-batch" class="md-nav__link">
+    To Dense Batch
+  </a>
+  
+    <nav class="md-nav" aria-label="To Dense Batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch" class="md-nav__link">
+    to_dense_batch
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dense_batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_dense_batch" class="md-nav__link">
+    to_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_packed_dense_batch" class="md-nav__link">
+    to_packed_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_sparse_batch" class="md-nav__link">
+    to_sparse_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_sparse_batch_from_packed" class="md-nav__link">
+    to_sparse_batch_from_packed()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.visualization.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.visualization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.finetuning.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium.finetuning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    feature_processing
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            feature_processing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Add new positional encoding
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Convert CSV to Parquet files
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timing parallel processing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    gnn_layers
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            gnn_layers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creating GNN layers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Making GNN Networks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Using GNN layers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+        
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    model_training
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            model_training
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Building and training a simple model from configurations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/running-multitask-ipu.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multitask Molecular Modelling with Graphium on the IPU
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Datasets
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pretrained_models.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pretrained Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            CLI
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/reference.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    About
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8_2" >
+        
+          <label class="md-nav__link" for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2">
+            <span class="md-nav__icon md-icon"></span>
+            Commands
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/graphium.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/graphium-train.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    graphium-train
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribute.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contribute
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-dataloader" class="md-nav__link">
+    IPU Dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader" class="md-nav__link">
+    ipu_dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="md-nav__link">
+    CombinedBatchingCollator
+  </a>
+  
+    <nav class="md-nav" aria-label="CombinedBatchingCollator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.IPUDataloaderOptions" class="md-nav__link">
+    IPUDataloaderOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad" class="md-nav__link">
+    Pad
+  </a>
+  
+    <nav class="md-nav" aria-label="Pad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.Pad.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_dataloader.create_ipu_dataloader" class="md-nav__link">
+    create_ipu_dataloader()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-losses" class="md-nav__link">
+    IPU Losses
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Losses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses" class="md-nav__link">
+    ipu_losses
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_losses">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCELossIPU" class="md-nav__link">
+    BCELossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="md-nav__link">
+    BCEWithLogitsLossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU" class="md-nav__link">
+    HybridCELossIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridCELossIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.L1LossIPU" class="md-nav__link">
+    L1LossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.MSELossIPU" class="md-nav__link">
+    MSELossIPU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-metrics" class="md-nav__link">
+    IPU Metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics" class="md-nav__link">
+    ipu_metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor" class="md-nav__link">
+    NaNTensor
+  </a>
+  
+    <nav class="md-nav" aria-label="NaNTensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.get_nans" class="md-nav__link">
+    get_nans
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.__lt__" class="md-nav__link">
+    __lt__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.__torch_function__" class="md-nav__link">
+    __torch_function__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.argsort" class="md-nav__link">
+    argsort()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.max" class="md-nav__link">
+    max()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.mean" class="md-nav__link">
+    mean()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.min" class="md-nav__link">
+    min()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.numel" class="md-nav__link">
+    numel()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.size" class="md-nav__link">
+    size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.NaNTensor.sum" class="md-nav__link">
+    sum()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.accuracy_ipu" class="md-nav__link">
+    accuracy_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.auroc_ipu" class="md-nav__link">
+    auroc_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.average_precision_ipu" class="md-nav__link">
+    average_precision_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.f1_score_ipu" class="md-nav__link">
+    f1_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.fbeta_score_ipu" class="md-nav__link">
+    fbeta_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.get_confusion_matrix" class="md-nav__link">
+    get_confusion_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.mean_absolute_error_ipu" class="md-nav__link">
+    mean_absolute_error_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.mean_squared_error_ipu" class="md-nav__link">
+    mean_squared_error_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.pearson_ipu" class="md-nav__link">
+    pearson_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.precision_ipu" class="md-nav__link">
+    precision_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.r2_score_ipu" class="md-nav__link">
+    r2_score_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.recall_ipu" class="md-nav__link">
+    recall_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_metrics.spearman_ipu" class="md-nav__link">
+    spearman_ipu()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-simple-lightning" class="md-nav__link">
+    IPU Simple Lightning
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Simple Lightning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_simple_lightning" class="md-nav__link">
+    ipu_simple_lightning
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-utils" class="md-nav__link">
+    IPU Utils
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils" class="md-nav__link">
+    ipu_utils
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.import_poptorch" class="md-nav__link">
+    import_poptorch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.ipu_options_list_to_file" class="md-nav__link">
+    ipu_options_list_to_file()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.is_running_on_ipu" class="md-nav__link">
+    is_running_on_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options" class="md-nav__link">
+    load_ipu_options()
+  </a>
+  
+    <nav class="md-nav" aria-label="load_ipu_options()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" class="md-nav__link">
+    ? see the tutorial for IPU options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" class="md-nav__link">
+    https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" class="md-nav__link">
+    ? see the full documentation for ipu options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" class="md-nav__link">
+    https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipu-wrapper" class="md-nav__link">
+    IPU Wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="IPU Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper" class="md-nav__link">
+    ipu_wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="md-nav__link">
+    PredictorModuleIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModuleIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.convert_from_fp16" class="md-nav__link">
+    convert_from_fp16()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.get_num_graphs" class="md-nav__link">
+    get_num_graphs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser" class="md-nav__link">
+    PyGArgsParser
+  </a>
+  
+    <nav class="md-nav" aria-label="PyGArgsParser">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.reconstruct" class="md-nav__link">
+    reconstruct()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.sortedTensorKeys" class="md-nav__link">
+    sortedTensorKeys()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.yieldTensors" class="md-nav__link">
+    yieldTensors()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to-dense-batch" class="md-nav__link">
+    To Dense Batch
+  </a>
+  
+    <nav class="md-nav" aria-label="To Dense Batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch" class="md-nav__link">
+    to_dense_batch
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dense_batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_dense_batch" class="md-nav__link">
+    to_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_packed_dense_batch" class="md-nav__link">
+    to_packed_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_sparse_batch" class="md-nav__link">
+    to_sparse_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.to_dense_batch.to_sparse_batch_from_packed" class="md-nav__link">
+    to_sparse_batch_from_packed()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="graphiumipu">graphium.ipu<a class="headerlink" href="#graphiumipu" title="Permanent link">&para;</a></h1>
+<p>Code for adapting to run on IPU</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Contents</label><div class="tabbed-content">
+<ul>
+<li><a href="#ipu-dataloader">IPU Dataloader</a></li>
+<li><a href="#ipu-losses">IPU Losses</a></li>
+<li><a href="#ipu-metrics">IPU Metrics</a></li>
+<li><a href="#ipu-simple-lightning">IPU Simple Lightning</a></li>
+<li><a href="#ipu-utils">IPU Utils</a></li>
+<li><a href="#ipu-wrapper">IPU Wrapper</a></li>
+<li><a href="#to-dense-batch">To Dense Batch</a></li>
+</ul>
+</div>
+</div>
+<h2 id="ipu-dataloader">IPU Dataloader<a class="headerlink" href="#ipu-dataloader" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_dataloader" class="doc doc-heading">
+          <code>graphium.ipu.ipu_dataloader</code>
+
+
+<a href="#graphium.ipu.ipu_dataloader" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="doc doc-heading">
+          <code>CombinedBatchingCollator</code>
+
+
+<a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Collator object that manages the combined batch size defined as:</p>
+<pre><code>combined_batch_size = batch_size * device_iterations
+                     * replication_factor * gradient_accumulation
+</code></pre>
+<p>This is intended to be used in combination with the poptorch.DataLoader</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Stack tensors, batch the pyg graphs, and pad each tensor to be same size.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch of data, including pyg-graphs <code>Data</code> and labels <code>Dict[str, Tensor]</code> to be padded</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>out_batch</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch_geometric.data.Batch">Batch</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary where the graphs are batched and the labels or other Tensors are stacked</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_num_nodes</span><span class="p">,</span> <span class="n">max_num_edges</span><span class="p">,</span> <span class="n">dataset_max_nodes_per_graph</span><span class="p">,</span> <span class="n">dataset_max_edges_per_graph</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>mini batch size used by the model</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of nodes in the batched padded graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_edges</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of edges in the batched padded graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_nodes_per_graph</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of nodes per graph in the full dataset</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_edges_per_graph</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of edges per graph in the full dataset</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>collate_fn</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Function used to collate (or batch) the single data or graphs together</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_dataloader.IPUDataloaderOptions" class="doc doc-heading">
+          <code>IPUDataloaderOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#graphium.ipu.ipu_dataloader.IPUDataloaderOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model_class</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pytorch module used to create a model</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_kwargs</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key-word arguments used to initialize the model from <code>model_class</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_dataloader.Pad" class="doc doc-heading">
+          <code>Pad</code>
+
+
+<a href="#graphium.ipu.ipu_dataloader.Pad" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch_geometric.transforms.BaseTransform">BaseTransform</span></code></p>
+
+  
+      <p>Data transform that applies padding to enforce consistent tensor shapes.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_dataloader.Pad.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">max_num_nodes</span><span class="p">,</span> <span class="n">dataset_max_nodes_per_graph</span><span class="p">,</span> <span class="n">dataset_max_edges_per_graph</span><span class="p">,</span> <span class="n">max_num_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">edge_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_dataloader.Pad.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>max_num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The maximum number of nodes for the total padded graph</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_nodes_per_graph</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the maximum number of nodes per graph in the dataset</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_edges_per_graph</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the maximum number of edges per graph in the dataset</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_edges</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The maximum number of edges for the total padded graph</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value to add to the node padding</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value to add to the edge padding</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_dataloader.Pad.validate" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_dataloader.Pad.validate" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Validates that the input graph does not exceed the constraints that:</p>
+<ul>
+<li>the number of nodes must be &lt;= max_num_nodes</li>
+<li>the number of edges must be &lt;= max_num_edges</li>
+</ul>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Tuple containing the number nodes and the number of edges</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_dataloader.create_ipu_dataloader" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">create_ipu_dataloader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">ipu_dataloader_options</span><span class="p">,</span> <span class="n">ipu_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_dataloader.create_ipu_dataloader" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Creates a poptorch.DataLoader for graph datasets
+Applies the mini-batching method of concatenating multiple graphs into a
+single graph with multiple disconnected subgraphs. See:
+<a href="https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html">https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html</a></p>
+<p>Parameters:</p>
+<pre><code>dataset: The torch_geometric.data.Dataset instance from which to
+    load the graph examples for the IPU.
+ipu_dataloader_options: The options to initialize the Dataloader for IPU
+ipu_options: The poptorch.Options used by the
+    poptorch.DataLoader. Will use the default options if not provided.
+batch_size: How many graph examples to load in each batch
+    (default: 1).
+collate_fn: The function used to collate batches
+**kwargs (optional): Additional arguments of :class:`poptorch.DataLoader`.
+</code></pre>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="poptorch.DataLoader">DataLoader</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dataloader</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="ipu-losses">IPU Losses<a class="headerlink" href="#ipu-losses" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_losses" class="doc doc-heading">
+          <code>graphium.ipu.ipu_losses</code>
+
+
+<a href="#graphium.ipu.ipu_losses" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_losses.BCELossIPU" class="doc doc-heading">
+          <code>BCELossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.BCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.BCELoss">BCELoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.BCELoss</code> that can ignore NaNs
+by giving them a weight of <code>0</code>. This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="doc doc-heading">
+          <code>BCEWithLogitsLossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.BCEWithLogitsLoss">BCEWithLogitsLoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.BCEWithLogitsLoss</code> that can ignore NaNs
+by giving them a weight of <code>0</code>. This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_losses.HybridCELossIPU" class="doc doc-heading">
+          <code>HybridCELossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.HybridCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="graphium.trainer.losses.HybridCELoss">HybridCELoss</span></code></p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">n_brackets</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>n_brackets</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of brackets that will be used to group the regression targets.
+Expected to have the same size as the number of classes in the transformed regression task.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(batch_size x n_classes) tensor of logits predicted for each bracket.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(batch_size) or (batch_size, 1) tensor of target brackets in {0, 1, ..., self.n_brackets}.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_losses.L1LossIPU" class="doc doc-heading">
+          <code>L1LossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.L1LossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.L1Loss">L1Loss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.L1Loss</code> that can ignore NaNs
+by giving them the same value for both <code>input</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_losses.MSELossIPU" class="doc doc-heading">
+          <code>MSELossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.MSELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.MSELoss">MSELoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.MSELoss</code> that can ignore NaNs
+by giving them the same value for both <code>input</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="ipu-metrics">IPU Metrics<a class="headerlink" href="#ipu-metrics" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_metrics" class="doc doc-heading">
+          <code>graphium.ipu.ipu_metrics</code>
+
+
+<a href="#graphium.ipu.ipu_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.NaNTensor" class="doc doc-heading">
+          <code>NaNTensor</code>
+
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.Tensor">Tensor</span></code></p>
+
+  
+      <p>Class to create and manage a NaN tensor along it's properties</p>
+<p>The goal of the class is to override the regular tensor such that the basic
+operations (sum, mean, max, etc) ignore the NaNs in the input.
+It also supports NaNs in integer tensors (as the lowest integer possible).</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.get_nans" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_nans</span><span class="p">:</span> <span class="n">BoolTensor</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.get_nans" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Gets the boolean Tensor containing the location of NaNs.
+In the case of an integer tensor, this returns where the tensor is equal to its minimal value
+In the case of a boolean tensor, this returns a Tensor filled with <code>False</code></p>
+  </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.__lt__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="fm">__lt__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.__lt__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Stupid fix that allows the code to work with <code>r2_score</code>,
+since it requires the size to be &gt; 2. But since <code>self.size</code> now returns
+a Tensor instead of a value, we check that all elements are &gt; 2.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.__torch_function__" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">__torch_function__</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.__torch_function__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This <strong>torch_function</strong> implementation wraps subclasses such that
+methods called on subclasses return a subclass instance instead of
+a <code>torch.Tensor</code> instance.</p>
+<p>One corollary to this is that you need coverage for torch.Tensor
+methods if implementing <strong>torch_function</strong> for subclasses.</p>
+<p>Affects the call torch.sum() as to behave the same way as NaNTensor.sum()</p>
+<p>We recommend always calling <code>super().__torch_function__</code> as the base
+case when doing the above.</p>
+<p>While not mandatory, we recommend making <code>__torch_function__</code> a classmethod.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.argsort" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">argsort</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.argsort" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the indices that sort the tensor, while putting all the NaNs to the end of the sorting.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.max" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">max</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.max" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the max vale of a tensor whitout NaNs</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.mean" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mean</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.mean" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Overloads the traditional mean to ignore the NaNs</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.min" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">min</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.min" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the min vale of a tensor whitout NaNs</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.numel" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">numel</span><span class="p">()</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.numel" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the number of non-NaN elements.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.size" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">size</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.size" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Instead of returning the size, return the number of non-NaN elements in
+a specific dimension. Useful for the <code>r2_score</code> metric.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_metrics.NaNTensor.sum" class="doc doc-heading">
+          <code class="highlight language-python"><span class="nb">sum</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.NaNTensor.sum" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Overloads the traditional sum to ignore the NaNs</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.accuracy_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">accuracy_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset_accuracy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.accuracy_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.accuracy</code> that can ignore NaNs
+by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
+<ul>
+<li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
+<li><code>'macro'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes (with equal weights for each class).</li>
+<li><code>'weighted'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes, weighting each class by its support (<code>tp + fn</code>).</li>
+<li><code>'none'</code> or <code>None</code>: Calculate the metric for each class separately, and return
+  the metric for every class.</li>
+<li><code>'samples'</code>: Calculate the metric for each sample, and average the metrics
+  across samples (with equal weights for each sample).</li>
+</ul>
+<p>.. note:: What is considered a sample in the multi-dimensional multi-class case
+    depends on the value of <code>mdmc_average</code>.</p>
+<p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;micro&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mdmc_average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+<code>average</code> parameter). Should be one of the following:</p>
+<ul>
+<li>
+<p><code>None</code> [default]: Should be left unchanged if your data is not multi-dimensional multi-class.</p>
+</li>
+<li>
+<p><code>'samplewise'</code>: In this case, the statistics are computed separately for each
+  sample on the <code>N</code> axis, and then averaged over samples.
+  The computation for each sample is done by treating the flattened extra axes <code>...</code>
+  (see :ref:<code>pages/classification:input types</code>) as the <code>N</code> dimension within the sample,
+  and computing the metric for the sample based on that.</p>
+</li>
+<li>
+<p><code>'global'</code>: In this case the <code>N</code> and <code>...</code> dimensions of the inputs
+  (see :ref:<code>pages/classification:input types</code>)
+  are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
+  were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;global&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_classes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>threshold</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.5</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>top_k</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
+relevant only for (multi-dimensional) multi-class inputs. The
+default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multiclass</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
+than what they appear to be. See the parameter's
+:ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ignore_index</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code>
+or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subset_accuracy</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute subset accuracy for multi-label and multi-dimensional
+multi-class inputs (has no effect for other input types).</p>
+<ul>
+<li>
+<p>For multi-label inputs, if the parameter is set to <code>True</code>, then all labels for
+  each sample must be correctly predicted for the sample to count as correct. If it
+  is set to <code>False</code>, then all labels are counted separately - this is equivalent to
+  flattening inputs beforehand (i.e. <code>preds = preds.flatten()</code> and same for <code>target</code>).</p>
+</li>
+<li>
+<p>For multi-dimensional multi-class inputs, if the parameter is set to <code>True</code>, then all
+  sub-sample (on the extra axis) must be correct for the sample to be counted as correct.
+  If it is set to <code>False</code>, then all sub-samples are counter separately - this is equivalent,
+  in the case of label predictions, to flattening the inputs beforehand (i.e.
+  <code>preds = preds.flatten()</code> and same for <code>target</code>). Note that the <code>top_k</code> parameter
+  still applies in both cases, if set.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>num_classes</code> is set
+and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.auroc_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">auroc_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">max_fpr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.auroc_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.auroc</code> that can ignore NaNs
+by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.average_precision_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">average_precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.average_precision_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.average_precision</code> that can ignore NaNs
+by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.f1_score_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">f1_score_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.f1_score_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.classification.f_beta._fbeta_compute</code>
+that can ignore NaNs by giving them the same value for both <code>preds</code> and <code>target</code>.
+Used to calculate the f1_score on IPU with beta parameter equal to 1.0
+This allows it to work with compilation and IPUs since it doesn't modify the tensor's shape.</p>
+<p>Computes f_beta metric from stat scores: true positives, false positives, true negatives, false negatives.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>tp</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>True positives</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fp</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>False positives</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>tn</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>True negatives</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fn</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>False negatives</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>beta</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The parameter <code>beta</code> (which determines the weight of recall in the combined score)</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ignore_index</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;micro&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mdmc_average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+<code>average</code> parameter)</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.fbeta_score_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">fbeta_score_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.fbeta_score_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.classification.f_beta._fbeta_compute</code>
+that can ignore NaNs by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
+<ul>
+<li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
+<li><code>'macro'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes (with equal weights for each class).</li>
+<li><code>'weighted'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes, weighting each class by its support (<code>tp + fn</code>).</li>
+<li><code>'none'</code> or <code>None</code>: Calculate the metric for each class separately, and return
+  the metric for every class.</li>
+<li><code>'samples'</code>: Calculate the metric for each sample, and average the metrics
+  across samples (with equal weights for each sample).</li>
+</ul>
+<p>.. note:: What is considered a sample in the multi-dimensional multi-class case
+    depends on the value of <code>mdmc_average</code>.</p>
+<p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;micro&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mdmc_average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+<code>average</code> parameter). Should be one of the following:</p>
+<ul>
+<li>
+<p><code>None</code> [default]: Should be left unchanged if your data is not multi-dimensional multi-class.</p>
+</li>
+<li>
+<p><code>'samplewise'</code>: In this case, the statistics are computed separately for each
+  sample on the <code>N</code> axis, and then averaged over samples.
+  The computation for each sample is done by treating the flattened extra axes <code>...</code>
+  (see :ref:<code>pages/classification:input types</code>) as the <code>N</code> dimension within the sample,
+  and computing the metric for the sample based on that.</p>
+</li>
+<li>
+<p><code>'global'</code>: In this case the <code>N</code> and <code>...</code> dimensions of the inputs
+  (see :ref:<code>pages/classification:input types</code>)
+  are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
+  were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_classes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>threshold</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.5</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>top_k</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
+relevant only for (multi-dimensional) multi-class inputs. The
+default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multiclass</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
+than what they appear to be. See the parameter's
+:ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ignore_index</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code>
+or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>subset_accuracy</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute subset accuracy for multi-label and multi-dimensional
+multi-class inputs (has no effect for other input types).</p>
+<ul>
+<li>
+<p>For multi-label inputs, if the parameter is set to <code>True</code>, then all labels for
+  each sample must be correctly predicted for the sample to count as correct. If it
+  is set to <code>False</code>, then all labels are counted separately - this is equivalent to
+  flattening inputs beforehand (i.e. <code>preds = preds.flatten()</code> and same for <code>target</code>).</p>
+</li>
+<li>
+<p>For multi-dimensional multi-class inputs, if the parameter is set to <code>True</code>, then all
+  sub-sample (on the extra axis) must be correct for the sample to be counted as correct.
+  If it is set to <code>False</code>, then all sub-samples are counter separately - this is equivalent,
+  in the case of label predictions, to flattening the inputs beforehand (i.e.
+  <code>preds = preds.flatten()</code> and same for <code>target</code>). Note that the <code>top_k</code> parameter
+  still applies in both cases, if set.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Raises:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>num_classes</code> is set
+and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.get_confusion_matrix" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_confusion_matrix</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subset_accuracy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.get_confusion_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculates the confusion matrix according to the specified average method.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
+<ul>
+<li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
+<li><code>'macro'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes (with equal weights for each class).</li>
+<li><code>'weighted'</code>: Calculate the metric for each class separately, and average the
+  metrics across classes, weighting each class by its support (<code>tp + fn</code>).</li>
+<li><code>'none'</code> or <code>None</code>: Calculate the metric for each class separately, and return
+  the metric for every class.</li>
+<li><code>'samples'</code>: Calculate the metric for each sample, and average the metrics
+  across samples (with equal weights for each sample).</li>
+</ul>
+<p>.. note:: What is considered a sample in the multi-dimensional multi-class case
+    depends on the value of <code>mdmc_average</code>.</p>
+<p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;micro&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mdmc_average</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+<code>average</code> parameter). Should be one of the following:</p>
+<ul>
+<li>
+<p><code>None</code> [default]: Should be left unchanged if your data is not multi-dimensional multi-class.</p>
+</li>
+<li>
+<p><code>'samplewise'</code>: In this case, the statistics are computed separately for each
+  sample on the <code>N</code> axis, and then averaged over samples.
+  The computation for each sample is done by treating the flattened extra axes <code>...</code>
+  (see :ref:<code>pages/classification:input types</code>) as the <code>N</code> dimension within the sample,
+  and computing the metric for the sample based on that.</p>
+</li>
+<li>
+<p><code>'global'</code>: In this case the <code>N</code> and <code>...</code> dimensions of the inputs
+  (see :ref:<code>pages/classification:input types</code>)
+  are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
+  were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>&#39;global&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_classes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>threshold</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
+          <td>
+                <code>0.5</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>top_k</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
+relevant only for (multi-dimensional) multi-class inputs. The
+default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multiclass</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
+than what they appear to be. See the parameter's
+:ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ignore_index</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.mean_absolute_error_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mean_absolute_error_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.mean_absolute_error_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes mean absolute error.</p>
+<p>Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="return" open>
+  <summary>Return</summary>
+  <p>Tensor with MAE</p>
+</details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.mean_squared_error_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">mean_squared_error_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">squared</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.mean_squared_error_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes mean squared error.</p>
+<p>Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>squared</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>returns RMSE value if set to False</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="return" open>
+  <summary>Return</summary>
+  <p>Tensor with MSE</p>
+</details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.pearson_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">pearson_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.pearson_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes pearson correlation coefficient.</p>
+<p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated scores</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth scores</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.precision_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.precision_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.precision</code> that can ignore NaNs
+by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.r2_score_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">r2_score_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.r2_score_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes r2 score also known as <code>R2 Score_Coefficient Determination</code>_:</p>
+<p>.. math:: R^2 = 1 - rac{SS_{res}}{SS_{tot}}</p>
+<p>where :math:<code>SS_{res}=\sum_i (y_i - f(x_i))^2</code> is the sum of residual squares, and
+:math:<code>SS_{tot}=\sum_i (y_i - ar{y})^2</code> is total sum of squares. Can also calculate
+adjusted r2 score given by</p>
+<p>.. math:: R^2_{adj} = 1 - rac{(1-R^2)(n-1)}{n-k-1}</p>
+<p>where the parameter :math:<code>k</code> (the number of independent regressors) should
+be provided as the <code>adjusted</code> argument.
+Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>adjusted</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of independent regressors for calculating adjusted r2 score.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multioutput</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines aggregation in the case of multiple output scores. Can be one of the following strings:</p>
+<ul>
+<li><code>'raw_values'</code> returns full set of scores</li>
+<li><code>'uniform_average'</code> scores are uniformly averaged</li>
+<li><code>'variance_weighted'</code> scores are weighted by their individual variances</li>
+</ul>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.recall_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">recall_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;micro&#39;</span><span class="p">,</span> <span class="n">mdmc_average</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiclass</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.recall_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A modified version of the <code>torchmetrics.functional.recall</code> that can ignore NaNs
+by giving them the same value for both <code>preds</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_metrics.spearman_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">spearman_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_metrics.spearman_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes spearman rank correlation coefficient.</p>
+<p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated scores</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth scores</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="ipu-simple-lightning">IPU Simple Lightning<a class="headerlink" href="#ipu-simple-lightning" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_simple_lightning" class="doc doc-heading">
+          <code>graphium.ipu.ipu_simple_lightning</code>
+
+
+<a href="#graphium.ipu.ipu_simple_lightning" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="ipu-utils">IPU Utils<a class="headerlink" href="#ipu-utils" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_utils" class="doc doc-heading">
+          <code>graphium.ipu.ipu_utils</code>
+
+
+<a href="#graphium.ipu.ipu_utils" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_utils.import_poptorch" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">import_poptorch</span><span class="p">(</span><span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_utils.import_poptorch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Import poptorch and returns it.
+It is wrapped in a function to avoid breaking the code
+for non-IPU devices which did not install poptorch.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>raise_error</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to raise an error if poptorch is unavailable.
+If <code>False</code>, return <code>None</code></p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="types.ModuleType">ModuleType</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The poptorch module</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_utils.ipu_options_list_to_file" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">ipu_options_list_to_file</span><span class="p">(</span><span class="n">ipu_opts</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_utils.ipu_options_list_to_file" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a temporary file from a list of ipu configs, such that it can be read by <code>poptorch.Options.loadFromFile</code></p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>ipu_opts</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+      <p>Returns:
+    tmp_file: The temporary file of ipu configs</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_utils.is_running_on_ipu" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">is_running_on_ipu</span><span class="p">()</span></code>
+
+<a href="#graphium.ipu.ipu_utils.is_running_on_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns whether the current module is running on ipu.
+Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.ipu_utils.load_ipu_options" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_opts</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ipu_inference_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_utils.load_ipu_options" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load the IPU options from the config file.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>ipu_cfg</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
+<p>write a temporary config gile, and read it. See <code>Options.loadFromFile</code></p>
+<h5 id="graphium.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here">? see the tutorial for IPU options here<a class="headerlink" href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" title="Permanent link">&para;</a></h5>
+<h5 id="graphium.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading"><a href="https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading">https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading</a><a class="headerlink" href="#graphium.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" title="Permanent link">&para;</a></h5>
+<h5 id="graphium.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here">? see the full documentation for ipu options here<a class="headerlink" href="#graphium.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" title="Permanent link">&para;</a></h5>
+<h5 id="graphium.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions"><a href="https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options">https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options</a><a class="headerlink" href="#graphium.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" title="Permanent link">&para;</a></h5>
+<p><strong><em>minibatch size</em></strong>: The number of samples processed by one simple fwd/bwd pass.
+= # of samples in a minibatch</p>
+<p><strong><em>device iterations</em></strong>: A device iteration corresponds to one iteration of the training loop executed on the IPU, starting with data-loading and ending with a weight update.
+In this simple case, when we set n deviceIterations, the host will prepare n mini-batches in an infeed queue so the IPU can perform efficiently n iterations.
+= # of minibatches to be processed at a time
+= # of training / backward pass in this call</p>
+<p><strong><em>gradient accumulation factor</em></strong>: After each backward pass the gradients are accumulated together for K mini-batches. set K in the argument
+= # of minibatches to accumulate gradients from</p>
+<p><strong><em>replication factor</em></strong>: Replication describes the process of running multiple instances of the same model simultaneously on different IPUs to achieve data parallelism.
+If the model requires N IPUs and the replication factor is M, N x M IPUs will be necessary.
+= # of times the model is copied to speed up computation, each replica of the model is sent a different subset of the dataset</p>
+<p><strong><em>global batch size</em></strong>: In a single device iteration, many mini-batches may be processed and the resulting gradients accumulated.
+We call this total number of samples processed for one optimiser step the global batch size.
+= total number of samples processed for <em>one optimiser step</em>
+= (minibatch size x Gradient accumulation factor) x Number of replicas</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>seed</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>random seed for the IPU</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the model, to be used for ipu profiling</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ipu_inference_opts</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>optional IPU configuration overrides for inference.
+If this is provided, options in this file override those in <code>ipu_file</code> for inference.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+      <p>Returns:</p>
+<pre><code>training_opts: IPU options for the training set.
+
+inference_opts: IPU options for inference.
+    It differs from the `training_opts` by enforcing `gradientAccumulation` to 1
+</code></pre>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="ipu-wrapper">IPU Wrapper<a class="headerlink" href="#ipu-wrapper" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.ipu_wrapper" class="doc doc-heading">
+          <code>graphium.ipu.ipu_wrapper</code>
+
+
+<a href="#graphium.ipu.ipu_wrapper" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="doc doc-heading">
+          <code>PredictorModuleIPU</code>
+
+
+<a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor.PredictorModule" href="graphium.trainer.html#graphium.trainer.predictor.PredictorModule">PredictorModule</a></code></p>
+
+  
+      <p>This class wraps around the <code>PredictorModule</code> to make it work with IPU and the <code>IPUPluginGraphium</code>.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_wrapper.PredictorModuleIPU.convert_from_fp16" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">convert_from_fp16</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.convert_from_fp16" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Converts tensors from FP16 to FP32. Useful to convert the IPU program output data</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_wrapper.PredictorModuleIPU.get_num_graphs" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_num_graphs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU.get_num_graphs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>IPU specific method to compute the number of graphs in a Batch,
+that considers gradient accumulation, multiple IPUs and multiple
+device iterations. Essential to estimate throughput in graphs/s.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="graphium.ipu.ipu_wrapper.PyGArgsParser" class="doc doc-heading">
+          <code>PyGArgsParser</code>
+
+
+<a href="#graphium.ipu.ipu_wrapper.PyGArgsParser" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="graphium.ipu.ipu_wrapper.poptorch.ICustomArgParser">ICustomArgParser</span></code></p>
+
+  
+      <p>This class is responsible for converting a PyG Batch from and to
+a tensor of tuples. This allows PyG Batch to be used as inputs to
+IPU programs. Copied from poppyg repo, in the future import from
+the repo directly.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_wrapper.PyGArgsParser.reconstruct" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">reconstruct</span><span class="p">(</span><span class="n">original_structure</span><span class="p">,</span> <span class="n">tensor_iterator</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.reconstruct" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a new instance with the same class type as the
+original_structure. This new instance will be initialized with tensors
+from the provided iterator and uses the same sorted keys from the
+yieldTensors() implementation.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_wrapper.PyGArgsParser.sortedTensorKeys" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">sortedTensorKeys</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.sortedTensorKeys" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Find all the keys that map to a tensor value in struct. The keys
+are returned in sorted order.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.ipu.ipu_wrapper.PyGArgsParser.yieldTensors" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">yieldTensors</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_wrapper.PyGArgsParser.yieldTensors" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>yield every torch.Tensor in struct in sorted order</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="to-dense-batch">To Dense Batch<a class="headerlink" href="#to-dense-batch" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h3 id="graphium.ipu.to_dense_batch" class="doc doc-heading">
+          <code>graphium.ipu.to_dense_batch</code>
+
+
+<a href="#graphium.ipu.to_dense_batch" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.to_dense_batch.to_dense_batch" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_dense_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_nodes_last_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.to_dense_batch.to_dense_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Given a sparse batch of node features
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code> (with
+:math:<code>N_i</code> indicating the number of nodes in graph :math:<code>i</code>), creates a
+dense node feature tensor
+:math:<code>\mathbf{X} \in \mathbb{R}^{B \times N_{\max} \times F}</code> (with
+:math:<code>N_{\max} = \max_i^B N_i</code>).
+In addition, a mask of shape :math:<code>\mathbf{M} \in \{ 0, 1 \}^{B \times
+N_{\max}}</code> is returned, holding information about the existence of
+fake-nodes in the dense representation.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>x</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Node feature matrix
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Batch vector
+:math:<code>\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N</code>, which assigns each
+node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fill_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The value for invalid entries in the
+resulting dense output tensor. (default: :obj:<code>0</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes_per_graph</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The size of the output node dimension.
+(default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch size. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>drop_nodes_last_graph</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to drop the nodes of the last graphs that exceed
+the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+      <p>:rtype: (:class:<code>Tensor</code>, :class:<code>BoolTensor</code>)</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.to_dense_batch.to_packed_dense_batch" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_packed_dense_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pack_from_node_idx</span><span class="p">,</span> <span class="n">pack_attn_mask</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_num_nodes_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.to_dense_batch.to_packed_dense_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Given a sparse batch of node features
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code> (with
+:math:<code>N_i</code> indicating the number of nodes in graph :math:<code>i</code>), creates a
+dense node feature tensor
+:math:<code>\mathbf{X} \in \mathbb{R}^{B \times N_{\max} \times F}</code> (with
+:math:<code>N_{\max} = \max_i^B N_i</code>).
+In addition, a mask of shape :math:<code>\mathbf{M} \in \{ 0, 1 \}^{B \times
+N_{\max}}</code> is returned, holding information about the existence of
+fake-nodes in the dense representation.</p>
+
+
+
+  <p><strong># TODO: Update docstring</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>x</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Node feature matrix
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Batch vector
+:math:<code>\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N</code>, which assigns each
+node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fill_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The value for invalid entries in the
+resulting dense output tensor. (default: :obj:<code>0</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes_per_graph</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The size of the output node dimension.
+(default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch size. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>drop_nodes_last_graph</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to drop the nodes of the last graphs that exceed
+the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+      <p>:rtype: (:class:<code>Tensor</code>, :class:<code>BoolTensor</code>)</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.to_dense_batch.to_sparse_batch" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_sparse_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mask_idx</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.to_dense_batch.to_sparse_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Reverse function of <code>to_dense_batch</code></p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="graphium.ipu.to_dense_batch.to_sparse_batch_from_packed" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">to_sparse_batch_from_packed</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pack_from_node_idx</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.to_dense_batch.to_sparse_batch_from_packed" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Reverse function of <code>to_packed_dense_batch</code></p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 datamol.io
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../_assets/js/google-analytics.js"></script>
+      
+    
+  </body>
+</html>
