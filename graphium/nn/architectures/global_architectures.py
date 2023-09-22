@@ -422,6 +422,7 @@ class FeedForwardGraph(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
+        out_dim_edges: int = 0,
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
@@ -509,6 +510,10 @@ class FeedForwardGraph(FeedForwardNN):
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
 
+            out_dim_edges:
+                Output edge-feature dimensions of the network. Keep at 0 if not using
+                edge features, or if the layer doesn't support edges.
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -545,6 +550,7 @@ class FeedForwardGraph(FeedForwardNN):
 
         # Initialize the additional attributes
         self.in_dim_edges = in_dim_edges
+        self.out_dim_edges = out_dim_edges
         if isinstance(hidden_dims_edges, int):
             self.hidden_dims_edges = [hidden_dims_edges] * (depth - 1)
         elif len(hidden_dims_edges) == 0:
@@ -553,8 +559,9 @@ class FeedForwardGraph(FeedForwardNN):
             self.hidden_dims_edges = list(hidden_dims_edges)
             assert depth is None
         self.full_dims_edges = None
-        if len(self.hidden_dims_edges) > 0:
-            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
+        if len(self.hidden_dims_edges) or out_dim_edges > 0:
+            assert out_dim_edges > 0, out_dim_edges
+            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [out_dim_edges]
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
 
@@ -922,6 +929,7 @@ class FeedForwardGraph(FeedForwardNN):
         new_kwargs = dict(
             in_dim_edges=self.in_dim_edges,
             hidden_dims_edges=self.hidden_dims_edges,
+            out_dim_edges=self.out_dim_edges,
             virtual_node=self.virtual_node,
             use_virtual_edges=self.use_virtual_edges,
         )
@@ -953,6 +961,7 @@ class FeedForwardGraph(FeedForwardNN):
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+            kwargs["out_dim_edges"] = round(kwargs["out_dim_edges"] / divide_factor)
 
         def _recursive_divide_dim(x: collections.abc.Mapping):
             for k, v in x.items():

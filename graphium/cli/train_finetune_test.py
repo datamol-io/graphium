@@ -5,6 +5,7 @@ from datetime import datetime
 
 import fsspec
 import hydra
+import numpy as np
 import torch
 import wandb
 import yaml
@@ -39,6 +40,8 @@ from graphium.utils.safe_run import SafeRun
 
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
+
+OmegaConf.register_new_resolver("eval", lambda x: eval(x, {"np": np}))
 
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")

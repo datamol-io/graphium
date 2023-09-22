@@ -240,7 +240,7 @@ class GPSLayerPyg(BaseGraphModule):
     def _parse_mpnn_layer(self, mpnn_type, mpnn_kwargs: Dict[str, Any]) -> Optional[Module]:
         """Parse the MPNN layer."""
 
-        if mpnn_type is None:
+        if mpnn_type is None or mpnn_type == "none":
             return
 
         mpnn_kwargs = deepcopy(mpnn_kwargs)
@@ -375,7 +375,7 @@ class GPSLayerPyg(BaseGraphModule):
         )
 
         attn_bias = None
-        if self.biased_attention_key is not None:
+        if self.biased_attention_key is not None and self.biased_attention_key != 'none':
             attn_bias = batch[self.biased_attention_key]
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
@@ -463,6 +463,8 @@ class GPSLayerPyg(BaseGraphModule):
             bool:
                 Always ``False`` for the current class
         """
+        if self.mpnn is None:
+            return False
         return self.mpnn.layer_outputs_edges
 
     @property
