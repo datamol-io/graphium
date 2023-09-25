@@ -422,7 +422,7 @@ class FeedForwardGraph(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
-        out_dim_edges: int = 0,
+        out_dim_edges: Optional[int] = None,
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
@@ -512,7 +512,8 @@ class FeedForwardGraph(FeedForwardNN):
 
             out_dim_edges:
                 Output edge-feature dimensions of the network. Keep at 0 if not using
-                edge features, or if the layer doesn't support edges.
+                edge features, or if the layer doesn't support edges. Defaults to the
+                last value of hidden_dims_edges.
 
             name:
                 Name attributed to the current network, for display and printing
@@ -550,7 +551,6 @@ class FeedForwardGraph(FeedForwardNN):
 
         # Initialize the additional attributes
         self.in_dim_edges = in_dim_edges
-        self.out_dim_edges = out_dim_edges
         if isinstance(hidden_dims_edges, int):
             self.hidden_dims_edges = [hidden_dims_edges] * (depth - 1)
         elif len(hidden_dims_edges) == 0:
@@ -558,10 +558,17 @@ class FeedForwardGraph(FeedForwardNN):
         else:
             self.hidden_dims_edges = list(hidden_dims_edges)
             assert depth is None
+        self.out_dim_edges = (
+            out_dim_edges
+            if out_dim_edges is not None
+            else self.hidden_dims_edges[-1]
+            if self.hidden_dims_edges
+            else 0
+        )
         self.full_dims_edges = None
-        if len(self.hidden_dims_edges) or out_dim_edges > 0:
-            assert out_dim_edges > 0, out_dim_edges
-            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [out_dim_edges]
+        if len(self.hidden_dims_edges) or self.out_dim_edges > 0:
+            assert self.out_dim_edges > 0, self.out_dim_edges
+            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.out_dim_edges]
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
 
