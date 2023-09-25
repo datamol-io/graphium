@@ -57,6 +57,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     The main (pre-)training and fine-tuning loop.
     """
 
+    unresolved_cfg = OmegaConf.to_container(cfg, resolve=False)
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
     dst_dir = cfg["constants"].get("results_dir")
@@ -136,7 +137,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         if wandb_cfg is not None:
-            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
+            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule, unresolved_config=unresolved_cfg)
 
         # Determine the max num nodes and edges in training and validation
         logger.info("Computing the maximum number of nodes and edges per graph")
