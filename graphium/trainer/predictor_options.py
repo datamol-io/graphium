@@ -99,7 +99,7 @@ class OptimOptions:
         self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
 
         # Get the class for the scheduler
-        scheduler_class = self.torch_scheduler_kwargs.pop("module_type", None)
+        scheduler_class = self.torch_scheduler_kwargs.get("module_type", None)
         if self.scheduler_class is None:
             if isinstance(scheduler_class, str):
                 self.scheduler_class = SCHEDULER_DICT[scheduler_class]
