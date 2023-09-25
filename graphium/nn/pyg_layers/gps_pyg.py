@@ -375,7 +375,7 @@ class GPSLayerPyg(BaseGraphModule):
         )
 
         attn_bias = None
-        if self.biased_attention_key is not None and self.biased_attention_key != 'none':
+        if self.biased_attention_key is not None and self.biased_attention_key != "none":
             attn_bias = batch[self.biased_attention_key]
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
