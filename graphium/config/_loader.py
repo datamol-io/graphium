@@ -327,6 +327,9 @@ def load_predictor(
             model_class=model_class,
             model_kwargs=scaled_model_kwargs,
             metrics=metrics,
+            task_levels=task_levels,
+            featurization=featurization,
+            task_norms=task_norms,
             **cfg_pred,
         )
 

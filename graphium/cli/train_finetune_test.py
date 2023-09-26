@@ -142,9 +142,11 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         logger.info("Computing the maximum number of nodes and edges per graph")
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
+        ckpt_path = cfg["trainer"].pop("resume_from_checkpoint", None)
+
         # Run the model training
         with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-            trainer.fit(model=predictor, datamodule=datamodule)
+            trainer.fit(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
 
         # Save validation metrics - Base utility in case someone doesn't use a logger.
         results = trainer.callback_metrics
