@@ -792,6 +792,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_batch_size: int = 1000,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
+        max_num_heavy_atoms: Optional[int] = 1000,
         **kwargs,
     ):
         """
@@ -871,6 +872,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                   pyg `Data` will be created during data-loading, but faster with large
                   `num_workers`, and less likely to cause memory issues with the parallelization.
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
+            max_num_heavy_atoms: An optional argument to set the maximum number of heavy atoms per molecule post
+                processing. Default value self to 1000 will not impact typical datasets. Setting this value can help with
+                packing batches more efficiently, and is often used in research settings, typical values would be ~ 100.
         """
         BaseDataModule.__init__(
             self,
@@ -944,6 +948,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if self._ready_to_load_all_from_file():
                 self._data_is_prepared = True
                 self._data_is_cached = True
+        self.max_num_heavy_atoms = max_num_heavy_atoms
 
     def _parse_caching_args(self, processed_graph_data_path, dataloading_from):
         """
@@ -1537,6 +1542,25 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             collate_fn.__name__ = graphium_collate_fn.__name__
         return collate_fn
 
+    def filter_mols(self, feat) -> bool:
+        """Simple filter function to filter molecules based on
+        post-featurisation characteristics
+
+        Args:
+            feat (Data, str): Featurised PyG Data object or a string.
+
+        Returns:
+            boolean
+        """
+        if isinstance(feat, str):
+            return True
+        if (
+            hasattr(feat, "num_nodes") and feat.num_nodes > self.max_num_heavy_atoms
+        ):  # checking for attribute before accessing it
+            return False
+        else:
+            return True
+
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
         """
@@ -1588,6 +1612,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.warning(
                 (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
             )
+
+        # Filter molecules
+        # For any molecules with more than 100 heavy atoms we can remove them in the same way
+
+        idx_large = [ii for ii, feat in enumerate(features) if not self.filter_mols(feat)]
+        if len(idx_large) > 0:
+            logger.warning(
+                (
+                    f"{len(idx_large)} molecules will be removed since they are too large (i.e. num heavy atoms > {self.max_num_heavy_atoms}"
+                )
+            )
+        # Combine and remove any duplicates
+        idx_none = list(set(idx_none) | set(idx_large))
 
         return features, idx_none
 
