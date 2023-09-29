@@ -181,7 +181,7 @@ datamodule:
       add_self_loop: False
       explicit_H: False # if H is included
       use_bonds_weights: False
-      max_num_nodes: 100
+      max_num_atoms: 100
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
           lap_eigvec:
