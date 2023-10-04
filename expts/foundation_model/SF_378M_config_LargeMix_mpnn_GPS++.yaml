@@ -45,45 +45,45 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 80 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 115
+          max_num_nodes_per_graph: 56 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 96
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 115
+          max_num_nodes_per_graph: 56 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 96
         # Data handling-related
-        batch_size_training: 7
-        batch_size_inference: 7
+        batch_size_training: 4
+        batch_size_inference: 4
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
-        loss_scaling: 1024
+        loss_scaling: 16000
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 64
+        accumulate_grad_batches: 240
 
   ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
+    - deviceIterations(5) # IPU would require large batches to be ready for the model.
     - replicationFactor(1)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 96)
+    # - TensorLocations.numIOTiles(128)
+    # - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
 
   ipu_inference_config:
   # set device iteration and replication factor to 1 during inference
   # gradient accumulation was set to 1 in the code
-    - deviceIterations(30)
+    - deviceIterations(20)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
 
   accelerator_kwargs:
     _accelerator: "ipu"
     gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    #gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
+    # gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
     #gnn_layers_per_ipu: [4,4,4,4]
 
 datamodule:
@@ -176,6 +176,7 @@ datamodule:
       add_self_loop: False
       explicit_H: False # if H is included
       use_bonds_weights: False
+      max_num_atoms: 100
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
           lap_eigvec:
@@ -195,8 +196,8 @@ datamodule:
             pos_type: rw_return_probs
             ksteps: 16
 
-    num_workers: 32 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch.
+    num_workers: 30 # -1 to use all
+    persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
 #Task-specific

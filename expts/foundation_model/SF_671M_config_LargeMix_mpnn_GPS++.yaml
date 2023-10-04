@@ -5,12 +5,12 @@
 constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  datacache_path: "/localdata/neurips2023-large/"
+  datacache_path: "../../neurips2023-large/"
   epochs: 100
-  name: SF_173M_sweep_LargeMix_mpnn
+  name: SF_671M_sweep_LargeMix_mpnn
   wandb:
     entity: multitask-gnn
-    name: SF_173M_sweep_LargeMix_mpnn
+    name: SF_671M_sweep_LargeMix_mpnn
     project: neurips2023_graphcore_scaling_mpnn
 
     # This whole sections is for minimizing mistakes for the scaling experiments. 
@@ -18,25 +18,25 @@ constants:
     # No other dimensions have to be changed in the architecture part.    
 
 dimensions:
-  pre_nn_out_dim: &gnn_dim 1024 # original 256
-  pre_nn_hidden_dims: 4096 # original 1024
-  pre_nn_edges_out_dim: &gnn_dim_edges 512 # original 128
-  pre_nn_edges_hidden_dims: 2048 # original 512
-  gnn_out_dim: *gnn_dim # original 256
-  gnn_hidden_dims: *gnn_dim # original 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
-  mpnn_in_dim: *gnn_dim # original 256
-  mpnn_out_dim: *gnn_dim # original 256
-  mpnn_in_dim_edges: *gnn_dim_edges # original 128
-  mpnn_out_dim_edges: *gnn_dim_edges # original 128
-  graph_output_nn_out_dims: *gnn_dim # original 256
-  graph_output_nn_hidden_dims: *gnn_dim # original 256
-  node_output_nn_out_dims: *gnn_dim # original 256
-  node_output_nn_hidden_dims: *gnn_dim  # original 256
-  l1000_vcap_hidden_dims: 512 # original 128
-  l1000_mcf7_hidden_dims: 512 # original 128
-  pcba_1328_hidden_dims: 256 # original 64
-  pcqm4m_g25_hidden_dims: 128 # original 32
-  pcqm4m_n4_hidden_dims: 128 # original 32
+  pre_nn_out_dim: 960
+  pre_nn_hidden_dims: 3840
+  pre_nn_edges_out_dim: 480
+  pre_nn_edges_hidden_dims: 1920
+  gnn_out_dim: 960
+  gnn_hidden_dims: 960
+  mpnn_in_dim: 960
+  mpnn_out_dim: 960
+  mpnn_in_dim_edges: 480
+  mpnn_out_dim_edges: 480
+  graph_output_nn_out_dims: 960
+  graph_output_nn_hidden_dims: 960
+  node_output_nn_out_dims: 960
+  node_output_nn_hidden_dims: 960
+  l1000_vcap_hidden_dims: 480
+  l1000_mcf7_hidden_dims: 480
+  pcba_1328_hidden_dims: 240
+  pcqm4m_g25_hidden_dims: 120
+  pcqm4m_n4_hidden_dims: 120
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -45,15 +45,19 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 75 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 116
+          # max_num_nodes_per_graph: 75 # train max nodes: 20, max_edges: 54
+          # max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 290
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 116
+          # max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
+          # max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 290
         # Data handling-related
-        batch_size_training: 8
-        batch_size_inference: 8
+        batch_size_training: 3
+        batch_size_inference: 3
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
@@ -61,29 +65,30 @@ accelerator:
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 60
+        accumulate_grad_batches: 320
 
   ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
-    - replicationFactor(2)
+    - deviceIterations(5) # IPU would require large batches to be ready for the model.
+    - replicationFactor(1)
+    # - 'setAvailableMemoryProportion({"IPU0": 0.05})'
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 96)
+    # - TensorLocations.numIOTiles(128)
+    # - _Popart.set("defaultBufferingDepth", 96)
+    - _Popart.set("saveInitializersToFile", "weights.onnx")
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
-
   ipu_inference_config:
   # set device iteration and replication factor to 1 during inference
   # gradient accumulation was set to 1 in the code
-    - deviceIterations(30)
+    - deviceIterations(16)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
 
   accelerator_kwargs:
     _accelerator: "ipu"
-    #gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
+    gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    # gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
     
 
 datamodule:
@@ -176,6 +181,7 @@ datamodule:
       add_self_loop: False
       explicit_H: False # if H is included
       use_bonds_weights: False
+      max_num_atoms: 100
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
           lap_eigvec:
@@ -196,7 +202,7 @@ datamodule:
             ksteps: 16
 
     num_workers: 32 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch.
+    persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
 #Task-specific
