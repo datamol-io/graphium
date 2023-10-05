@@ -161,6 +161,12 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     logger.info("-" * 50)
 
     if wandb_cfg is not None:
+        # Save initial model state - and upload checkpoint to wandb
+        if cfg["trainer"]["model_checkpoint"]["save_last"] is True:
+            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}{cfg['trainer']['model_checkpoint']['filename']}_final_model.ckpt"
+            torch.save(predictor.model.state_dict(), checkpoint_path)
+            # Log the initial model checkpoint to wandb
+            wandb.save(checkpoint_path)
         wandb.finish()
 
     # Save test metrics - Base utility in case someone doesn't use a logger.
