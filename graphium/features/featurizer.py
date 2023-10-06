@@ -1067,12 +1067,7 @@ def mol_to_graph_dict(
         num_atoms = mol.GetNumAtoms()
         num_bonds = mol.GetNumBonds()
         if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
-            logger.info("removing based on atoms")
             raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
-        elif (max_num_atoms is not None) and (num_bonds > max_num_bonds):
-            logger.info("removing based on edges")
-            raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
-        else:
         (
             adj,
             ndata,

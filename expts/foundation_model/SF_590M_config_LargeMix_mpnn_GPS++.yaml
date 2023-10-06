@@ -7,10 +7,10 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   datacache_path: "../../neurips2023-large/"
   epochs: 100
-  name: SF_671M_sweep_LargeMix_mpnn
+  name: SF_590M_sweep_LargeMix_mpnn
   wandb:
     entity: multitask-gnn
-    name: SF_671M_sweep_LargeMix_mpnn
+    name: SF_590M_sweep_LargeMix_mpnn
     project: neurips2023_graphcore_scaling_mpnn
 
     # This whole sections is for minimizing mistakes for the scaling experiments. 
@@ -48,13 +48,13 @@ accelerator:
           # max_num_nodes_per_graph: 75 # train max nodes: 20, max_edges: 54
           # max_num_edges_per_graph: 116
           max_num_nodes: 140
-          max_num_edges: 290
+          max_num_edges: 298
         ipu_dataloader_inference_opts:
           mode: async
           # max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
           # max_num_edges_per_graph: 116
           max_num_nodes: 140
-          max_num_edges: 290
+          max_num_edges: 298
         # Data handling-related
         batch_size_training: 3
         batch_size_inference: 3
@@ -201,7 +201,7 @@ datamodule:
             pos_type: rw_return_probs
             ksteps: 16
 
-    num_workers: 32 # -1 to use all
+    num_workers: 16 # -1 to use all
     persistent_workers: True # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
@@ -308,7 +308,7 @@ trainer:
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
-    dirpath: models_checkpoints/${constants.name}/
+    dirpath: /net/group/all-ipu/graphium/model_checkpoints/${constants.name}/
     filename: ${constants.name}
     # monitor: *monitor
     # mode: *mode

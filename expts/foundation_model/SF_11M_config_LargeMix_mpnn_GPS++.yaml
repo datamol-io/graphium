@@ -231,8 +231,8 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 10
-    warmup_epochs: 5
+    max_num_epochs: &max_epochs 100
+    warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train
@@ -302,7 +302,7 @@ trainer:
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
-    dirpath: models_checkpoints/${constants.name}/
+    dirpath: /net/group/all-ipu/graphium/model_checkpoints/${constants.name}/
     filename: ${constants.name}
     # monitor: *monitor
     # mode: *mode

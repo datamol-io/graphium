@@ -56,6 +56,13 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
+    # Get the current date and time
+    now = datetime.now()
+    # Format the datetime as a string
+    filename_datetime_suffix = now.strftime("%Y%m%d_%H%M%S")
+    # Append the datetime string to the existing filename in the cfg dictionary
+    cfg['trainer']['model_checkpoint']['filename'] += f"_{filename_datetime_suffix}"
+
     dst_dir = cfg["constants"].get("results_dir")
     hydra_cfg = HydraConfig.get()
     output_dir = hydra_cfg["runtime"]["output_dir"]
@@ -163,8 +170,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     if wandb_cfg is not None:
         # Save initial model state - and upload checkpoint to wandb
         if cfg["trainer"]["model_checkpoint"]["save_last"] is True:
-            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}{cfg['trainer']['model_checkpoint']['filename']}_final_model.ckpt"
-            torch.save(predictor.model.state_dict(), checkpoint_path)
+            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}{cfg['trainer']['model_checkpoint']['filename']}.ckpt"
             # Log the initial model checkpoint to wandb
             wandb.save(checkpoint_path)
         wandb.finish()

@@ -18,25 +18,25 @@ constants:
     # No other dimensions have to be changed in the architecture part.    
 
 dimensions:
-  pre_nn_out_dim: &gnn_dim 768 # original 256
-  pre_nn_hidden_dims: 3072 # original 1024
-  pre_nn_edges_out_dim: &gnn_dim_edges 384 # original 128
-  pre_nn_edges_hidden_dims: 1536 # original 512
-  gnn_out_dim: *gnn_dim # original 256
-  gnn_hidden_dims: *gnn_dim # original 256 # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
-  mpnn_in_dim: *gnn_dim # original 256
-  mpnn_out_dim: *gnn_dim # original 256
-  mpnn_in_dim_edges: *gnn_dim_edges # original 128
-  mpnn_out_dim_edges: *gnn_dim_edges # original 128
-  graph_output_nn_out_dims: *gnn_dim # original 256
-  graph_output_nn_hidden_dims: *gnn_dim # original 256
-  node_output_nn_out_dims: *gnn_dim # original 256
-  node_output_nn_hidden_dims: *gnn_dim  # original 256
-  l1000_vcap_hidden_dims: 384 # original 128
-  l1000_mcf7_hidden_dims: 384 # original 128
-  pcba_1328_hidden_dims: 192 # original 64
-  pcqm4m_g25_hidden_dims: 96 # original 32
-  pcqm4m_n4_hidden_dims: 96 # original 32
+  pre_nn_out_dim: 768
+  pre_nn_hidden_dims: 3072
+  pre_nn_edges_out_dim: 384
+  pre_nn_edges_hidden_dims: 1536
+  gnn_out_dim: 768
+  gnn_hidden_dims: 768
+  mpnn_in_dim: 768
+  mpnn_out_dim: 768
+  mpnn_in_dim_edges: 384
+  mpnn_out_dim_edges: 384
+  graph_output_nn_out_dims: 768
+  graph_output_nn_hidden_dims: 768
+  node_output_nn_out_dims: 768
+  node_output_nn_hidden_dims: 768
+  l1000_vcap_hidden_dims: 384
+  l1000_mcf7_hidden_dims: 384
+  pcba_1328_hidden_dims: 192
+  pcqm4m_g25_hidden_dims: 96
+  pcqm4m_n4_hidden_dims: 96
 
 accelerator:
   type: ipu  # cpu or ipu or gpu
@@ -45,38 +45,43 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 56 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 96
+          # max_num_nodes_per_graph: 75 # train max nodes: 20, max_edges: 54
+          # max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 298
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 56 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 96
+          # max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
+          # max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 298
         # Data handling-related
-        batch_size_training: 4
-        batch_size_inference: 4
+        batch_size_training: 3
+        batch_size_inference: 3
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
-        loss_scaling: 16000
+        loss_scaling: 1024
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 240
+        accumulate_grad_batches: 320
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
     - replicationFactor(1)
+    # - 'setAvailableMemoryProportion({"IPU0": 0.05})'
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     # - TensorLocations.numIOTiles(128)
     # - _Popart.set("defaultBufferingDepth", 96)
+    - _Popart.set("saveInitializersToFile", "weights.onnx")
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
-
   ipu_inference_config:
   # set device iteration and replication factor to 1 during inference
   # gradient accumulation was set to 1 in the code
-    - deviceIterations(20)
+    - deviceIterations(16)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
 
@@ -84,8 +89,7 @@ accelerator:
     _accelerator: "ipu"
     gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
     # gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
-    #gnn_layers_per_ipu: [4,4,4,4]
-
+    
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   # module_type: "FakeDataModule"  # Option to use generated data
@@ -196,9 +200,9 @@ datamodule:
             pos_type: rw_return_probs
             ksteps: 16
 
-    num_workers: 30 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch.
-    # Using persistent_workers false might make the start of each epoch very long.
+    num_workers: 16 # -1 to use all
+    persistent_workers: False # if use persistent worker at the start of each epoch.
+    # Using persistent_workers false might make the start of each epoch very long.        
 
 #Task-specific
 predictor:
@@ -303,7 +307,7 @@ trainer:
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
-    dirpath: models_checkpoints/${constants.name}/
+    dirpath: /net/group/all-ipu/graphium/model_checkpoints/${constants.name}/
     filename: ${constants.name}
     # monitor: *monitor
     # mode: *mode
@@ -367,7 +371,7 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
 
   gnn:  # Set as null to avoid a post-nn network
-    #in_dim: 256 # should be consistent with pre_nn.out_dim
+  #    in_dim: 256 # should be consistent with pre_nn.out_dim
     out_dim: ${dimensions.gnn_out_dim}
     hidden_dims: ${dimensions.gnn_hidden_dims} # should consistent with pre_nn.out_dim when multi-layer mpnn is used (ffn layer)
     depth: 16
