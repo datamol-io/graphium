@@ -448,6 +448,7 @@ def save_params_to_wandb(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     predictor: PredictorModule,
     datamodule: MultitaskFromSmilesDataModule,
+    unresolved_config: Optional[Union[omegaconf.DictConfig, Dict[str, Any]]] = None,
 ):
     """
     Save a few stuff to weights-and-biases WandB
@@ -456,13 +457,16 @@ def save_params_to_wandb(
         config: The config file, with key `trainer`
         predictor: The predictor used to handle the train/val/test steps logic
         datamodule: The datamodule used to load the data into training
+        unresolved_config: The unresolved config file
     """
 
     # Get the wandb runner and directory
     wandb_run = logger.experiment
+
     if wandb_run is None:
-        wandb_run = ""
-    wandb_dir = wandb_run.dir
+        wandb_dir = ""
+    else:
+        wandb_dir = wandb_run.dir
 
     # Save the mup base model to WandB as a yaml file
     mup.save_base_shapes(predictor.model, os.path.join(wandb_dir, "mup_base_params.yaml"))
@@ -471,14 +475,18 @@ def save_params_to_wandb(
     with open(os.path.join(wandb_dir, "full_configs.yaml"), "w") as file:
         yaml.dump(config, file)
 
+    if unresolved_config is not None:
+        with open(os.path.join(wandb_dir, "unresolved_config.yaml"), "w") as file:
+            yaml.dump(unresolved_config, file)
+
     # Save the featurizer into wandb
     featurizer_path = os.path.join(wandb_dir, "featurizer.pickle")
     joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
     # Save the featurizer and configs into wandb
     if wandb_run is not None:
-        wandb_run.save("*.yaml")
-        wandb_run.save("*.pickle")
+        wandb_run.save(os.path.join(wandb_dir, "*.yaml"), wandb_dir)
+        wandb_run.save(os.path.join(wandb_dir, "*.pickle"), wandb_dir)
 
 
 def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[Dict[str, Any], str]:
