@@ -5,7 +5,7 @@
 constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  datacache_path: "/localdata/neurips2023-large/"
+  datacache_path: "/net/group/research/kerstink/neurips2023-large/"
   epochs: 100
   name: SF_11M_sweep_LargeMix_mpnn
   wandb:
@@ -231,8 +231,8 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
-    warmup_epochs: 10
+    max_num_epochs: &max_epochs 10
+    warmup_epochs: 5
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train
