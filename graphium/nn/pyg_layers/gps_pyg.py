@@ -201,7 +201,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
         self.output_scale = torch.tensor(output_scale)
-        self.use_edges = self.mpnn.use_edges
+        self.use_edges = True if self.in_dim_edges is not None else False
 
     def residual_add(self, feature: Tensor, input_feature: Tensor) -> Tensor:
         r"""
@@ -241,7 +241,8 @@ class GPSLayerPyg(BaseGraphModule):
         # pe, feat, edge_index, edge_feat = batch.pos_enc_feats_sign_flip, batch.feat, batch.edge_index, batch.edge_feat
         feat = batch.feat
         # TODO: samuelm - check if edges are being used here
-        edges_feat_in = batch.edge_feat
+        if self.use_edges:
+            edges_feat_in = batch.edge_feat
 
         feat_in = feat  # for first residual connection
 
@@ -259,10 +260,11 @@ class GPSLayerPyg(BaseGraphModule):
         # Scale the activations by some value to help reduce activation growth
         h_local = self.scale_activations(h_local, self.output_scale)
         # Apply the residual connection for the edge features
-        if self.edge_residual:
+        if self.edge_residual and self.use_edges:
             e_local = self.residual_add(e_local, edges_feat_in)
         # Scale the activations by some value to help reduce activation growth
-        e_local = self.scale_activations(e_local, self.output_scale)
+        if self.use_edges:
+            e_local = self.scale_activations(e_local, self.output_scale)
 
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
