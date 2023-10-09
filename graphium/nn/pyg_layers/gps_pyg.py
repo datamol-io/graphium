@@ -240,7 +240,6 @@ class GPSLayerPyg(BaseGraphModule):
         """
         # pe, feat, edge_index, edge_feat = batch.pos_enc_feats_sign_flip, batch.feat, batch.edge_index, batch.edge_feat
         feat = batch.feat
-        # TODO: samuelm - check if edges are being used here
         if self.use_edges:
             edges_feat_in = batch.edge_feat
 
