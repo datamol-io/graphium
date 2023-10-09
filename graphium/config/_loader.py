@@ -76,7 +76,6 @@ def _get_ipu_opts(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[
 
     if accelerator_type != "ipu":
         return None, None
-
     ipu_opts = accelerator_options["ipu_config"]
     ipu_inference_opts = accelerator_options.get("ipu_inference_config", None)
 
@@ -126,6 +125,7 @@ def load_datamodule(
             ipu_inference_opts=ipu_inference_opts,
             precision=config["trainer"]["trainer"].get("precision"),
         )
+
         # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_training"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(
