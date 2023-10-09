@@ -200,7 +200,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
-        self.output_scale = torch.tensor(output_scale)
+        self.output_scale = output_scale
         self.use_edges = True if self.in_dim_edges is not None else False
 
     def residual_add(self, feature: Tensor, input_feature: Tensor) -> Tensor:
@@ -227,6 +227,7 @@ class GPSLayerPyg(BaseGraphModule):
         Returns:
             Tensor: The scaled features
         """
+        scale_factor = torch.tensor(scale_factor).to(feature.device)
         feature *= scale_factor.to(dtype=feature.dtype)
         return feature
 
