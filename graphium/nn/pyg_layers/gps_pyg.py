@@ -145,10 +145,10 @@ class GPSLayerPyg(BaseGraphModule):
 
             attn_kwargs:
                 Keyword arguments to pass to the attention layer
-            
+
             output_scale:
                 Float value that will be used to scale the activations, helps reudce growth of activations
-                as the model gets deeper. Default value of 1.0 leaves the layer unchanged. 
+                as the model gets deeper. Default value of 1.0 leaves the layer unchanged.
 
         """
 
@@ -199,15 +199,14 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the MPNN and Attention layers
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
-        
+
         self.output_scale = torch.tensor(output_scale)
         self.use_edges = self.mpnn.use_edges
-
 
     def residual_add(self, feature: Tensor, input_feature: Tensor) -> Tensor:
         r"""
         Residual additition layer. Allows information to propagate through the model
-        by skipping the computational layers. 
+        by skipping the computational layers.
         Parameters:
             feature: The feature (typically nodes or edges) after message passing
             input_feature: The same feature from before message passing
@@ -216,21 +215,20 @@ class GPSLayerPyg(BaseGraphModule):
         """
         feature += input_feature
         return feature
-    
+
     def scale_activations(self, feature: Tensor, scale_factor: Tensor) -> Tensor:
         """Scale Activations by a constant factor to stop growth of activation scale
         and reduce numerical stability issues at low precision
 
         Args:
             feature (Tensor): The feature to scale
-            scale_factor (float): The floating point scale factor 
+            scale_factor (float): The floating point scale factor
 
         Returns:
             Tensor: The scaled features
         """
         feature *= scale_factor.to(dtype=feature.dtype)
         return feature
-        
 
     def forward(self, batch: Batch) -> Batch:
         r"""
@@ -255,17 +253,17 @@ class GPSLayerPyg(BaseGraphModule):
         e_local = batch_out.edge_feat
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        # Apply the residual connection for the node features 
+        # Apply the residual connection for the node features
         if self.node_residual:
             h_local = self.residual_add(h_local, feat_in)
         # Scale the activations by some value to help reduce activation growth
         h_local = self.scale_activations(h_local, self.output_scale)
-        # Apply the residual connection for the edge features 
+        # Apply the residual connection for the edge features
         if self.edge_residual:
             e_local = self.residual_add(e_local, edges_feat_in)
         # Scale the activations by some value to help reduce activation growth
-        e_local = self.scale_activations(e_local, self.output_scale) 
-            
+        e_local = self.scale_activations(e_local, self.output_scale)
+
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
 
