@@ -5,7 +5,7 @@
 constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  datacache_path: "../../neurips2023-large/"
+  datacache_path: "/localdata/neurips2023-large/"
   epochs: 100
   name: SF_590M_sweep_LargeMix_mpnn
   wandb:

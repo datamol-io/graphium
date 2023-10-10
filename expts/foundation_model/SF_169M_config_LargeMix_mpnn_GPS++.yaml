@@ -57,7 +57,7 @@ accelerator:
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
-        loss_scaling: 1024
+        loss_scaling: 8192
     trainer:
       trainer:
         precision: 16-true
@@ -79,7 +79,7 @@ accelerator:
     - deviceIterations(30)
     - replicationFactor(1)
     - Precision.enableStochasticRounding(False)
-
+      
   accelerator_kwargs:
     _accelerator: "ipu"
     #gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]

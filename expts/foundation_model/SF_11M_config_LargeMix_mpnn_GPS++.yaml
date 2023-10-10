@@ -5,7 +5,7 @@
 constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  datacache_path: "/net/group/research/kerstink/neurips2023-large/"
+  datacache_path: "/localdata/neurips2023-large/"
   epochs: 100
   name: SF_11M_sweep_LargeMix_mpnn
   wandb:
@@ -195,7 +195,7 @@ datamodule:
             pos_type: rw_return_probs
             ksteps: 16
 
-    num_workers: 32 # -1 to use all
+    num_workers: 16 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
 
@@ -302,7 +302,7 @@ trainer:
     name: ${constants.name}
     project: ${constants.name}
   model_checkpoint:
-    dirpath: /net/group/all-ipu/graphium/model_checkpoints/${constants.name}/
+    dirpath: ./models_checkpoints/${constants.name}/
     filename: ${constants.name}
     # monitor: *monitor
     # mode: *mode
