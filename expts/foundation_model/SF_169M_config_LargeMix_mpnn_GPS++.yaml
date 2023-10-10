@@ -380,8 +380,10 @@ architecture:
     use_virtual_edges: true
     layer_type: 'pyg:gps'
     layer_kwargs:
-      node_residual: false
       mpnn_type: 'pyg:mpnnplus'
+      node_residual: True
+      edge_residual: True 
+      output_scale: 1.0
       mpnn_kwargs:
         in_dim: ${dimensions.mpnn_in_dim} # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
         out_dim: ${dimensions.mpnn_out_dim}  # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
