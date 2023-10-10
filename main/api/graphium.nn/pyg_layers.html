@@ -820,6 +820,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.residual_add" class="md-nav__link">
+    residual_add()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.scale_activations" class="md-nav__link">
+    scale_activations()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2308,6 +2322,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.residual_add" class="md-nav__link">
+    residual_add()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.scale_activations" class="md-nav__link">
+    scale_activations()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3445,7 +3473,7 @@ of heads.</p>
 
 
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edge_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3488,6 +3516,9 @@ dropout:
 node_residual:
     If node residual is used after on the gnn layer output
 
+edge_residual:
+    If edge residual is used after on the gnn layer output
+
 normalization:
     Normalization to use. Choices:
 
@@ -3529,6 +3560,10 @@ biased_attention_key:
 
 attn_kwargs:
     Keyword arguments to pass to the attention layer
+
+output_scale:
+    Float value that will be used to scale the activations, helps reduce growth of activations
+    as the model gets deeper. Default value of 1.0 leaves the layer unchanged.
 </code></pre>
 
   </div>
@@ -3578,6 +3613,121 @@ Returns:
 <pre><code>supports_edges: bool
     Always ``True`` for the current class
 </code></pre>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.residual_add" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">residual_add</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">input_feature</span><span class="p">)</span></code>
+
+<a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.residual_add" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Residual additition layer. Allows information to propagate through the model
+by skipping the computational layers.
+Parameters:
+    feature: The feature (typically nodes or edges) after message passing
+    input_feature: The same feature from before message passing
+Returns:
+    The addition of the two tensors.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.scale_activations" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">scale_activations</span><span class="p">(</span><span class="n">feature</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">)</span></code>
+
+<a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.scale_activations" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Scale Activations by a constant factor to stop growth of activation scale
+and reduce numerical stability issues at low precision</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>feature</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The feature to scale</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>scale_factor</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The floating point scale factor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Tensor</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The scaled features</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
