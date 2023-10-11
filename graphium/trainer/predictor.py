@@ -461,6 +461,9 @@ class PredictorModule(lightning.LightningModule):
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
         concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
+        concatenated_metrics_logs["epoch_count"] = self.current_epoch
+        # TODO: Samuelm - we need a number of samples here as well if this works?
+        # import ipdb; ipdb.set_trace()
 
         # report the training loss for each individual tasks
         for task in self.tasks:

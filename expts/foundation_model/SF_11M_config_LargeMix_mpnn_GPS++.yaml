@@ -6,6 +6,7 @@ constants:
   seed: 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   datacache_path: "/net/group/research/kerstink/neurips2023-large/"
+  # datacache_path: "/localdata/neurips2023-large/"
   epochs: 100
   name: SF_11M_sweep_LargeMix_mpnn
   wandb:
@@ -64,7 +65,7 @@ accelerator:
         accumulate_grad_batches: 2
 
   ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
+    - deviceIterations(16) # IPU would require large batches to be ready for the model.
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
