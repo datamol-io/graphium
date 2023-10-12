@@ -34,7 +34,7 @@ finetuning:
   level: graph
 
   # Pretrained model
-  pretrained_model_name: dummy-pretrained-model
+  pretrained_model: dummy-pretrained-model
   finetuning_module: gnn 
 
   # Changes to finetuning_module                                                  
@@ -42,10 +42,10 @@ finetuning:
   added_depth: 3
 
   keep_modules_after_finetuning_module: # optional
-    graph_output_nn/graph:
+    graph_output_nn-graph:
       pooling: [mean]
       depth: 2
-    task_heads/zinc:
+    task_heads-zinc:
       new_sub_module: lipophilicity_astrazeneca
       out_dim: 1
 
@@ -135,7 +135,3 @@ datamodule:
     featurization_progress: True
     featurization_backend: "loky"
     persistent_workers: False
-
-
-
-

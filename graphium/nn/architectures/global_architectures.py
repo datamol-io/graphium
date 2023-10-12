@@ -1229,7 +1229,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         if self.task_heads is not None:
             self._module_map.update(
                 {
-                    "graph_output_nn/"
+                    "graph_output_nn-"
                     + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn
                     for output_level in self.task_heads.graph_output_nn.keys()
                 }
@@ -1237,7 +1237,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
             self._module_map.update(
                 {
-                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name]
+                    "task_heads-" + task_head_name: self.task_heads.task_heads[task_head_name]
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )

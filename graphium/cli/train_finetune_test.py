@@ -1,3 +1,4 @@
+from typing import List, Literal, Union
 import os
 import time
 import timeit
@@ -37,6 +38,7 @@ from graphium.hyper_param_search import (
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.safe_run import SafeRun
 
+import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
@@ -139,9 +141,12 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         logger.info("Computing the maximum number of nodes and edges per graph")
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
+        # When resuming training from a checkpoint, we need to provide the path to the checkpoint in the config
+        resume_ckpt_path = cfg["trainer"].pop("resume_from_checkpoint", None)
+
         # Run the model training
         with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-            trainer.fit(model=predictor, datamodule=datamodule)
+            trainer.fit(model=predictor, datamodule=datamodule, ckpt_path=resume_ckpt_path)
 
         # Save validation metrics - Base utility in case someone doesn't use a logger.
         results = trainer.callback_metrics
@@ -152,9 +157,16 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     # Determine the max num nodes and edges in testing
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
 
+    # When checkpoints are logged during training, we can, e.g., use the best or last checkpoint for testing
+    test_ckpt_path = None
+    test_ckpt_name = cfg['trainer'].pop('test_from_checkpoint', None)
+    test_ckpt_dir = cfg['trainer']['model_checkpoint'].pop('dirpath', None)
+    if test_ckpt_name is not None and test_ckpt_dir is not None:
+        test_ckpt_path = os.path.join(test_ckpt_dir, test_ckpt_name)
+    
     # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.test(model=predictor, datamodule=datamodule)  # , ckpt_path=ckpt_path)
+        trainer.test(model=predictor, datamodule=datamodule, ckpt_path=test_ckpt_path)
 
     logger.info("-" * 50)
     logger.info("Total compute time:", timeit.default_timer() - st)

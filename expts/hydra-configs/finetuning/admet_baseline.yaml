@@ -1,0 +1,71 @@
+# @package _global_
+
+defaults:
+  - override /tasks/loss_metrics_datamodule: admet
+
+constants:
+  task: tbd
+  name: finetune_${constants.task}
+  wandb:
+    name: ${constants.name}
+    project: finetuning
+    entity: recursion
+  seed: 42
+  max_epochs: 100
+  data_dir: ../data/graphium/admet/${constants.task}
+  datacache_path: ../datacache/admet/${constants.task}
+  raise_train_error: true
+  metric: ${get_metric_name:${constants.task}}
+
+datamodule:
+  args:
+    batch_size_training: 32
+    dataloading_from: ram
+    persistent_workers: true
+    num_workers: 4
+  
+trainer:
+  model_checkpoint:
+    # save_top_k: 1
+    # monitor: graph_${constants.task}/${constants.metric}/val
+    # mode: ${get_metric_mode:${constants.task}}
+    # save_last: true
+    # filename: best
+    dirpath: model_checkpoints/finetuning/${constants.task}/${now:%Y-%m-%d_%H-%M-%S.%f}/
+    every_n_epochs: 200
+  trainer:
+    precision: 32
+    check_val_every_n_epoch: 1
+  # early_stopping:
+  #   monitor: graph_${constants.task}/${constants.metric}/val
+  #   mode: ${get_metric_mode:${constants.task}}
+  #   min_delta: 0.001
+  #   patience: 10
+  accumulate_grad_batches: none
+  # test_from_checkpoint: best.ckpt
+  # test_from_checkpoint: ${trainer.model_checkpoint.dirpath}/best.ckpt
+  
+predictor:
+  optim_kwargs:
+    lr: 0.000005
+
+
+# == Fine-tuning config == 
+
+finetuning:
+  task: ${constants.task}
+  level: graph
+  pretrained_model: tbd
+  finetuning_module: graph_output_nn  
+  sub_module_from_pretrained: graph
+  new_sub_module: graph
+
+  keep_modules_after_finetuning_module: # optional
+    task_heads-pcqm4m_g25:
+      new_sub_module: ${constants.task}
+      hidden_dims: 256
+      depth: 2
+      last_activation: ${get_last_activation:${constants.task}}
+      out_dim: 1
+
+  epoch_unfreeze_all: tbd

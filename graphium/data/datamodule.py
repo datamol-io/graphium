@@ -1961,7 +1961,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             n = min(sample_size, df.shape[0])
             df = df.sample(n=n, random_state=seed)
         elif isinstance(sample_size, float):
-            df = df.sample(f=sample_size, random_state=seed)
+            df = df.sample(frac=sample_size, random_state=seed)
         elif sample_size is None:
             pass
         else:

@@ -17,6 +17,7 @@ from graphium.config._loader import (
 
 from graphium.trainer.predictor_options import ModelOptions
 
+
 param_app = typer.Typer(help="Parameter counts.")
 app.add_typer(param_app, name="params")
 
