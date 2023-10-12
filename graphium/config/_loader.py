@@ -289,6 +289,9 @@ def load_predictor(
     accelerator_type: str,
     featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
+    replicas: int = 1,
+    gradient_acc: int = 1,
+    global_bs: int = 1,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `lightning.LighningModule`
@@ -314,6 +317,9 @@ def load_predictor(
         task_levels=task_levels,
         featurization=featurization,
         task_norms=task_norms,
+        replicas=replicas,
+        gradient_acc=gradient_acc,
+        global_bs=global_bs,
         **cfg_pred,
     )
 
@@ -330,6 +336,9 @@ def load_predictor(
             task_levels=task_levels,
             featurization=featurization,
             task_norms=task_norms,
+            replicas=replicas,
+            gradient_acc=gradient_acc,
+            global_bs=global_bs,
             **cfg_pred,
         )
 
@@ -429,7 +438,7 @@ def load_trainer(
         name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:
             name += f"_{date_time_suffix}"
-        trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
+        trainer_kwargs["logger"] = WandbLogger(name=name, log_model=True, **wandb_cfg)
 
     trainer_kwargs["callbacks"] = callbacks
     trainer = Trainer(

@@ -1062,11 +1062,9 @@ def mol_to_graph_dict(
             mol = Chem.AddHs(mol)
         else:
             mol = Chem.RemoveHs(mol)
-
         num_atoms = mol.GetNumAtoms()
         if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
             raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
-
         (
             adj,
             ndata,
