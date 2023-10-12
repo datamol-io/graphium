@@ -148,6 +148,7 @@ class GPSLayerPyg(BaseGraphModule):
 
             output_scale:
                 Float value that will be used to scale the activations, helps reudce growth of activations
+
                 as the model gets deeper. Default value of 1.0 leaves the layer unchanged.
 
         """

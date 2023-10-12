@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
 
-from graphium.nn.base_layers import MLP, get_norm, FCLayer
+from graphium.nn.base_layers import MLP, get_norm, FCLayer, TransformerEncoderLayerMup
 from graphium.nn.encoders.base_encoder import BaseEncoder
 
 
@@ -70,7 +70,8 @@ class LapPENodeEncoder(BaseEncoder):
         if self.model_type == "Transformer":
             # Transformer model for LapPE
             model_kwargs.setdefault("nhead", 1)
-            encoder_layer = nn.TransformerEncoderLayer(
+            encoder_layer = TransformerEncoderLayerMup(
+                None,
                 d_model=hidden_dim,
                 batch_first=True,
                 dropout=dropout,

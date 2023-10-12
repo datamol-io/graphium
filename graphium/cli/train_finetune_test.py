@@ -5,6 +5,7 @@ from datetime import datetime
 
 import fsspec
 import hydra
+import numpy as np
 import torch
 import wandb
 import yaml
@@ -39,6 +40,8 @@ from graphium.utils.safe_run import SafeRun
 
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
+
+OmegaConf.register_new_resolver("eval", lambda x: eval(x, {"np": np}))
 
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
@@ -96,6 +99,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     The main (pre-)training and fine-tuning loop.
     """
 
+    unresolved_cfg = OmegaConf.to_container(cfg, resolve=False)
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
     # Get the current date and time
@@ -191,15 +195,17 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         if wandb_cfg is not None:
-            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
+            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule, unresolved_config=unresolved_cfg)
 
         # Determine the max num nodes and edges in training and validation
         logger.info("Computing the maximum number of nodes and edges per graph")
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
+        ckpt_path = cfg["trainer"].pop("resume_from_checkpoint", None)
+
         # Run the model training
         with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-            trainer.fit(model=predictor, datamodule=datamodule)
+            trainer.fit(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
 
         # Save validation metrics - Base utility in case someone doesn't use a logger.
         results = trainer.callback_metrics

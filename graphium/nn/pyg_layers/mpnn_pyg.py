@@ -130,14 +130,15 @@ class MPNNPlusPyg(BaseGraphModule):
         self.num_edge_mlp = num_edge_mlp
         self.edge_dropout_rate = edge_dropout_rate
 
-        self.aggregator = MultiAggregation(aggregation_method)
+        self.aggregator = MultiAggregation(list(aggregation_method))
+        n_agg = len(aggregation_method)
 
         # node_model:
         edge_dim = self.out_dim_edges if use_edges else self.in_dim_edges
         if self.node_combine_method == "concat":
-            node_model_in_dim = 3 * self.in_dim + 2 * edge_dim
+            node_model_in_dim = (1 + 2 * n_agg) * self.in_dim + 2 * n_agg * edge_dim
         elif self.node_combine_method == "sum":
-            node_model_in_dim = 2 * self.in_dim + edge_dim
+            node_model_in_dim = (1 + n_agg) * self.in_dim + n_agg * edge_dim
         else:
             raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
         node_model_hidden_dim = self.mlp_expansion_ratio * self.in_dim

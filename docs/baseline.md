@@ -4,6 +4,8 @@ From the paper to be released soon. Below, you can see the baselines for the `To
 
 One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate from adding another unrelated task (`QM9`), where the labels are computed from DFT simulations.
 
+**NEW baselines added 2023/09/18**: Multitask baselines have been added for GatedGCN and MPNN++ (sum aggretator) using 3 random seeds. They achieve the best performance by a significant margin on Zinc12k and Tox21, while sacrificing a little on QM9.
+
 | Dataset   | Model | MAE ↓     | Pearson ↑ | R² ↑     | MAE ↓   | Pearson ↑ | R² ↑   |
 |-----------|-------|-----------|-----------|-----------|---------|-----------|---------|
 |    | <th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th>   |
@@ -11,18 +13,24 @@ One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate fr
 | **QM9**   | GCN   | 0.102 ± 0.0003 | 0.958 ± 0.0007 | 0.920 ± 0.002 | 0.119 ± 0.01 | 0.955 ± 0.001 | 0.915 ± 0.001 |
 |           | GIN   | 0.0976 ± 0.0006 | **0.959 ± 0.0002** | **0.922 ± 0.0004** | 0.117 ± 0.01 | 0.950 ± 0.002 | 0.908 ± 0.003 |
 |           | GINE  | **0.0959 ± 0.0002** | 0.955 ± 0.002 | 0.918 ± 0.004 | 0.102 ± 0.01 | 0.956 ± 0.0009 | 0.918 ± 0.002 |
-|
-| **Zinc12k** | GCN   | 0.348 ± 0.02 | 0.941 ± 0.002 | 0.863 ± 0.01 | 0.226 ± 0.004 | 0.973 ± 0.0005 | 0.940 ± 0.003 |
+|       |   GatedGCN    |       |       |       | 0.1212 ± 0.0009 | 0.9457 ± 0.0002 | 0.8964 ± 0.0006 |
+|       |   MPNN++ (sum)    |       |       |    | 0.1174 ± 0.0012 | 0.9460 ± 0.0005 | 0.8989 ± 0.0008 |
+ **Zinc12k** | GCN   | 0.348 ± 0.02 | 0.941 ± 0.002 | 0.863 ± 0.01 | 0.226 ± 0.004 | 0.973 ± 0.0005 | 0.940 ± 0.003 |
 |           | GIN   | 0.303 ± 0.007 | 0.950 ± 0.003 | 0.889 ± 0.003 | 0.189 ± 0.004 | 0.978 ± 0.006 | 0.953 ± 0.002 |
-|           | GINE  | 0.266 ± 0.02 | 0.961 ± 0.003 | 0.915 ± 0.01 | **0.147 ± 0.009** | **0.987 ± 0.001** | **0.971 ± 0.003** |
+|           | GINE  | 0.266 ± 0.02 | 0.961 ± 0.003 | 0.915 ± 0.01 | 0.147 ± 0.009 | 0.987 ± 0.001 | 0.971 ± 0.003 |
+|       | GatedGCN       |       |       |       | 0.1282 ± 0.0045 | 0.9850 ± 0.0006 | 0.9639 ± 0.0024 |
+|       | MPNN++ (sum)   |       |       |       | **0.1002 ± 0.0025** | **0.9909 ± 0.0004** | **0.9777 ± 0.0014** |
 
 |           |       | BCE ↓     | AUROC ↑ | AP ↑     | BCE ↓   | AUROC ↑ | AP ↑   |
 |-----------|-------|-----------|-----------|-----------|---------|-----------|---------|
 |    | <th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th>   |
 |
-| **Tox21**   | GCN   | 0.202 ± 0.005 | 0.773 ± 0.006 | 0.334 ± 0.03 | **0.176 ± 0.001** | **0.850 ± 0.006** | 0.446 ± 0.01 |
+| **Tox21**   | GCN   | 0.202 ± 0.005 | 0.773 ± 0.006 | 0.334 ± 0.03 | 0.176 ± 0.001 | 0.850 ± 0.006 | 0.446 ± 0.01 |
 |           | GIN   | 0.200 ± 0.002 | 0.789 ± 0.009 | 0.350 ± 0.01 | 0.176 ± 0.001 | 0.841 ± 0.005 | 0.454 ± 0.009 |
-|           | GINE  | 0.201 ± 0.007 | 0.783 ± 0.007 | 0.345 ± 0.02 | 0.177 ± 0.0008 | 0.836 ± 0.004 | **0.455 ± 0.008** |
+|           | GINE  | 0.201 ± 0.007 | 0.783 ± 0.007 | 0.345 ± 0.02 | 0.177 ± 0.0008 | 0.836 ± 0.004 | 0.455 ± 0.008 |
+|       | GatedGCN       |       |       |       | 0.1733 ± 0.0015 | 0.8522 ± 0.0022 | **0.4620 ± 0.0118** |
+|       | MPNN++ (sum)   |       |       |       | **0.1725 ± 0.0012** | **0.8569 ± 0.0005** | 0.4598 ± 0.0044 |
+
 
 # LargeMix Baseline
 ## LargeMix test set metrics
@@ -87,6 +95,40 @@ This is not surprising as they contain two orders of magnitude more datapoints a
 | **L1000\_mcf7**   | GCN   | 0.1902 ± 0.0038 | **0.1829 ± 0.0095** |
 |             | GIN   | 0.1873 ± 0.0033 | **0.1701 ± 0.0142** |
 |             | GINE  | 0.1883 ± 0.0039 | **0.1771 ± 0.0010** |
+
+## NEW: Largemix improved sweep - 2023/08-18
+
+Unsatisfied with the prior results, we ran a bayesian search over a broader set of parameters, and including only more expressive models, namely GINE, GatedGCN and MPNN++. We further increase the number of parameters to 10M due to evidence of underfitting. We evaluate only the multitask setting.
+
+We observe a significant improvement over all tasks, with a very notable r2-score increase of +0.53 (0.27 -> 0.80) compared to the best node-level property prediction on PCQM4M_N4.
+
+The results are reported below over 1 seed. We are currently running more seeds of the same models.
+
+| Dataset       | Model          | MAE ↓     | Pearson ↑ | R² ↑     |
+|---------------|----------------|--------|---------|--------|
+| **PCQM4M_G25**    | GINE           | 0.2250 | 0.8840  | 0.7911 |
+|               | GatedGCN       | 0.2457 | 0.8698  | 0.7688 |
+|               | MPNN++ (sum)   | 0.2269 | 0.8802  | 0.7855 |
+|
+| **PCQM4M_N4**     | GINE           | 0.2699 | 0.8475  | 0.7182 |
+|               | GatedGCN       | 0.3337 | 0.8102  | 0.6566 |
+|               | MPNN++ (sum)   | 0.2114 | 0.8942  | 0.8000 |
+
+| Dataset       | Model          | BCE ↓     | AUROC ↑ | AP ↑     |
+|---------------|----------------|--------|---------|--------|
+| **PCBA_1328**     | GINE           | 0.0334 | 0.7879  | 0.2808 |
+|               | GatedGCN       | 0.0351 | 0.7788  | 0.2611 |
+|               | MPNN++ (sum)   | 0.0344 | 0.7815  | 0.2666 |
+|
+| **L1000_VCAP**    | GINE           | 0.1907 | 0.6416  | 0.4042 |
+|               | GatedGCN       | 0.1866 | 0.6395  | 0.4092 |
+|               | MPNN++ (sum)   | 0.1867 | 0.6478  | 0.4131 |
+|
+| **L1000_MCF7**    | GINE           | 0.1931 | 0.6352  | 0.4235 |
+|               | GatedGCN       | 0.1859 | 0.6547  | 0.4224 |
+|               | MPNN++ (sum)   | 0.1870 | 0.6593  | 0.4254 |
+
+
 
 # UltraLarge Baseline
 

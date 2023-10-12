@@ -248,8 +248,6 @@ class Summary(SummaryInterface):
         metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(
             targets
         )
-        if torch.cuda.is_available():
-            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
 
         # Specify which metrics to use
         metrics_to_use = self.metrics
