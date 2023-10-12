@@ -21,6 +21,7 @@ from graphium.trainer.predictor_options import ModelOptions
 param_app = typer.Typer(help="Parameter counts.")
 app.add_typer(param_app, name="params")
 
+
 @param_app.command(name="infer", help="Infer parameter count.")
 def infer_parameter_count(overrides: List[str] = []) -> int:
     with initialize(version_base=None, config_path="../../expts/hydra-configs"):
@@ -52,8 +53,11 @@ def infer_parameter_count(overrides: List[str] = []) -> int:
 
     return num_params
 
+
 @param_app.command(name="balance", help="Balance parameter count.")
-def balance_parameter_count(overrides: List[str], target_param_count: int, max_rel_diff: float, rel_step: float, old_dim: int) -> None:
+def balance_parameter_count(
+    overrides: List[str], target_param_count: int, max_rel_diff: float, rel_step: float, old_dim: int
+) -> None:
     with initialize(version_base=None, config_path="../../expts/hydra-configs"):
         cfg = compose(
             config_name="main",
@@ -88,11 +92,10 @@ def balance_parameter_count(overrides: List[str], target_param_count: int, max_r
         logger.info(f"Hidden edge dim unchanged: {tmp_edge_dim}.")
         print(tmp_dim, tmp_edge_dim, rel_step, "true")
         return
-        
+
     # Reduce step size when overshooting
     if np.sign(old_dim - tmp_dim) != np.sign(tmp_dim - new_dim) and old_dim > 0:
         rel_step /= 2
         logger.info(f"Relative step changed: {2*rel_step} -> {rel_step}.")
 
     print(new_dim, new_edge_dim, rel_step, "false")
-    

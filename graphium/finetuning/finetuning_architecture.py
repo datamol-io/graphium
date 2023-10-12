@@ -199,7 +199,7 @@ class PretrainedModel(nn.Module, MupMixin):
         super().__init__()
 
         # Load pretrained model
-        pretrained_model = PredictorModule.load_pretrained_model(pretrained_model, device='cpu').model
+        pretrained_model = PredictorModule.load_pretrained_model(pretrained_model, device="cpu").model
         pretrained_model.create_module_map()
 
         # Initialize new model with architecture after desired modifications to architecture.

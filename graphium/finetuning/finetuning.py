@@ -66,7 +66,7 @@ class GraphFinetuning(BaseFinetuning):
             module_map: Dictionary mapping from module_name to corresponding module(s)
         """
         modules = module_map[module_name]
-        
+
         if module_name == "pe_encoders":
             for param in pl_module.model.pretrained_model.net.encoder_manager.parameters():
                 param.requires_grad = False
