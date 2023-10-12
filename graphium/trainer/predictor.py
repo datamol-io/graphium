@@ -384,9 +384,6 @@ class PredictorModule(lightning.LightningModule):
         # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         step_dict["gradient_norm"] = self.get_gradient_norm()
-        # samuelm
-        # self.samples_seen += 1
-        # step_dict["samples_seen"] = self.samples_seen
         return step_dict
 
     def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
