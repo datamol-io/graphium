@@ -1062,10 +1062,7 @@ def mol_to_graph_dict(
             mol = Chem.AddHs(mol)
         else:
             mol = Chem.RemoveHs(mol)
-        # SAMUELM: Temp fix
-        max_num_bonds = 265
         num_atoms = mol.GetNumAtoms()
-        num_bonds = mol.GetNumBonds()
         if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
             raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
         (
