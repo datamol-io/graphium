@@ -48,6 +48,48 @@ def cli(cfg: DictConfig) -> None:
     """
     return run_training_finetuning_testing(cfg)
 
+def get_replication_factor(cfg):
+    try:
+        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
+        for item in ipu_config:
+            if "replicationFactor" in item:
+                # Extract the number between parentheses
+                start = item.find("(") + 1
+                end = item.find(")")
+                if start != 0 and end != -1:
+                    return int(item[start:end])
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    # Return default value if replicationFactor is not found or an error occurred
+    return 1
+
+def get_gradient_accumulation_factor(cfg):
+    try:
+        # Navigate through the nested dictionaries and get the gradient accumulation factor
+        grad_accumulation_factor = cfg.get("accelerator", {}).get("config_override", {}).get("trainer", {}).get("trainer", {}).get("accumulate_grad_batches", 1)
+        
+        # Ensure that the extracted value is an integer
+        return int(grad_accumulation_factor)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if an error occurred
+    return 1
+
+def get_training_batch_size(cfg):
+    try:
+        # Navigate through the nested dictionaries and get the training batch size
+        batch_size_training = cfg.get("accelerator", {}).get("config_override", {}).get("datamodule", {}).get("args", {}).get("batch_size_training", 1)
+
+        # Ensure that the extracted value is an integer
+        return int(batch_size_training)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if an error occurred
+    return 1
+
 
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
     """
@@ -80,6 +122,12 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     st = timeit.default_timer()
 
+    replicas = get_replication_factor(cfg)
+    gradient_acc = get_gradient_accumulation_factor(cfg)
+    micro_bs = get_training_batch_size(cfg)
+    
+    global_bs = replicas * gradient_acc * micro_bs
+    
     # Disable wandb if the user is not logged in.
     wandb_cfg = cfg["constants"].get("wandb")
     if wandb_cfg is not None and wandb.login() is False:
@@ -124,6 +172,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             accelerator_type=accelerator_type,
             featurization=datamodule.featurization,
             task_norms=datamodule.task_norms,
+            replicas=replicas,
+            gradient_acc=gradient_acc,
+            global_bs=global_bs,
         )
 
     logger.info(predictor.model)
