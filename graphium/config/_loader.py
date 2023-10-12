@@ -337,7 +337,7 @@ def load_predictor(
             featurization=featurization,
             task_norms=task_norms,
             replicas=replicas,
-            gradient_acc=gradient_acc,  
+            gradient_acc=gradient_acc,
             global_bs=global_bs,
             **cfg_pred,
         )

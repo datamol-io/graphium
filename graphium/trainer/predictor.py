@@ -179,7 +179,7 @@ class PredictorModule(lightning.LightningModule):
         # Wether save preds and targets for each training step.
 
         self.samples_seen = 0
-        self.global_bs = global_bs 
+        self.global_bs = global_bs
 
     def forward(
         self, inputs: Dict
@@ -475,7 +475,7 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
         concatenated_metrics_logs["epoch_count"] = self.current_epoch
-        # Incriment by the batch size 
+        # Incriment by the batch size
         self.samples_seen += self.global_bs
         concatenated_metrics_logs["samples_seen"] = self.samples_seen
 
