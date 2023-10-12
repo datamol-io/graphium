@@ -456,9 +456,6 @@ class PredictorModule(lightning.LightningModule):
         step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
-        # samuelm
-        # self.samples_seen += 1
-        # step_dict["samples_seen"] = self.samples_seen
         return step_dict
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
