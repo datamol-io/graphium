@@ -45,27 +45,27 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 75 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 298
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 80 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 116
+          max_num_nodes: 140
+          max_num_edges: 298
         # Data handling-related
-        batch_size_training: 8
-        batch_size_inference: 8
+        batch_size_training: 3
+        batch_size_inference: 3
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
-        loss_scaling: 8192
+        loss_scaling: 1024
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 16
+        accumulate_grad_batches: 320
 
   ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
-    - replicationFactor(2)
+    - deviceIterations(5) # IPU would require large batches to be ready for the model.
+    - replicationFactor(1)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -82,8 +82,8 @@ accelerator:
       
   accelerator_kwargs:
     _accelerator: "ipu"
-    #gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
+    gnn_layers_per_ipu: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    #gnn_layers_per_ipu: [2,2,2,2,2,2,2,2]
     #gnn_layers_per_ipu: [4,4,4,4]
 
 datamodule:
@@ -176,6 +176,7 @@ datamodule:
       add_self_loop: False
       explicit_H: False # if H is included
       use_bonds_weights: False
+      max_num_atoms: 100
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
           lap_eigvec:
@@ -381,8 +382,8 @@ architecture:
     layer_type: 'pyg:gps'
     layer_kwargs:
       mpnn_type: 'pyg:mpnnplus'
-      node_residual: True
-      edge_residual: True 
+      node_residual: false
+      edge_residual: false
       output_scale: 1.0
       mpnn_kwargs:
         in_dim: ${dimensions.mpnn_in_dim} # should consistent with pre_nn.out_dim when multi-layer mpnn is used (node_model layer)
