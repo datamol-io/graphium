@@ -270,7 +270,7 @@ class GPSLayerPyg(BaseGraphModule):
                 e_local *= 1/self.scale_activations(e_local, self.output_scale)
             else:
                 e_local *= 1/self.scale_activations(e_local, self.output_scale)
-                e_local = self.residual_add(e_local, feat_in)        
+                e_local = self.residual_add(e_local, edges_feat_in)        
 
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
