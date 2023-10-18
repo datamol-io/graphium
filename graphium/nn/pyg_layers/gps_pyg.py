@@ -255,17 +255,22 @@ class GPSLayerPyg(BaseGraphModule):
         e_local = batch_out.edge_feat
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        # Apply the residual connection for the node features
+        # Apply the residual connection for the node features and scale the activations by some value to help reduce activation growth
         if self.node_residual:
-            h_local = self.residual_add(h_local, feat_in)
-        # Scale the activations by some value to help reduce activation growth
-        h_local = self.scale_activations(h_local, self.output_scale)
-        # Apply the residual connection for the edge features
+            if self.layer_depth < 1:
+                h_local = self.residual_add(h_local, feat_in)
+                h_local *= 1/self.scale_activations(h_local, self.output_scale)
+            else:
+                h_local *= 1/self.scale_activations(h_local, self.output_scale)
+                h_local = self.residual_add(h_local, feat_in)        
+        # Apply the residual connection for the edge features and scale the activations by some value to help reduce activation growth
         if self.edge_residual and self.use_edges:
-            e_local = self.residual_add(e_local, edges_feat_in)
-        # Scale the activations by some value to help reduce activation growth
-        if self.use_edges:
-            e_local = self.scale_activations(e_local, self.output_scale)
+            if self.layer_depth < 1:
+                e_local = self.residual_add(e_local, edges_feat_in)
+                e_local *= 1/self.scale_activations(e_local, self.output_scale)
+            else:
+                e_local *= 1/self.scale_activations(e_local, self.output_scale)
+                e_local = self.residual_add(e_local, feat_in)        
 
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
