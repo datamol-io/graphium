@@ -6,6 +6,7 @@ from datetime import datetime
 
 import fsspec
 import hydra
+import numpy as np
 import torch
 import wandb
 import yaml
@@ -42,6 +43,8 @@ import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
+OmegaConf.register_new_resolver("eval", lambda x: eval(x, {"np": np}))
+
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
 def cli(cfg: DictConfig) -> None:
@@ -51,12 +54,77 @@ def cli(cfg: DictConfig) -> None:
     return run_training_finetuning_testing(cfg)
 
 
+def get_replication_factor(cfg):
+    try:
+        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
+        for item in ipu_config:
+            if "replicationFactor" in item:
+                # Extract the number between parentheses
+                start = item.find("(") + 1
+                end = item.find(")")
+                if start != 0 and end != -1:
+                    return int(item[start:end])
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if replicationFactor is not found or an error occurred
+    return 1
+
+
+def get_gradient_accumulation_factor(cfg):
+    try:
+        # Navigate through the nested dictionaries and get the gradient accumulation factor
+        grad_accumulation_factor = (
+            cfg.get("accelerator", {})
+            .get("config_override", {})
+            .get("trainer", {})
+            .get("trainer", {})
+            .get("accumulate_grad_batches", 1)
+        )
+
+        # Ensure that the extracted value is an integer
+        return int(grad_accumulation_factor)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if an error occurred
+    return 1
+
+
+def get_training_batch_size(cfg):
+    try:
+        # Navigate through the nested dictionaries and get the training batch size
+        batch_size_training = (
+            cfg.get("accelerator", {})
+            .get("config_override", {})
+            .get("datamodule", {})
+            .get("args", {})
+            .get("batch_size_training", 1)
+        )
+
+        # Ensure that the extracted value is an integer
+        return int(batch_size_training)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if an error occurred
+    return 1
+
+
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
     """
     The main (pre-)training and fine-tuning loop.
     """
 
+    unresolved_cfg = OmegaConf.to_container(cfg, resolve=False)
     cfg = OmegaConf.to_container(cfg, resolve=True)
+
+    # Get the current date and time
+    now = datetime.now()
+    # Format the datetime as a string
+    filename_datetime_suffix = now.strftime("%Y%m%d_%H%M%S")
+    # Append the datetime string to the existing filename in the cfg dictionary
+    cfg["trainer"]["model_checkpoint"]["filename"] += f"_{filename_datetime_suffix}"
 
     dst_dir = cfg["constants"].get("results_dir")
     hydra_cfg = HydraConfig.get()
@@ -74,6 +142,12 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         cfg = modify_cfg_for_finetuning(cfg)
 
     st = timeit.default_timer()
+
+    replicas = get_replication_factor(cfg)
+    gradient_acc = get_gradient_accumulation_factor(cfg)
+    micro_bs = get_training_batch_size(cfg)
+
+    global_bs = replicas * gradient_acc * micro_bs
 
     # Disable wandb if the user is not logged in.
     wandb_cfg = cfg["constants"].get("wandb")
@@ -119,6 +193,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             accelerator_type=accelerator_type,
             featurization=datamodule.featurization,
             task_norms=datamodule.task_norms,
+            replicas=replicas,
+            gradient_acc=gradient_acc,
+            global_bs=global_bs,
         )
 
     logger.info(predictor.model)
@@ -135,7 +212,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         if wandb_cfg is not None:
-            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
+            save_params_to_wandb(trainer.logger, cfg, predictor, datamodule, unresolved_config=unresolved_cfg)
 
         # Determine the max num nodes and edges in training and validation
         logger.info("Computing the maximum number of nodes and edges per graph")
@@ -173,6 +250,11 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     logger.info("-" * 50)
 
     if wandb_cfg is not None:
+        # Save initial model state - and upload checkpoint to wandb
+        if cfg["trainer"]["model_checkpoint"]["save_last"] is True:
+            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}{cfg['trainer']['model_checkpoint']['filename']}.ckpt"
+            # Log the initial model checkpoint to wandb
+            wandb.save(checkpoint_path)
         wandb.finish()
 
     # Save test metrics - Base utility in case someone doesn't use a logger.

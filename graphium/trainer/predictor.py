@@ -46,6 +46,9 @@ class PredictorModule(lightning.LightningModule):
         flag_kwargs: Dict[str, Any] = None,
         task_norms: Optional[Dict[Callable, Any]] = None,
         metrics_every_n_train_steps: Optional[int] = None,
+        replicas: int = 1,
+        gradient_acc: int = 1,
+        global_bs: Optional[int] = 1,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -175,6 +178,9 @@ class PredictorModule(lightning.LightningModule):
         self.metrics_every_n_train_steps = metrics_every_n_train_steps
         # Wether save preds and targets for each training step.
 
+        self.samples_seen = 0
+        self.global_bs = global_bs
+
     def forward(
         self, inputs: Dict
     ) -> Dict[str, Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]]:
@@ -221,6 +227,7 @@ class PredictorModule(lightning.LightningModule):
 
         # Define the optimizer and schedulers
         optimiser = MuAdam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
+        self.optim_options.torch_scheduler_kwargs.pop("module_type")
         torch_scheduler = self.optim_options.scheduler_class(
             optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs
         )
@@ -461,6 +468,10 @@ class PredictorModule(lightning.LightningModule):
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
         concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
+        concatenated_metrics_logs["epoch_count"] = self.current_epoch
+        # Incriment by the batch size
+        self.samples_seen += self.global_bs
+        concatenated_metrics_logs["samples_seen"] = self.samples_seen
 
         # report the training loss for each individual tasks
         for task in self.tasks:
@@ -618,11 +629,6 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-
-        if hasattr(self.optimizers(), "param_groups"):
-            lr = self.optimizers().param_groups[0]["lr"]
-            concatenated_metrics_logs["lr"] = torch.tensor(lr)
-        concatenated_metrics_logs["n_epochs"] = torch.tensor(self.current_epoch, dtype=torch.float32)
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries

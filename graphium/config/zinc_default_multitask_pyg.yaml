@@ -181,3 +181,5 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: 0.2
       normalization: none
       residual_type: none
+accelerator:
+  type: cpu

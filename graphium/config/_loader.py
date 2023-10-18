@@ -13,7 +13,7 @@ import yaml
 
 # Lightning
 from lightning import Trainer
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, LearningRateMonitor
 from lightning.pytorch.loggers import Logger, WandbLogger
 from loguru import logger
 
@@ -76,7 +76,6 @@ def _get_ipu_opts(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[
 
     if accelerator_type != "ipu":
         return None, None
-
     ipu_opts = accelerator_options["ipu_config"]
     ipu_inference_opts = accelerator_options.get("ipu_inference_config", None)
 
@@ -126,6 +125,7 @@ def load_datamodule(
             ipu_inference_opts=ipu_inference_opts,
             precision=config["trainer"]["trainer"].get("precision"),
         )
+
         # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_training"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(
@@ -261,6 +261,10 @@ def load_architecture(
         graph_output_nn_kwargs=graph_output_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
     )
+    # Get accelerator_kwargs if they exist
+    accelerator_kwargs = config["accelerator"].get("accelerator_kwargs", None)
+    if accelerator_kwargs is not None:
+        model_kwargs["accelerator_kwargs"] = accelerator_kwargs
 
     if model_class is FullGraphFinetuningNetwork:
         finetuning_head_kwargs = config["finetuning"].pop("finetuning_head", None)
@@ -286,6 +290,9 @@ def load_predictor(
     accelerator_type: str,
     featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
+    replicas: int = 1,
+    gradient_acc: int = 1,
+    global_bs: int = 1,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `lightning.LighningModule`
@@ -311,6 +318,9 @@ def load_predictor(
         task_levels=task_levels,
         featurization=featurization,
         task_norms=task_norms,
+        replicas=replicas,
+        gradient_acc=gradient_acc,
+        global_bs=global_bs,
         **cfg_pred,
     )
 
@@ -327,6 +337,9 @@ def load_predictor(
             task_levels=task_levels,
             featurization=featurization,
             task_norms=task_norms,
+            replicas=replicas,
+            gradient_acc=gradient_acc,
+            global_bs=global_bs,
             **cfg_pred,
         )
 
@@ -415,13 +428,18 @@ def load_trainer(
     if "model_checkpoint" in cfg_trainer.keys():
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
+    if "learning_rate_monitor" in cfg_trainer.keys():
+        callbacks.append(LearningRateMonitor(**cfg_trainer["learning_rate_monitor"]))
+    else:
+        callbacks.append(LearningRateMonitor())
+
     # Define the logger parameters
     wandb_cfg = config["constants"].get("wandb")
     if wandb_cfg is not None:
         name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:
             name += f"_{date_time_suffix}"
-        trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
+        trainer_kwargs["logger"] = WandbLogger(name=name, log_model=True, **wandb_cfg)
 
     trainer_kwargs["callbacks"] = callbacks
     trainer = Trainer(
@@ -440,6 +458,7 @@ def save_params_to_wandb(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     predictor: PredictorModule,
     datamodule: MultitaskFromSmilesDataModule,
+    unresolved_config: Optional[Union[omegaconf.DictConfig, Dict[str, Any]]] = None,
 ):
     """
     Save a few stuff to weights-and-biases WandB
@@ -448,13 +467,16 @@ def save_params_to_wandb(
         config: The config file, with key `trainer`
         predictor: The predictor used to handle the train/val/test steps logic
         datamodule: The datamodule used to load the data into training
+        unresolved_config: The unresolved config file
     """
 
     # Get the wandb runner and directory
     wandb_run = logger.experiment
+
     if wandb_run is None:
-        wandb_run = ""
-    wandb_dir = wandb_run.dir
+        wandb_dir = ""
+    else:
+        wandb_dir = wandb_run.dir
 
     # Save the mup base model to WandB as a yaml file
     mup.save_base_shapes(predictor.model, os.path.join(wandb_dir, "mup_base_params.yaml"))
@@ -463,14 +485,18 @@ def save_params_to_wandb(
     with open(os.path.join(wandb_dir, "full_configs.yaml"), "w") as file:
         yaml.dump(config, file)
 
+    if unresolved_config is not None:
+        with open(os.path.join(wandb_dir, "unresolved_config.yaml"), "w") as file:
+            yaml.dump(unresolved_config, file)
+
     # Save the featurizer into wandb
     featurizer_path = os.path.join(wandb_dir, "featurizer.pickle")
     joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
     # Save the featurizer and configs into wandb
     if wandb_run is not None:
-        wandb_run.save("*.yaml")
-        wandb_run.save("*.pickle")
+        wandb_run.save(os.path.join(wandb_dir, "*.yaml"), wandb_dir)
+        wandb_run.save(os.path.join(wandb_dir, "*.pickle"), wandb_dir)
 
 
 def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[Dict[str, Any], str]:

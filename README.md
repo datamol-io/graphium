@@ -80,7 +80,7 @@ To change parameters specific to this experiment like switching from `fp16` to `
 ```bash
 graphium-train dataset=toymix model=gcn trainer.trainer.precision=32
 ```
-or change them permamently in the dedicated experiment config under `expts/hydra-configs/toymix_gcn.yaml`.
+or change them permanently in the dedicated experiment config under `expts/hydra-configs/toymix_gcn.yaml`.
 Integrating `hydra` also allows you to quickly switch between accelerators. E.g., running
 ```bash
 graphium-train dataset=toymix model=gcn accelerator=gpu

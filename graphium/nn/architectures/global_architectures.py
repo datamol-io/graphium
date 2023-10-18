@@ -12,6 +12,7 @@ from collections import OrderedDict
 from torch import Tensor, nn
 import torch
 from torch_geometric.data import Data
+from omegaconf import DictConfig, OmegaConf
 
 # graphium imports
 from graphium.data.utils import get_keys
@@ -421,6 +422,7 @@ class FeedForwardGraph(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
+        out_dim_edges: Optional[int] = None,
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
@@ -508,6 +510,11 @@ class FeedForwardGraph(FeedForwardNN):
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
 
+            out_dim_edges:
+                Output edge-feature dimensions of the network. Keep at 0 if not using
+                edge features, or if the layer doesn't support edges. Defaults to the
+                last value of hidden_dims_edges.
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -551,9 +558,17 @@ class FeedForwardGraph(FeedForwardNN):
         else:
             self.hidden_dims_edges = list(hidden_dims_edges)
             assert depth is None
+        self.out_dim_edges = (
+            out_dim_edges
+            if out_dim_edges is not None
+            else self.hidden_dims_edges[-1]
+            if self.hidden_dims_edges
+            else 0
+        )
         self.full_dims_edges = None
-        if len(self.hidden_dims_edges) > 0:
-            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
+        if len(self.hidden_dims_edges) or self.out_dim_edges > 0:
+            assert self.out_dim_edges > 0, self.out_dim_edges
+            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.out_dim_edges]
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
 
@@ -592,6 +607,26 @@ class FeedForwardGraph(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
+
+    def get_nested_key(self, d, target_key):
+        """
+        Get the value associated with a key in a nested dictionary.
+
+        Parameters:
+        - d: The dictionary to search in
+        - target_key: The key to search for
+
+        Returns:
+        - The value associated with the key if found, None otherwise
+        """
+        if target_key in d:
+            return d[target_key]
+        for key, value in d.items():
+            if isinstance(value, (dict, DictConfig)):
+                nested_result = self.get_nested_key(value, target_key)
+                if nested_result is not None:
+                    return nested_result
+        return None
 
     def _create_layers(self):
         r"""
@@ -639,7 +674,8 @@ class FeedForwardGraph(FeedForwardNN):
                         this_out_dim_edges = self.full_dims_edges[ii + 1]
                         this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     else:
-                        this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
+                        this_out_dim_edges = self.get_nested_key(self.layer_kwargs, "out_dim_edges")
+                        this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     layer_out_dims_edges.append(this_out_dim_edges)
 
             # Create the GNN layer
@@ -900,6 +936,7 @@ class FeedForwardGraph(FeedForwardNN):
         new_kwargs = dict(
             in_dim_edges=self.in_dim_edges,
             hidden_dims_edges=self.hidden_dims_edges,
+            out_dim_edges=self.out_dim_edges,
             virtual_node=self.virtual_node,
             use_virtual_edges=self.use_virtual_edges,
         )
@@ -931,6 +968,7 @@ class FeedForwardGraph(FeedForwardNN):
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+            kwargs["out_dim_edges"] = round(kwargs["out_dim_edges"] / divide_factor)
 
         def _recursive_divide_dim(x: collections.abc.Mapping):
             for k, v in x.items():

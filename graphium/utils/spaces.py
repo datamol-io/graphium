@@ -52,6 +52,8 @@ RESIDUALS_DICT = {
 }
 
 LOSS_DICT = {
+    "bce": torch.nn.BCELoss,
+    "bce_logits": torch.nn.BCEWithLogitsLoss,
     "mse": torch.nn.MSELoss,
     "bce": torch.nn.BCELoss,
     "l1": torch.nn.L1Loss,
@@ -106,7 +108,7 @@ METRICS_REGRESSION = {
     "msle": TorchMetrics.mean_squared_log_error,
     "pearsonr": TorchMetrics.pearson_corrcoef,
     "spearmanr": TorchMetrics.spearman_corrcoef,
-    "r2": TorchMetrics.r2_score,
+    "r2_score": TorchMetrics.r2_score,
     "cosine": TorchMetrics.cosine_similarity,
     "pearsonr_ipu": Metrics.pearson_ipu,
     "spearmanr_ipu": Metrics.spearman_ipu,

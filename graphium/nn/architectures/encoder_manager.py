@@ -135,6 +135,8 @@ class EncoderManager(nn.Module):
                 if pe_out_dim2 is not None:
                     assert edge_pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
                 pe_encoders[encoder_name] = encoder(out_dim=edge_pe_out_dim, **this_in_dims, **encoder_kwargs)
+            else:
+                pe_encoders[encoder_name] = encoder(**this_in_dims, **encoder_kwargs)
 
         return pe_encoders
 

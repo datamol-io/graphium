@@ -47,7 +47,6 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     """
     Function combining information from configuration and pretrained model for finetuning.
     """
-
     task = cfg["finetuning"]["task"]
 
     # Filter the config based on the task name
