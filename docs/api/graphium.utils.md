@@ -26,11 +26,6 @@ module for utility functions
 ::: graphium.utils.decorators
 
 
-## Dictionary of Tensors
-----------------
-::: graphium.utils.dict_tensor
-
-
 ## File System
 ----------------
 ::: graphium.utils.fs
