@@ -600,7 +600,7 @@ class PredictorModule(lightning.LightningModule):
         else:
             epoch_time = time.time() - self.epoch_start_time
             self.epoch_start_time = None
-            self.log("epoch_time", torch.tensor(epoch_time))
+            self.log("epoch_time", torch.tensor(epoch_time), sync_dist=True)
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
@@ -629,7 +629,7 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        self.log_dict(concatenated_metrics_logs)
+        self.log_dict(concatenated_metrics_logs, sync_dist=True)
 
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
@@ -643,7 +643,7 @@ class PredictorModule(lightning.LightningModule):
         self.test_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
-        self.log_dict(concatenated_metrics_logs)
+        self.log_dict(concatenated_metrics_logs, sync_dist=True)
 
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
