@@ -1408,6 +1408,26 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#graphium-params" class="md-nav__link">
+    graphium params
+  </a>
+  
+    <nav class="md-nav" aria-label="graphium params">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium-params-infer" class="md-nav__link">
+    graphium params infer
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1577,6 +1597,26 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#graphium-params" class="md-nav__link">
+    graphium params
+  </a>
+  
+    <nav class="md-nav" aria-label="graphium params">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium-params-infer" class="md-nav__link">
+    graphium params infer
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1607,6 +1647,7 @@
 <ul>
 <li><code>data</code>: Graphium datasets.</li>
 <li><code>finetune</code>: Utility CLI for extra fine-tuning utilities.</li>
+<li><code>params</code>: Parameter counts.</li>
 </ul>
 <h2 id="graphium-data"><code>graphium data</code><a class="headerlink" href="#graphium-data" title="Permanent link">&para;</a></h2>
 <p>Graphium datasets.</p>
@@ -1709,6 +1750,29 @@ See the docs of the <code>graphium.finetuning.fingerprinting.Fingerprinter</code
 <ul>
 <li><code>--output-type TEXT</code>: Either numpy (.npy) or torch (.pt) output  [default: torch]</li>
 <li><code>-o, --override TEXT</code>: Hydra overrides</li>
+<li><code>--help</code>: Show this message and exit.</li>
+</ul>
+<h2 id="graphium-params"><code>graphium params</code><a class="headerlink" href="#graphium-params" title="Permanent link">&para;</a></h2>
+<p>Parameter counts.</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>graphium<span class="w"> </span>params<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>COMMAND<span class="w"> </span><span class="o">[</span>ARGS<span class="o">]</span>...
+</code></pre></div>
+<p><strong>Options</strong>:</p>
+<ul>
+<li><code>--help</code>: Show this message and exit.</li>
+</ul>
+<p><strong>Commands</strong>:</p>
+<ul>
+<li><code>infer</code>: Infer parameter count.</li>
+</ul>
+<h3 id="graphium-params-infer"><code>graphium params infer</code><a class="headerlink" href="#graphium-params-infer" title="Permanent link">&para;</a></h3>
+<p>Infer parameter count.</p>
+<p><strong>Usage</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="gp">$ </span>graphium<span class="w"> </span>params<span class="w"> </span>infer<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p><strong>Options</strong>:</p>
+<ul>
+<li><code>--overrides TEXT</code></li>
 <li><code>--help</code>: Show this message and exit.</li>
 </ul>
 
