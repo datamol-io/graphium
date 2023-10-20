@@ -13,7 +13,7 @@ class GraphFinetuning(BaseFinetuning):
     def __init__(
         self,
         finetuning_module: str,
-        added_depth: int,
+        added_depth: int = 0,
         unfreeze_pretrained_depth: Optional[int] = None,
         epoch_unfreeze_all: int = 0,
         train_bn: bool = False,
@@ -51,13 +51,13 @@ class GraphFinetuning(BaseFinetuning):
         module_map = pl_module.model.pretrained_model.net._module_map
 
         for module_name in module_map.keys():
-            self.freeze_module(module_name, module_map)
+            self.freeze_module(pl_module, module_name, module_map)
 
             if module_name.startswith(self.finetuning_module):
                 # Do not freeze modules after finetuning module
                 break
 
-    def freeze_module(self, module_name: str, module_map: Dict[str, Union[nn.ModuleList, Any]]):
+    def freeze_module(self, pl_module, module_name: str, module_map: Dict[str, Union[nn.ModuleList, Any]]):
         """
         Freeze specific modules
 
@@ -67,9 +67,14 @@ class GraphFinetuning(BaseFinetuning):
         """
         modules = module_map[module_name]
 
+        if module_name == "pe_encoders":
+            for param in pl_module.model.pretrained_model.net.encoder_manager.parameters():
+                param.requires_grad = False
+
         # We only partially freeze the finetuning module
         if module_name.startswith(self.finetuning_module):
-            modules = modules[: -self.training_depth]
+            if self.training_depth > 0:
+                modules = modules[: -self.training_depth]
 
         self.freeze(modules=modules, train_bn=self.train_bn)
 

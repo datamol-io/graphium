@@ -5,7 +5,7 @@ architecture:
     l1000_vcap:
       task_level: graph
       out_dim: 2934
-      hidden_dims: 128
+      hidden_dims: 256
       depth: 2
       activation: none
       last_activation: none
@@ -16,7 +16,7 @@ architecture:
     l1000_mcf7:
       task_level: graph
       out_dim: 2934
-      hidden_dims: 128
+      hidden_dims: 256
       depth: 2
       activation: none
       last_activation: none
@@ -27,7 +27,7 @@ architecture:
     pcba_1328:
       task_level: graph
       out_dim: 1328
-      hidden_dims: 64
+      hidden_dims: 128
       depth: 2
       activation: relu
       last_activation: none
@@ -38,7 +38,7 @@ architecture:
     pcqm4m_g25:
       task_level: graph
       out_dim: 25
-      hidden_dims: 32
+      hidden_dims: 64
       depth: 2
       activation: relu
       last_activation: none
@@ -49,7 +49,7 @@ architecture:
     pcqm4m_n4:
       task_level: node
       out_dim: 4
-      hidden_dims: 32
+      hidden_dims: 64
       depth: 2
       activation: relu
       last_activation: none

@@ -134,3 +134,39 @@ def get_fingerprints_from_model(
         path = fs.join(save_destination, "fingerprints.pt")
         logger.info(f"Saving fingerprints to {path}")
         torch.save(fps, path)
+
+
+def get_tdc_task_specific(task: str, output: Literal["name", "mode", "last_activation"]):
+    if output == "last_activation":
+        config_arch_path = "expts/hydra-configs/tasks/task_heads/admet.yaml"
+        with open(config_arch_path, "r") as yaml_file:
+            config_tdc_arch = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+        return config_tdc_arch["architecture"]["task_heads"][task]["last_activation"]
+
+    else:
+        config_metrics_path = "expts/hydra-configs/tasks/loss_metrics_datamodule/admet.yaml"
+        with open(config_metrics_path, "r") as yaml_file:
+            config_tdc_task_metric = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+        metric = config_tdc_task_metric["predictor"]["metrics_on_progress_bar"][task][0]
+
+        metric_mode_map = {
+            "mae": "min",
+            "auroc": "max",
+            "auprc": "max",
+            "spearman": "max",
+        }
+
+        if output == "name":
+            return metric
+        elif output == "mode":
+            return metric_mode_map[metric]
+
+
+OmegaConf.register_new_resolver("get_metric_name", lambda x: get_tdc_task_specific(x, output="name"))
+OmegaConf.register_new_resolver("get_metric_mode", lambda x: get_tdc_task_specific(x, output="mode"))
+OmegaConf.register_new_resolver(
+    "get_last_activation", lambda x: get_tdc_task_specific(x, output="last_activation")
+)
+OmegaConf.register_new_resolver("eval", lambda x: eval(x, {"np": np}))

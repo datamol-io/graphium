@@ -75,9 +75,9 @@ class Test_Finetuning(ut.TestCase):
         module_map = deepcopy(predictor.model.pretrained_model.net._module_map)
 
         cfg_finetune = cfg["finetuning"]
-        finetuning_module = "".join([cfg_finetune["finetuning_module"], "/", cfg_finetune["task"]])
+        finetuning_module = "".join([cfg_finetune["finetuning_module"], "-", cfg_finetune["task"]])
         finetuning_module_from_pretrained = "".join(
-            [cfg_finetune["finetuning_module"], "/", cfg_finetune["sub_module_from_pretrained"]]
+            [cfg_finetune["finetuning_module"], "-", cfg_finetune["sub_module_from_pretrained"]]
         )
 
         # Test for correctly modified shapes and number of layers in finetuning module
@@ -145,7 +145,7 @@ class Test_Finetuning(ut.TestCase):
                 module_map = pl_module.model.pretrained_model.net._module_map
 
                 finetuning_module = "".join(
-                    [self.cfg_finetune["finetuning_module"], "/", self.cfg_finetune["task"]]
+                    [self.cfg_finetune["finetuning_module"], "-", self.cfg_finetune["task"]]
                 )
                 training_depth = self.cfg_finetune["added_depth"] + self.cfg_finetune.pop(
                     "unfreeze_pretrained_depth", 0
@@ -272,7 +272,7 @@ class Test_Finetuning(ut.TestCase):
             5,
         )
         self.assertEqual(module_map[finetuning_module][-1].model.lin.weight.size(0), 96)
-        self.assertEqual(len(module_map["graph_output_nn/graph"]), 2)
+        self.assertEqual(len(module_map["graph_output_nn-graph"]), 2)
 
         assert predictor.model.pretrained_model.net.task_heads.graph_output_nn[
             "graph"
@@ -284,7 +284,7 @@ class Test_Finetuning(ut.TestCase):
 
         # Load pretrained & replace in predictor
         pretrained_model = PredictorModule.load_pretrained_model(
-            cfg["finetuning"]["pretrained_model_name"], device="cpu"
+            cfg["finetuning"]["pretrained_model"], device="cpu"
         ).model
 
         pretrained_model.create_module_map()

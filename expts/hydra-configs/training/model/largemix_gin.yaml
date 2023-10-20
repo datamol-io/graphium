@@ -6,12 +6,13 @@ constants:
     name: ${constants.name}
     project: neurips2023-expts
     entity: multitask-gnn
-    save_dir: logs/${constants.name}
   entity: multitask-gnn
   seed: 42
   max_epochs: 200
-  data_dir: expts/data/large-dataset
+  data_dir: ../data/graphium/large-dataset/
   raise_train_error: true
+  datacache_path: ../datacache/large-dataset/
+  norm: "layer_norm"
 
 trainer:
   model_checkpoint:

@@ -5,6 +5,8 @@ from loguru import logger
 
 from graphium.trainer import PredictorModule
 
+import graphium
+
 
 def filter_cfg_based_on_admet_benchmark_name(config: Dict[str, Any], names: Union[List[str], str]):
     """
@@ -63,6 +65,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     arch_keys = pretrained_architecture.keys()
     arch_keys = [key.replace("_kwargs", "") for key in arch_keys]
     cfg_arch = {arch_keys[idx]: value for idx, value in enumerate(pretrained_architecture.values())}
+
     cfg_arch_from_pretrained = deepcopy(cfg_arch)
     # Featurization
     cfg["datamodule"]["args"]["featurization"] = pretrained_predictor.featurization
@@ -90,12 +93,19 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         else cfg_arch[finetuning_module][sub_module_from_pretrained].get("out_dim")
     )
 
+    if new_module_kwargs["depth"] is None:
+        new_module_kwargs["depth"] = len(new_module_kwargs["hidden_dims"]) + 1
+
     upd_kwargs = {
         "out_dim": cfg_finetune.pop("new_out_dim", out_dim),
         "depth": new_module_kwargs["depth"]
         + cfg_finetune.get("added_depth", 0)
         - cfg_finetune.pop("drop_depth", 0),
     }
+
+    new_last_activation = cfg_finetune.pop("new_last_activation", None)
+    if new_last_activation is not None:
+        upd_kwargs["last_activation"] = new_last_activation
 
     # Update config
     new_module_kwargs.update(upd_kwargs)
@@ -109,8 +119,8 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
     module_list = list(module_map_from_pretrained.keys())
     super_module_list = []
     for module in module_list:
-        if module.split("/")[0] not in super_module_list:  # Only add each supermodule once
-            super_module_list.append(module.split("/")[0])
+        if module.split("-")[0] not in super_module_list:  # Only add each supermodule once
+            super_module_list.append(module.split("-")[0])
 
     # Set configuration of modules after finetuning module to None
     cutoff_idx = (
@@ -169,7 +179,7 @@ def update_cfg_arch_for_module(
         updates: Changes to apply to key-work arguments of selected module
     """
     # We need to distinguish between modules with & without submodules
-    if "/" not in module_name:
+    if "-" not in module_name:
         if cfg_arch[module_name] is None:
             cfg_arch[module_name] = {}
 
@@ -178,7 +188,7 @@ def update_cfg_arch_for_module(
         cfg_arch.update({module_name, cfg_arch_from_pretrained})
 
     else:
-        module_name, sub_module = module_name.split("/")
+        module_name, sub_module = module_name.split("-")
         new_sub_module = updates.pop("new_sub_module", sub_module)
 
         if cfg_arch[module_name] is None:

@@ -1,7 +1,7 @@
 # @package _global_
 
 constants:
-  name: large_data_gine
+  name: large_data_mpnn
   wandb:
     name: ${constants.name}
     project: neurips2023-expts
@@ -13,9 +13,9 @@ constants:
   raise_train_error: true
   datacache_path: ../datacache/large-dataset/
   gnn_dim: 512
-  gnn_edge_dim: 32
+  gnn_edge_dim: 256
   norm: "layer_norm"
 
 trainer:
   model_checkpoint:
-    dirpath: model_checkpoints/large-dataset/gine/${now:%Y-%m-%d_%H-%M-%S}/
+    dirpath: model_checkpoints/large-dataset/mpnn/${now:%Y-%m-%d_%H-%M-%S}/

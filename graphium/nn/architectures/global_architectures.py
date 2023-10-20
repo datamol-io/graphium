@@ -344,8 +344,8 @@ class FeedForwardNN(nn.Module, MupMixin):
             if ii < len(self.layers) - 1:
                 h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
 
-                if self.cache_readouts:
-                    self._readout_cache[ii] = h
+            if self.cache_readouts:
+                self._readout_cache[ii] = h
 
         return h
 
@@ -1267,7 +1267,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         if self.task_heads is not None:
             self._module_map.update(
                 {
-                    "graph_output_nn/"
+                    "graph_output_nn-"
                     + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn
                     for output_level in self.task_heads.graph_output_nn.keys()
                 }
@@ -1275,7 +1275,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
             self._module_map.update(
                 {
-                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name]
+                    "task_heads-" + task_head_name: self.task_heads.task_heads[task_head_name]
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )
