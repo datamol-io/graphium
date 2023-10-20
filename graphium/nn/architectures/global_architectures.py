@@ -344,8 +344,8 @@ class FeedForwardNN(nn.Module, MupMixin):
             if ii < len(self.layers) - 1:
                 h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
 
-                if self.cache_readouts:
-                    self._readout_cache[ii] = h
+            if self.cache_readouts:
+                self._readout_cache[ii] = h
 
         return h
 
