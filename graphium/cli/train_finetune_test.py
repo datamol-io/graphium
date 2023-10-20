@@ -147,16 +147,20 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     global_bs = replicas * gradient_acc * micro_bs
 
-    # Disable wandb if the user is not logged in.
-    wandb_cfg = cfg["constants"].get("wandb")
-    if wandb_cfg is not None and wandb.login() is False:
-        logger.info(
-            "Not logged in to wandb - disabling wandb logging.\n"
-            + "To enable wandb, run `wandb login` from the command line."
-        )
-        wandb.init(mode="disabled")
-    elif wandb_cfg is not None:
-        wandb.init(config=cfg, **wandb_cfg)
+    # Initialize wandb only on first rank
+    if os.environ.get("RANK", "0") == "0":
+        # Disable wandb if the user is not logged in.
+        wandb_cfg = cfg["constants"].get("wandb")
+        if wandb_cfg is not None and wandb.login() is False:
+            logger.info(
+                "Not logged in to wandb - disabling wandb logging.\n"
+                + "To enable wandb, run `wandb login` from the command line."
+            )
+            wandb.init(mode="disabled")
+        elif wandb_cfg is not None:
+            wandb.init(config=cfg, **wandb_cfg)
+    else:
+        wandb_cfg = None
 
     ## == Instantiate all required objects from their respective configs ==
     # Accelerator
