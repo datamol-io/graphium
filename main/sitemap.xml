@@ -2,157 +2,157 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/datamol-io/graphium/main/index.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/baseline.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/contribute.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/datasets.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/design.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/license.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/pretrained_models.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.config.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.data.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.features.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.finetuning.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.ipu.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.trainer.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.utils.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.visualization.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.nn/architectures.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.nn/encoders.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.nn/graphium.nn.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/api/graphium.nn/pyg_layers.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/cli/graphium-train.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/cli/graphium.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/cli/reference.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/feature_processing/add_new_positional_encoding.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/feature_processing/choosing_parallelization.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/feature_processing/csv_to_parquet.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/feature_processing/timing_parallel.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/gnn/add_new_gnn_layers.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/gnn/making_gnn_networks.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/gnn/using_gnn_layers.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/model_training/running-multitask-ipu.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/datamol-io/graphium/main/tutorials/model_training/simple-molecular-model.html</loc>
-         <lastmod>2023-10-19</lastmod>
+         <lastmod>2023-10-20</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
