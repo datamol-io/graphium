@@ -43,8 +43,6 @@ import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
-OmegaConf.register_new_resolver("eval", lambda x: eval(x, {"np": np}))
-
 
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
 def cli(cfg: DictConfig) -> None:
