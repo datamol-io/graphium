@@ -98,7 +98,7 @@ metrics:
       target_nan_mask: null
       multitask_handling: mean-per-label
     - name: r2_score
-      metric: r2
+      metric: r2_score
       target_nan_mask: null
       multitask_handling: mean-per-label
       threshold_kwargs: null
