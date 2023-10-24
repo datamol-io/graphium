@@ -73,7 +73,9 @@ class GraphFinetuning(BaseFinetuning):
 
         # We only partially freeze the finetuning module
         if module_name.startswith(self.finetuning_module):
-            if self.training_depth > 0:
+            if self.training_depth == 0:
+                pass
+            else:
                 modules = modules[: -self.training_depth]
 
         self.freeze(modules=modules, train_bn=self.train_bn)
