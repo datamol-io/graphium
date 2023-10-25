@@ -253,9 +253,9 @@ class GPSLayerPyg(BaseGraphModule):
         if self.node_residual:
             if self.layer_depth < 1:
                 h_local = self.residual_add(h_local, feat_in)
-                h_local *= self.scale_activations(h_local, self.output_scale)
+                h_local = self.scale_activations(h_local, self.output_scale)
             else:
-                h_local *= self.scale_activations(h_local, self.output_scale)
+                h_local = self.scale_activations(h_local, self.output_scale)
                 h_local = self.residual_add(h_local, feat_in)
 
         if self.norm_layer_local is not None:
