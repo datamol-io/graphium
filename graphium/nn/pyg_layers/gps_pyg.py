@@ -224,7 +224,7 @@ class GPSLayerPyg(BaseGraphModule):
             Tensor: The scaled features
         """
         scale_factor = torch.tensor(scale_factor).to(feature.device)
-        feature = feature/scale_factor.to(dtype=feature.dtype)
+        feature = feature / scale_factor.to(dtype=feature.dtype)
         return feature
 
     def forward(self, batch: Batch) -> Batch:
