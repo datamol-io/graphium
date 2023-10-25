@@ -1,0 +1,33 @@
+# @package _global_
+
+predictor:
+  random_seed: ${constants.seed}
+  optim_kwargs:
+    lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
+    # weight_decay: 1.e-7
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: &max_epochs 100
+    warmup_epochs: 5
+    verbose: False
+  scheduler_kwargs:
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  multitask_handling: flatten # flatten, mean-per-label
+
+trainer:
+  seed: ${constants.seed}
+  logger:
+    save_dir: logs/neurips2023-large/
+    name: ${constants.name}
+    project: ${constants.name}
+  model_checkpoint:
+    dirpath: model_checkpoints/large-dataset/${now:%Y-%m-%d_%H-%M-%S}/
+    filename: ${constants.name}
+    save_last: True         # saving last model
+    # save_top_k: 1           # and best model
+    # monitor: loss/val       # wrt validation loss
+  trainer:
+    precision: 16-mixed
+    max_epochs: ${predictor.torch_scheduler_kwargs.max_num_epochs}
+    min_epochs: 1
+    check_val_every_n_epoch: 10

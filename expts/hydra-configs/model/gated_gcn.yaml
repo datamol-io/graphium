@@ -1,0 +1,25 @@
+# @package _global_
+
+architecture:
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 32
+    hidden_dims: 128
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: ${architecture.pre_nn.dropout}
+    normalization: ${architecture.pre_nn.normalization}
+    last_normalization: ${architecture.pre_nn.normalization}
+    residual_type: none
+
+  gnn:
+    out_dim: ${constants.gnn_dim} # &gnn_dim 704
+    hidden_dims: ${architecture.gnn.out_dim} # *gnn_dim
+    hidden_dims_edges: ${constants.gnn_edge_dim}
+    layer_type: 'pyg:gated-gcn'
+
+  graph_output_nn:
+    graph:
+      hidden_dims: ${architecture.gnn.out_dim}
+    node:
+      hidden_dims: ${architecture.gnn.out_dim}

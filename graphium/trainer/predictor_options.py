@@ -76,6 +76,7 @@ class OptimOptions:
     # Instead of passing a dictionary to be processed by the predictor,
     # this class will process the dictionary in advance and return the optimizer
     def set_kwargs(self):
+        torch_scheduler_kwargs = deepcopy(self.torch_scheduler_kwargs)
         # Set the parameters and default value for the optimizer, and check values
         if self.optim_kwargs is None:
             self.optim_kwargs = {}
@@ -94,12 +95,12 @@ class OptimOptions:
         self.scheduler_kwargs.setdefault("strict", True)
 
         # Set the pytorch scheduler arguments
-        if self.torch_scheduler_kwargs is None:
-            self.torch_scheduler_kwargs = {}
-        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+        if torch_scheduler_kwargs is None:
+            torch_scheduler_kwargs = {}
+        torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
 
         # Get the class for the scheduler
-        scheduler_class = self.torch_scheduler_kwargs.pop("module_type", None)
+        scheduler_class = torch_scheduler_kwargs.pop("module_type")
         if self.scheduler_class is None:
             if isinstance(scheduler_class, str):
                 self.scheduler_class = SCHEDULER_DICT[scheduler_class]
@@ -112,9 +113,9 @@ class OptimOptions:
         sig = signature(self.scheduler_class.__init__)
         key_args = [p.name for p in sig.parameters.values()]
         if "monitor" in key_args:
-            self.torch_scheduler_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
+            torch_scheduler_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
         if "mode" in key_args:
-            self.torch_scheduler_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
+            torch_scheduler_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
 
 
 @dataclass

@@ -1,6 +1,8 @@
 # Graphium Datasets
 
-Graphium datasets are hosted at on Zenodo on [this link](https://zenodo.org/record/8206704).
+Graphium datasets are hosted at on Zenodo 
+- ***ToyMix*** and  ***LargeMix*** dataseets are hosted on [this link](https://doi.org/10.5281/zenodo.7998401)
+- ***UltraLarge*** dataset is hosted on [this link](https://doi.org/10.5281/zenodo.8370547)
 
 Instead of provinding datasets as a single entity, our aim is to provide dataset mixes containing a variety of datasets that are meant to be predicted simultaneously using multi-tasking.
 

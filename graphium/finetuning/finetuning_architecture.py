@@ -199,7 +199,7 @@ class PretrainedModel(nn.Module, MupMixin):
         super().__init__()
 
         # Load pretrained model
-        pretrained_model = PredictorModule.load_pretrained_models(pretrained_model).model
+        pretrained_model = PredictorModule.load_pretrained_model(pretrained_model, device="cpu").model
         pretrained_model.create_module_map()
 
         # Initialize new model with architecture after desired modifications to architecture.
@@ -219,7 +219,7 @@ class PretrainedModel(nn.Module, MupMixin):
         self,
         pretrained_model,
         finetuning_module: str,
-        added_depth: int,
+        added_depth: int = 0,
         sub_module_from_pretrained: str = None,
     ):
         """
@@ -236,7 +236,7 @@ class PretrainedModel(nn.Module, MupMixin):
 
         module_names_from_pretrained = module_map_from_pretrained.keys()
         super_module_names_from_pretrained = set(
-            [module_name.split("/")[0] for module_name in module_names_from_pretrained]
+            [module_name.split("-")[0] for module_name in module_names_from_pretrained]
         )
 
         for module_name in module_map.keys():
@@ -254,10 +254,10 @@ class PretrainedModel(nn.Module, MupMixin):
             if module_name in module_map_from_pretrained.keys():
                 for idx in range(shared_depth):
                     module_map[module_name][idx] = module_map_from_pretrained[module_name][idx]
-            elif module_name.split("/")[0] in super_module_names_from_pretrained:
+            elif module_name.split("-")[0] in super_module_names_from_pretrained:
                 for idx in range(shared_depth):
                     module_map[module_name][idx] = module_map_from_pretrained[
-                        "".join([module_name.split("/")[0], "/", sub_module_from_pretrained])
+                        "".join([module_name.split("-")[0], "-", sub_module_from_pretrained])
                     ][idx]
             else:
                 raise RuntimeError("Mismatch between loaded pretrained model and model to be overwritten.")

@@ -47,9 +47,10 @@ class GPSLayerPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         node_residual: Optional[bool] = True,
+        edge_residual: Optional[bool] = True,
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
-        mpnn_kwargs=None,
+        mpnn_kwargs: Optional[dict] = None,
         attn_type: str = "full-attention",
         precision: str = "32",
         biased_attention_key: Optional[str] = None,
@@ -57,6 +58,7 @@ class GPSLayerPyg(BaseGraphModule):
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
         hidden_dim_scaling: float = 4.0,
+        output_scale: float = 1.0,
         **kwargs,
     ):
         r"""
@@ -98,6 +100,9 @@ class GPSLayerPyg(BaseGraphModule):
 
             node_residual:
                 If node residual is used after on the gnn layer output
+
+            edge_residual:
+                If edge residual is used after on the gnn layer output
 
             normalization:
                 Normalization to use. Choices:
@@ -141,6 +146,11 @@ class GPSLayerPyg(BaseGraphModule):
             attn_kwargs:
                 Keyword arguments to pass to the attention layer
 
+            output_scale:
+                Float value that will be used to scale the activations, helps reduce growth of activations
+
+                as the model gets deeper. Default value of 1.0 leaves the layer unchanged.
+
         """
 
         super().__init__(
@@ -165,6 +175,7 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Residual connections
         self.node_residual = node_residual
+        self.edge_residual = edge_residual
 
         self.precision = precision
 
@@ -190,6 +201,37 @@ class GPSLayerPyg(BaseGraphModule):
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
+        self.output_scale = output_scale
+        self.use_edges = True if self.in_dim_edges is not None else False
+
+    def residual_add(self, feature: Tensor, input_feature: Tensor) -> Tensor:
+        r"""
+        Residual additition layer. Allows information to propagate through the model
+        by skipping the computational layers.
+        Parameters:
+            feature: The feature (typically nodes or edges) after message passing
+            input_feature: The same feature from before message passing
+        Returns:
+            The addition of the two tensors.
+        """
+        feature += input_feature
+        return feature
+
+    def scale_activations(self, feature: Tensor, scale_factor: Tensor) -> Tensor:
+        """Scale Activations by a constant factor to stop growth of activation scale
+        and reduce numerical stability issues at low precision
+
+        Args:
+            feature (Tensor): The feature to scale
+            scale_factor (float): The floating point scale factor
+
+        Returns:
+            Tensor: The scaled features
+        """
+        scale_factor = torch.tensor(scale_factor).to(feature.device)
+        feature *= scale_factor.to(dtype=feature.dtype)
+        return feature
+
     def forward(self, batch: Batch) -> Batch:
         r"""
         forward function of the layer
@@ -200,6 +242,8 @@ class GPSLayerPyg(BaseGraphModule):
         """
         # pe, feat, edge_index, edge_feat = batch.pos_enc_feats_sign_flip, batch.feat, batch.edge_index, batch.edge_feat
         feat = batch.feat
+        if self.use_edges:
+            edges_feat_in = batch.edge_feat
 
         feat_in = feat  # for first residual connection
 
@@ -208,10 +252,26 @@ class GPSLayerPyg(BaseGraphModule):
         if self.mpnn is not None:
             batch_out = self.mpnn(batch_out)
         h_local = batch_out.feat
+        e_local = batch_out.edge_feat
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
+        # Apply the residual connection for the node features and scale the activations by some value to help reduce activation growth
         if self.node_residual:
-            h_local = feat_in + h_local  # Residual connection for nodes, not used in gps++.
+            if self.layer_depth < 1:
+                h_local = self.residual_add(h_local, feat_in)
+                h_local *= 1 / self.scale_activations(h_local, self.output_scale)
+            else:
+                h_local *= 1 / self.scale_activations(h_local, self.output_scale)
+                h_local = self.residual_add(h_local, feat_in)
+        # Apply the residual connection for the edge features and scale the activations by some value to help reduce activation growth
+        if self.edge_residual and self.use_edges:
+            if self.layer_depth < 1:
+                e_local = self.residual_add(e_local, edges_feat_in)
+                e_local *= 1 / self.scale_activations(e_local, self.output_scale)
+            else:
+                e_local *= 1 / self.scale_activations(e_local, self.output_scale)
+                e_local = self.residual_add(e_local, edges_feat_in)
+
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
 
@@ -240,7 +300,7 @@ class GPSLayerPyg(BaseGraphModule):
     def _parse_mpnn_layer(self, mpnn_type, mpnn_kwargs: Dict[str, Any]) -> Optional[Module]:
         """Parse the MPNN layer."""
 
-        if mpnn_type is None:
+        if mpnn_type is None or mpnn_type == "none":
             return
 
         mpnn_kwargs = deepcopy(mpnn_kwargs)
@@ -375,7 +435,7 @@ class GPSLayerPyg(BaseGraphModule):
         )
 
         attn_bias = None
-        if self.biased_attention_key is not None:
+        if self.biased_attention_key is not None and self.biased_attention_key != "none":
             attn_bias = batch[self.biased_attention_key]
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
@@ -463,6 +523,8 @@ class GPSLayerPyg(BaseGraphModule):
             bool:
                 Always ``False`` for the current class
         """
+        if self.mpnn is None:
+            return False
         return self.mpnn.layer_outputs_edges
 
     @property

@@ -40,7 +40,7 @@ class MupMixin(abc.ABC):
 
         divide_factor = 1 / scale_factor
 
-        if scale_in_dim is None:
+        if not scale_in_dim:
             return self.make_mup_base_kwargs(divide_factor=divide_factor)
 
         # If scale_in_dim passed, need to check it can be forwarded

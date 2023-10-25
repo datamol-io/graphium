@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+from typing import Iterable, List, Dict, Literal, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
 from loguru import logger
@@ -12,6 +12,7 @@ from collections import OrderedDict
 from torch import Tensor, nn
 import torch
 from torch_geometric.data import Data
+from omegaconf import DictConfig, OmegaConf
 
 # graphium imports
 from graphium.data.utils import get_keys
@@ -163,6 +164,7 @@ class FeedForwardNN(nn.Module, MupMixin):
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
         self.last_layer_is_readout = last_layer_is_readout
+        self._readout_cache = None
 
         # Parse the layer and residuals
         from graphium.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -274,6 +276,23 @@ class FeedForwardNN(nn.Module, MupMixin):
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
 
+    @property
+    def cache_readouts(self) -> bool:
+        """Whether the readout cache is enabled"""
+        return isinstance(self._readout_cache, dict)
+
+    def _enable_readout_cache(self):
+        """
+        Enable the readout cache.
+        Due to the usage of a dict, it only saves readouts for a single batch at a time
+        """
+        if not self.cache_readouts:
+            self._readout_cache = {}
+
+    def _disable_readout_cache(self):
+        """Disable the readout cache"""
+        self._readout_cache = None
+
     def drop_layers(self, depth: int) -> None:
         r"""
         Remove the last layers of the model part.
@@ -324,6 +343,9 @@ class FeedForwardNN(nn.Module, MupMixin):
             h = layer.forward(h)
             if ii < len(self.layers) - 1:
                 h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
+
+            if self.cache_readouts:
+                self._readout_cache[ii] = h
 
         return h
 
@@ -400,6 +422,7 @@ class FeedForwardGraph(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
+        out_dim_edges: Optional[int] = None,
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
@@ -487,6 +510,11 @@ class FeedForwardGraph(FeedForwardNN):
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
 
+            out_dim_edges:
+                Output edge-feature dimensions of the network. Keep at 0 if not using
+                edge features, or if the layer doesn't support edges. Defaults to the
+                last value of hidden_dims_edges.
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -530,9 +558,17 @@ class FeedForwardGraph(FeedForwardNN):
         else:
             self.hidden_dims_edges = list(hidden_dims_edges)
             assert depth is None
+        self.out_dim_edges = (
+            out_dim_edges
+            if out_dim_edges is not None
+            else self.hidden_dims_edges[-1]
+            if self.hidden_dims_edges
+            else 0
+        )
         self.full_dims_edges = None
-        if len(self.hidden_dims_edges) > 0:
-            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
+        if len(self.hidden_dims_edges) or self.out_dim_edges > 0:
+            assert self.out_dim_edges > 0, self.out_dim_edges
+            self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.out_dim_edges]
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
 
@@ -571,6 +607,26 @@ class FeedForwardGraph(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
+
+    def get_nested_key(self, d, target_key):
+        """
+        Get the value associated with a key in a nested dictionary.
+
+        Parameters:
+        - d: The dictionary to search in
+        - target_key: The key to search for
+
+        Returns:
+        - The value associated with the key if found, None otherwise
+        """
+        if target_key in d:
+            return d[target_key]
+        for key, value in d.items():
+            if isinstance(value, (dict, DictConfig)):
+                nested_result = self.get_nested_key(value, target_key)
+                if nested_result is not None:
+                    return nested_result
+        return None
 
     def _create_layers(self):
         r"""
@@ -618,7 +674,8 @@ class FeedForwardGraph(FeedForwardNN):
                         this_out_dim_edges = self.full_dims_edges[ii + 1]
                         this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     else:
-                        this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
+                        this_out_dim_edges = self.get_nested_key(self.layer_kwargs, "out_dim_edges")
+                        this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     layer_out_dims_edges.append(this_out_dim_edges)
 
             # Create the GNN layer
@@ -865,6 +922,9 @@ class FeedForwardGraph(FeedForwardNN):
                 g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii
             )
 
+            if self.cache_readouts:
+                self._readout_cache[ii] = feat
+
         g["feat"], g["edge_feat"] = feat, edge_feat
         return g
 
@@ -876,6 +936,7 @@ class FeedForwardGraph(FeedForwardNN):
         new_kwargs = dict(
             in_dim_edges=self.in_dim_edges,
             hidden_dims_edges=self.hidden_dims_edges,
+            out_dim_edges=self.out_dim_edges,
             virtual_node=self.virtual_node,
             use_virtual_edges=self.use_virtual_edges,
         )
@@ -907,6 +968,7 @@ class FeedForwardGraph(FeedForwardNN):
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+            kwargs["out_dim_edges"] = round(kwargs["out_dim_edges"] / divide_factor)
 
         def _recursive_divide_dim(x: collections.abc.Mapping):
             for k, v in x.items():
@@ -1008,6 +1070,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
+        self._cache_readouts = False
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
@@ -1142,10 +1205,48 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
 
-    def create_module_map(self):
+    def _enable_readout_cache(self, module_filter: Optional[Union[str, List[str]]]):
+        """
+        Enable a single-batch readout cache for (a subset of) the modules.
+        This is used to extract hidden representations for fingerprinting.
+        """
+
+        self.create_module_map(level="module")
+
+        for k in module_filter:
+            if k not in self._module_map:
+                raise ValueError(f"Module {k} not found in network, choose from {self._module_map.keys()}")
+
+        if module_filter is None:
+            module_filter = list(self._module_map.keys())
+        if isinstance(module_filter, str):
+            module_filter = [module_filter]
+
+        for module_name, module in self._module_map.items():
+            if module_name in module_filter:
+                if not isinstance(module, FeedForwardNN):
+                    raise RuntimeError(
+                        f"Readout cache can only be enabled for FeedForwardNN subclasses, not {type(module)}"
+                    )
+                module._enable_readout_cache()
+
+        self._cache_readouts = True
+
+    def _disable_readout_cache(self):
+        """Disable the readout cache"""
+        self.create_module_map(level="module")
+        for _, module in self._module_map.items():
+            if isinstance(module, FeedForwardNN):
+                module._disable_readout_cache()
+        self._cache_readouts = False
+
+    def create_module_map(self, level: Union[Literal["layers"], Literal["module"]] = "layers"):
         """
         Function to create mapping between each (sub)module name and corresponding nn.ModuleList() (if possible);
         Used for finetuning when (partially) loading or freezing specific modules of the pretrained model
+
+        Args:
+            level: Whether to map to the module object or the layers of the module object
         """
         self._module_map = OrderedDict()
 
@@ -1155,29 +1256,35 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )  # could be extended to submodules, e.g. pe_encoders/la_pos/linear_in/..., etc.; not necessary for current finetuning
 
         if self.pre_nn is not None:
-            self._module_map.update({"pre_nn": self.pre_nn.layers})
+            self._module_map.update({"pre_nn": self.pre_nn})
 
         if self.pre_nn_edges is not None:
-            self._module_map.update({"pre_nn_edges": self.pre_nn_edges.layers})
+            self._module_map.update({"pre_nn_edges": self.pre_nn_edges})
 
         # No need to check for NoneType as GNN module is not optional in FullGraphMultitaskNetwork
-        self._module_map.update({"gnn": self.gnn.layers})
+        self._module_map.update({"gnn": self.gnn})
 
         if self.task_heads is not None:
             self._module_map.update(
                 {
-                    "graph_output_nn/"
-                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn.layers
+                    "graph_output_nn-"
+                    + output_level: self.task_heads.graph_output_nn[output_level].graph_output_nn
                     for output_level in self.task_heads.graph_output_nn.keys()
                 }
             )
 
             self._module_map.update(
                 {
-                    "task_heads/" + task_head_name: self.task_heads.task_heads[task_head_name].layers
+                    "task_heads-" + task_head_name: self.task_heads.task_heads[task_head_name]
                     for task_head_name in self.task_heads.task_heads.keys()
                 }
             )
+
+            if level == "layers":
+                for module_name, module in self._module_map.items():
+                    if module_name != "pe_encoders":
+                        self._module_map[module_name] = module.layers
+        return self._module_map
 
     def forward(self, g: Batch) -> Tensor:
         r"""
