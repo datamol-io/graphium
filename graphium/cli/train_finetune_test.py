@@ -72,6 +72,7 @@ def get_replication_factor(cfg):
 def get_gradient_accumulation_factor(cfg):
     """
     WARNING: This MUST be called after accelerator overrides have been applied
+    (i.e. after `load_accelerator` has been called)
     """
     try:
         # Navigate through the nested dictionaries and get the gradient accumulation factor
@@ -89,6 +90,7 @@ def get_gradient_accumulation_factor(cfg):
 def get_training_batch_size(cfg):
     """
     WARNING: This MUST be called after accelerator overrides have been applied
+    (i.e. after `load_accelerator` has been called)
     """
     try:
         # Navigate through the nested dictionaries and get the training batch size
