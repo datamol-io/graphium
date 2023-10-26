@@ -108,6 +108,7 @@ def get_training_batch_size(cfg):
     # Return default value if an error occurred
     return 1
 
+
 def get_device_iterations(cfg):
     try:
         ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
@@ -123,7 +124,6 @@ def get_device_iterations(cfg):
 
     # Return default value if deviceIterations is not found or an error occurred
     return 1
-
 
 
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
