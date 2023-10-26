@@ -108,6 +108,23 @@ def get_training_batch_size(cfg):
     # Return default value if an error occurred
     return 1
 
+def get_device_iterations(cfg):
+    try:
+        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
+        for item in ipu_config:
+            if "deviceIterations" in item:
+                # Extract the number between parentheses
+                start = item.find("(") + 1
+                end = item.find(")")
+                if start != 0 and end != -1:
+                    return int(item[start:end])
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    # Return default value if deviceIterations is not found or an error occurred
+    return 1
+
+
 
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
     """
@@ -144,8 +161,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     replicas = get_replication_factor(cfg)
     gradient_acc = get_gradient_accumulation_factor(cfg)
     micro_bs = get_training_batch_size(cfg)
+    device_iterations = get_training_device_iterations(cfg)
 
-    global_bs = replicas * gradient_acc * micro_bs
+    global_bs = replicas * gradient_acc * micro_bs * device_iterations
 
     # Initialize wandb only on first rank
     if os.environ.get("RANK", "0") == "0":
