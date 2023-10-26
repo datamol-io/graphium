@@ -47,7 +47,6 @@ class GPSLayerPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         node_residual: Optional[bool] = True,
-        edge_residual: Optional[bool] = True,
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs: Optional[dict] = None,
@@ -100,9 +99,6 @@ class GPSLayerPyg(BaseGraphModule):
 
             node_residual:
                 If node residual is used after on the gnn layer output
-
-            edge_residual:
-                If edge residual is used after on the gnn layer output
 
             normalization:
                 Normalization to use. Choices:
@@ -175,7 +171,6 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Residual connections
         self.node_residual = node_residual
-        self.edge_residual = edge_residual
 
         self.precision = precision
 
@@ -261,11 +256,6 @@ class GPSLayerPyg(BaseGraphModule):
         # Scale the activations by some value to help reduce activation growth
         h_local = self.scale_activations(h_local, self.output_scale)
         # Apply the residual connection for the edge features
-        if self.edge_residual and self.use_edges:
-            e_local = self.residual_add(e_local, edges_feat_in)
-        # Scale the activations by some value to help reduce activation growth
-        if self.use_edges:
-            e_local = self.scale_activations(e_local, self.output_scale)
 
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
