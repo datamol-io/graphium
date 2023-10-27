@@ -253,8 +253,8 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     # When checkpoints are logged during training, we can, e.g., use the best or last checkpoint for testing
     test_ckpt_path = None
-    test_ckpt_name = cfg["trainer"].pop("test_from_checkpoint", None)
-    test_ckpt_dir = cfg["trainer"]["model_checkpoint"].pop("dirpath", None)
+    test_ckpt_name = cfg["trainer"].get("test_from_checkpoint", None)
+    test_ckpt_dir = cfg["trainer"]["model_checkpoint"].get("dirpath", None)
     if test_ckpt_name is not None and test_ckpt_dir is not None:
         test_ckpt_path = os.path.join(test_ckpt_dir, test_ckpt_name)
 
