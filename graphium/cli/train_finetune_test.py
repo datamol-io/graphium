@@ -136,6 +136,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     filename_datetime_suffix = now.strftime("%Y%m%d_%H%M%S")
     # Append the datetime string to the existing filename in the cfg dictionary
     cfg["trainer"]["model_checkpoint"]["filename"] += f"_{filename_datetime_suffix}"
+    cfg["trainer"]["model_checkpoint"]["dirpath"] = (
+        cfg["trainer"]["model_checkpoint"]["dirpath"][:-1] + f"_{filename_datetime_suffix}"
+    )
 
     dst_dir = cfg["constants"].get("results_dir")
     hydra_cfg = HydraConfig.get()
@@ -236,7 +239,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
         # When resuming training from a checkpoint, we need to provide the path to the checkpoint in the config
-        resume_ckpt_path = cfg["trainer"].pop("resume_from_checkpoint", None)
+        resume_ckpt_path = cfg["trainer"].get("resume_from_checkpoint", None)
 
         # Run the model training
         with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
@@ -266,10 +269,11 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     logger.info("Total compute time:", timeit.default_timer() - st)
     logger.info("-" * 50)
 
-    if wandb_cfg is not None:
+    save_checkpoint_to_wandb = cfg["trainer"].get("save_checkpoint_to_wandb")
+    if save_checkpoint_to_wandb is True:
         # Save initial model state - and upload checkpoint to wandb
         if cfg["trainer"]["model_checkpoint"]["save_last"] is True:
-            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}{cfg['trainer']['model_checkpoint']['filename']}.ckpt"
+            checkpoint_path = f"{cfg['trainer']['model_checkpoint']['dirpath']}/{cfg['trainer']['model_checkpoint']['filename']}-v1.ckpt"
             # Log the initial model checkpoint to wandb
             wandb.save(checkpoint_path)
         wandb.finish()
