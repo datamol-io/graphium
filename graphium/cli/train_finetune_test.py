@@ -136,7 +136,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     filename_datetime_suffix = now.strftime("%Y%m%d_%H%M%S")
     # Append the datetime string to the existing filename in the cfg dictionary
     cfg["trainer"]["model_checkpoint"]["filename"] += f"_{filename_datetime_suffix}"
-    cfg["trainer"]["model_checkpoint"]["dirpath"] = cfg["trainer"]["model_checkpoint"]["dirpath"][:-1] + f"_{filename_datetime_suffix}"
+    cfg["trainer"]["model_checkpoint"]["dirpath"] = (
+        cfg["trainer"]["model_checkpoint"]["dirpath"][:-1] + f"_{filename_datetime_suffix}"
+    )
 
     dst_dir = cfg["constants"].get("results_dir")
     hydra_cfg = HydraConfig.get()
