@@ -21,7 +21,7 @@ class MPNNPlusPyg(BaseGraphModule):
         scatter_to: str = "both",
         node_combine_method: str = "concat",
         num_node_mlp: int = 2,
-        mlp_expansion_ratio: int = 2,
+        mlp_expansion_ratio: int = 4,
         use_edges: bool = True,
         in_dim_edges: Optional[int] = 32,
         out_dim_edges: Optional[int] = 32,
