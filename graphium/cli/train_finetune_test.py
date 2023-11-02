@@ -122,7 +122,7 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
     # Format the datetime as a string
     filename_datetime_suffix = now.strftime("%Y%m%d_%H%M%S")
     # Append the datetime string to the existing filename in the cfg dictionary
-    cfg["trainer"]["model_checkpoint"]["filename"] += f"_{filename_datetime_suffix}"
+    # cfg["trainer"]["model_checkpoint"]["filename"] += f"_{filename_datetime_suffix}"
 
     dst_dir = cfg["constants"].get("results_dir")
     hydra_cfg = HydraConfig.get()
@@ -238,14 +238,19 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     # When checkpoints are logged during training, we can, e.g., use the best or last checkpoint for testing
     test_ckpt_path = None
-    test_ckpt_name = cfg["trainer"].pop("test_from_checkpoint", None)
-    test_ckpt_dir = cfg["trainer"]["model_checkpoint"].pop("dirpath", None)
+    test_ckpt_name = cfg["trainer"].get("test_from_checkpoint", None)
+    test_ckpt_dir = cfg["trainer"]["model_checkpoint"].get("dirpath", None)
     if test_ckpt_name is not None and test_ckpt_dir is not None:
         test_ckpt_path = os.path.join(test_ckpt_dir, test_ckpt_name)
 
     # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.test(model=predictor, datamodule=datamodule, ckpt_path=test_ckpt_path)
+
+    if test_ckpt_name is not None and test_ckpt_dir is not None:
+        trainer.validate(datamodule=datamodule, ckpt_path=test_ckpt_path)[0]
+        # best_logs = {key+"_best": value for key, value in best_logs.items()}
+        # trainer.logger.log_metrics(best_logs)
 
     logger.info("-" * 50)
     logger.info("Total compute time:", timeit.default_timer() - st)

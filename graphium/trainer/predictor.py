@@ -83,6 +83,8 @@ class PredictorModule(lightning.LightningModule):
         self.featurization = featurization
         self.task_norms = task_norms
 
+        self.log_best_val_only = False
+
         super().__init__()
 
         # Setting the model options
@@ -227,7 +229,9 @@ class PredictorModule(lightning.LightningModule):
 
         # Define the optimizer and schedulers
         optimiser = MuAdam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
-        self.optim_options.torch_scheduler_kwargs.pop("module_type")
+        if self.optim_options.torch_scheduler_kwargs is None:
+            self.optim_options.torch_scheduler_kwargs = {}
+        self.optim_options.torch_scheduler_kwargs.pop("module_type", "")
         torch_scheduler = self.optim_options.scheduler_class(
             optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs
         )
@@ -629,11 +633,18 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        self.log_dict(concatenated_metrics_logs, sync_dist=True)
+
+        if not self.log_best_val_only:
+            self.log_dict(concatenated_metrics_logs, sync_dist=True)
 
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
+
+        if self.log_best_val_only:
+            for metrics in full_dict.values():
+                best_logs = {key+"_best": value for key, value in metrics['best_epoch_metric_summaries']['val'].items()}
+                self.logger.log_metrics(best_logs)
 
     def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.test_step_outputs.append(outputs)
@@ -644,6 +655,8 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
         self.log_dict(concatenated_metrics_logs, sync_dist=True)
+
+        self.log_best_val_only = True
 
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
