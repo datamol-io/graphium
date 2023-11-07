@@ -781,6 +781,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
+        drop_last_training: bool = False,
         batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
@@ -850,6 +851,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
+            drop_last_training: Whether to drop the last batch for training.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -885,6 +887,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
         IPUDataModuleModifier.__init__(self, **kwargs)
 
+        self.drop_last_training = drop_last_training
         self.task_specific_args = task_specific_args
 
         self.task_dataset_processing_params = {}
@@ -1474,6 +1477,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if stage in [RunningStage.TRAINING]:
             loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_training_opts
             loader_kwargs["ipu_options"] = self.ipu_training_opts
+
+            loader_kwargs["drop_last"] = self.drop_last_training
 
         # Get batch size and IPU options for validation / testing sets
         elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:

@@ -1,0 +1,97 @@
+program: graphium/cli/train_finetune_test.py
+command:
+  - ${env}
+  - python
+  - ${program}
+  - accelerator=cpu
+  - model=mpnn
+  - architecture=largemix
+  - tasks=largemix
+  - training=largemix
+  - +finetuning=admet_base_new
+  - ${args_no_hyphens}
+
+method: grid
+metric:
+  name: loss/val
+  goal: minimize
+name: Finetuning -- baseline
+parameters:
+  constants.task:
+    values:
+      - caco2_wang
+      - hia_hou
+      - pgp_broccatelli
+      - bioavailability_ma
+      - lipophilicity_astrazeneca
+      - solubility_aqsoldb
+      - bbb_martins
+      - ppbr_az
+      - vdss_lombardo
+      - cyp2d6_veith
+      - cyp3a4_veith
+      - cyp2c9_veith
+      - cyp2d6_substrate_carbonmangels
+      - cyp3a4_substrate_carbonmangels
+      - cyp2c9_substrate_carbonmangels
+      - half_life_obach
+      - clearance_microsome_az
+      - clearance_hepatocyte_az
+      - herg
+      - ames
+      - dili
+      - ld50_zhu
+  constants.seed:
+    values:
+      - 10
+      # - 20
+      # - 30
+  datamodule.args.tdc_train_val_seed:
+    values:
+      - 100
+      - 200
+      - 300
+      - 400
+      - 500
+  datamodule.args.split_type:
+    values:
+      - default
+      # - random
+  finetuning.pretrained_model:
+    values:
+      - 10M1
+      # - 30M2
+      # - 100M5
+      # - 300M3
+      # - 1B5
+  constants.max_epochs:
+    value: 200
+  finetuning.keep_modules_after_finetuning_module.task_heads-pcqm4m_g25.depth:
+    values:
+      # - 1
+      # - 2
+      - 2
+  finetuning.keep_modules_after_finetuning_module.task_heads-pcqm4m_g25.hidden_dims:
+    values:
+      - 128
+      # - 256
+      # - 512
+  finetuning.epoch_unfreeze_all:
+    values:
+      - 0
+      # - 2
+      # - 4
+  datamodule.args.batch_size_training:
+    values:
+      - 16
+      # - 32
+  predictor.optim_kwargs.lr: 
+    values:
+      - 0.001
+      # - 0.0001
+      # - 0.00005
+      # - 0.00001
+      # - 0.000005
+      # - 0.000001
+      # - 0.0000005
+
