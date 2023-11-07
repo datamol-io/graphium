@@ -18,7 +18,7 @@ predictor:
     cyp3a4_veith: ["auprc"]
     cyp2c9_veith: ["auprc"]
     cyp2d6_substrate_carbonmangels: ["auprc"]
-    cyp3a4_substrate_carbonmangels: ["auprc"]
+    cyp3a4_substrate_carbonmangels: ["auroc"]
     cyp2c9_substrate_carbonmangels: ["auprc"]
     half_life_obach: ["spearman"]
     clearance_microsome_az: ["spearman"]
@@ -26,7 +26,7 @@ predictor:
     herg: ["auroc"]
     ames: ["auroc"]
     dili: ["auroc"]
-    ld50_zhu: ["auroc"]
+    ld50_zhu: ["mae"]
   loss_fun:
     caco2_wang: mae
     hia_hou: bce
@@ -53,11 +53,11 @@ predictor:
   random_seed: ${constants.seed}
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
-  torch_scheduler_kwargs:
-    module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 10
-    warmup_epochs: 10
-    verbose: False
+  torch_scheduler_kwargs: null
+    # module_type: WarmUpLinearLR
+    # max_num_epochs: &max_epochs 10
+    # warmup_epochs: 10
+    # verbose: False
   target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
   multitask_handling: flatten # flatten, mean-per-label
 
