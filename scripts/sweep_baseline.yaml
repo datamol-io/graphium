@@ -48,11 +48,11 @@ parameters:
       # - 30
   datamodule.args.tdc_train_val_seed:
     values:
-      - 100
-      - 200
-      - 300
-      - 400
-      - 500
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
   datamodule.args.split_type:
     values:
       - default
@@ -60,7 +60,7 @@ parameters:
   finetuning.pretrained_model:
     values:
       - 10M1
-      # - 30M2
+      - 30M2
       # - 100M5
       # - 300M3
       # - 1B5
@@ -73,8 +73,8 @@ parameters:
       - 2
   finetuning.keep_modules_after_finetuning_module.task_heads-pcqm4m_g25.hidden_dims:
     values:
-      - 128
-      # - 256
+      # - 128
+      - 256
       # - 512
   finetuning.epoch_unfreeze_all:
     values:
@@ -83,15 +83,17 @@ parameters:
       # - 4
   datamodule.args.batch_size_training:
     values:
-      - 16
-      # - 32
+      # - 16
+      - 32
   predictor.optim_kwargs.lr: 
     values:
-      - 0.001
-      # - 0.0001
-      # - 0.00005
-      # - 0.00001
-      # - 0.000005
-      # - 0.000001
-      # - 0.0000005
+      - 0.0005
+      - 0.0001
+      - 0.00005
+      - 0.00001
+      - 0.000005
+  trainer.early_stopping.monitor:
+    value: loss/val
+  trainer.early_stopping.mode:
+    value: min
 

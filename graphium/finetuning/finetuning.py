@@ -39,6 +39,8 @@ class GraphFinetuning(BaseFinetuning):
             self.training_depth += unfreeze_pretrained_depth
         self.epoch_unfreeze_all = epoch_unfreeze_all
         self.freeze_always = freeze_always
+        if self.freeze_always == 'none':
+            self.freeze_always = None
         if isinstance(self.freeze_always, str):
             self.freeze_always = [self.freeze_always]
         self.train_bn = train_bn
