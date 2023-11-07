@@ -91,6 +91,10 @@ class PredictorModule(lightning.LightningModule):
         self.model_kwargs = model_kwargs
         self._model_options = ModelOptions(model_class=model_class, model_kwargs=model_kwargs)
         # Setting the optimizer options
+        module_type = torch_scheduler_kwargs.get("module_type", None)
+        if module_type == "StepLR":
+            torch_scheduler_kwargs.pop("warmup_epochs")
+            torch_scheduler_kwargs.pop("max_num_epochs")
         self.optim_options = OptimOptions(
             optim_kwargs=optim_kwargs,
             torch_scheduler_kwargs=torch_scheduler_kwargs,
