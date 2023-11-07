@@ -15,7 +15,8 @@ class GraphFinetuning(BaseFinetuning):
         finetuning_module: str,
         added_depth: int = 0,
         unfreeze_pretrained_depth: Optional[int] = None,
-        epoch_unfreeze_all: int = 0,
+        epoch_unfreeze_all: Optional[int] = 0,
+        freeze_always: Optional[Union[List, str]] = None,
         train_bn: bool = False,
     ):
         """
@@ -37,6 +38,9 @@ class GraphFinetuning(BaseFinetuning):
         if unfreeze_pretrained_depth is not None:
             self.training_depth += unfreeze_pretrained_depth
         self.epoch_unfreeze_all = epoch_unfreeze_all
+        self.freeze_always = freeze_always
+        if isinstance(self.freeze_always, str):
+            self.freeze_always = [self.freeze_always]
         self.train_bn = train_bn
 
     def freeze_before_training(self, pl_module: pl.LightningModule):
@@ -91,3 +95,7 @@ class GraphFinetuning(BaseFinetuning):
         """
         if epoch == self.epoch_unfreeze_all:
             self.unfreeze_and_add_param_group(modules=pl_module, optimizer=optimizer, train_bn=self.train_bn)
+
+            if self.freeze_always is not None:
+                for module_name in self.freeze_always:
+                    self.freeze_module(pl_module, module_name, pl_module.model.pretrained_model.net._module_map)

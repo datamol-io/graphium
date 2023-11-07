@@ -146,6 +146,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         "finetuning_head",
         "unfreeze_pretrained_depth",
         "epoch_unfreeze_all",
+        "freeze_always",
     ]
 
     for key in drop_keys:
