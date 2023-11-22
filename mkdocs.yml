@@ -1,0 +1,76 @@
+site_name: "graphium"
+site_description: "Graphium: Scaling molecular GNNs to infinity."
+
+remote_branch: "gh-pages"
+use_directory_urls: false
+docs_dir: "docs"
+
+nav:
+  - Overview: index.md
+  - Baseline: baseline.md
+  - API:
+      - graphium.nn:
+          - graphium.nn: api/graphium.nn/graphium.nn.md
+          - graphium.nn.architectures: api/graphium.nn/architectures.md
+          - graphium.nn.encoders: api/graphium.nn/encoders.md
+          - graphium.nn.pyg_layers: api/graphium.nn/pyg_layers.md
+      - graphium.features: api/graphium.features.md
+      - graphium.trainer: api/graphium.trainer.md
+      - graphium.data: api/graphium.data.md
+      - graphium.utils: api/graphium.utils.md
+      - graphium.config: api/graphium.config.md
+      - graphium.ipu: api/graphium.ipu.md
+      - graphium.visualization: api/graphium.visualization.md
+      - graphium.finetuning: api/graphium.finetuning.md
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.expand
+  favicon: images/logo.png
+  logo: images/logo.svg
+
+extra_css:
+  - _assets/css/custom.css
+  - _assets/css/custom-graphium.css
+
+markdown_extensions:
+  - admonition
+  - markdown_include.include
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+
+watch:
+  - graphium/
+
+plugins:
+  - search
+
+  - mkdocstrings:
+      handlers:
+        python:
+          setup_commands:
+            - import sys
+            - sys.path.append("docs")
+            - sys.path.append("graphium")
+          options:
+            new_path_syntax: yes
+            show_root_heading: yes
+            heading_level: 3
+            show_source: false
+
+  - mkdocs-jupyter:
+      execute: False
+
+  - mike:
+      version_selector: true
+
