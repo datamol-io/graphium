@@ -481,7 +481,6 @@ class Test_DataModule(ut.TestCase):
 
         self.assertEqual(len(ds.train_ds), 20)
 
-
     def test_splits_file(self):
         # Test single CSV files
         csv_file = "tests/data/micro_ZINC_shard_1.csv"
@@ -542,9 +541,7 @@ class Test_DataModule(ut.TestCase):
                 }
             }
 
-            ds2 = MultitaskFromSmilesDataModule(
-                task_specific_args, featurization_n_jobs=0
-            )
+            ds2 = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
             ds2.prepare_data(save_smiles_and_ids=True)
             ds2.setup(save_smiles_and_ids=True)
 
@@ -552,13 +549,11 @@ class Test_DataModule(ut.TestCase):
             self.assertEqual(len(ds2.val_ds), len(split_val))
             self.assertEqual(len(ds2.test_ds), len(split_test))
 
-
             # Check that the splits are the same
             self.assertEqual(len(ds.train_ds.smiles), len(split_train))
             np.testing.assert_array_equal(ds.train_ds.smiles, ds2.train_ds.smiles)
             np.testing.assert_array_equal(ds.val_ds.smiles, ds2.val_ds.smiles)
             np.testing.assert_array_equal(ds.test_ds.smiles, ds2.test_ds.smiles)
-
 
 
 if __name__ == "__main__":
