@@ -514,8 +514,8 @@ class Test_DataModule(ut.TestCase):
         }
 
         ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
-        ds.prepare_data()
-        ds.setup()
+        ds.prepare_data(save_smiles_and_ids=True)
+        ds.setup(save_smiles_and_ids=True)
 
         self.assertEqual(len(ds.train_ds), len(split_train))
         self.assertEqual(len(ds.val_ds), len(split_val))
@@ -545,18 +545,19 @@ class Test_DataModule(ut.TestCase):
             ds2 = MultitaskFromSmilesDataModule(
                 task_specific_args, featurization_n_jobs=0
             )
-            ds2.prepare_data()
-            ds2.setup()
+            ds2.prepare_data(save_smiles_and_ids=True)
+            ds2.setup(save_smiles_and_ids=True)
 
             self.assertEqual(len(ds2.train_ds), len(split_train))
             self.assertEqual(len(ds2.val_ds), len(split_val))
             self.assertEqual(len(ds2.test_ds), len(split_test))
 
-            for task in ds.train_ds.keys():
-                # Check that the splits are the same
-                np.testing.assert_array_equal(ds.train_ds[task].indices, ds2.train_ds[task].indices)
-                np.testing.assert_array_equal(ds.val_ds[task].indices, ds2.val_ds[task].indices)
-                np.testing.assert_array_equal(ds.test_ds[task].indices, ds2.test_ds[task].indices)
+
+            # Check that the splits are the same
+            self.assertEqual(len(ds.train_ds.smiles), len(split_train))
+            np.testing.assert_array_equal(ds.train_ds.smiles, ds2.train_ds.smiles)
+            np.testing.assert_array_equal(ds.val_ds.smiles, ds2.val_ds.smiles)
+            np.testing.assert_array_equal(ds.test_ds.smiles, ds2.test_ds.smiles)
 
 
 
