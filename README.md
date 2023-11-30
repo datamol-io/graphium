@@ -42,11 +42,16 @@ You can try running Graphium on Graphcore IPUs for free on Gradient by clicking 
 
 ### For CPU and GPU developers
 
-Use [`mamba`](https://github.com/mamba-org/mamba):
+Use [`mamba`](https://github.com/mamba-org/mamba), a faster and better alternative to `conda`.
+
+If you are using a GPU, we recommend enforcing the CUDA version that you need with `CONDA_OVERRIDE_CUDA=XX.X`.
 
 ```bash
 # Install Graphium's dependencies in a new environment named `graphium`
 mamba env create -f env.yml -n graphium
+
+# To force the CUDA version to 11.2, or any other version you prefer, use the following command:
+# CONDA_OVERRIDE_CUDA=11.2 mamba env create -f env.yml -n graphium
 
 # Install Graphium in dev mode
 mamba activate graphium
