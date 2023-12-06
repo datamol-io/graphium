@@ -2,7 +2,7 @@ import unittest as ut
 import numpy as np
 import torch
 import pandas as pd
-import datamol as dm
+import tempfile
 
 import graphium
 from graphium.utils.fs import rm, exists, get_size
@@ -480,6 +480,80 @@ class Test_DataModule(ut.TestCase):
         ds.setup()
 
         self.assertEqual(len(ds.train_ds), 20)
+
+    def test_splits_file(self):
+        # Test single CSV files
+        csv_file = "tests/data/micro_ZINC_shard_1.csv"
+        df = pd.read_csv(csv_file)
+
+        # Split the CSV file with 80/10/10
+        train = 0.8
+        val = 0.1
+        indices = np.arange(len(df))
+        split_train = indices[: int(len(df) * train)]
+        split_val = indices[int(len(df) * train) : int(len(df) * (train + val))]
+        split_test = indices[int(len(df) * (train + val)) :]
+
+        splits = {"train": split_train, "val": split_val, "test": split_test}
+
+        # Test the splitting using `splits` directly as `splits_path`
+        task_kwargs = {
+            "df_path": csv_file,
+            "splits_path": splits,
+            "split_val": 0.0,
+            "split_test": 0.0,
+        }
+        task_specific_args = {
+            "task": {
+                "task_level": "graph",
+                "label_cols": ["score"],
+                "smiles_col": "SMILES",
+                **task_kwargs,
+            }
+        }
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+        ds.prepare_data(save_smiles_and_ids=True)
+        ds.setup(save_smiles_and_ids=True)
+
+        self.assertEqual(len(ds.train_ds), len(split_train))
+        self.assertEqual(len(ds.val_ds), len(split_val))
+        self.assertEqual(len(ds.test_ds), len(split_test))
+
+        # Create a TemporaryFile to save the splits, and test the datamodule
+        with tempfile.NamedTemporaryFile(suffix=".pt") as temp:
+            # Save the splits
+            torch.save(splits, temp)
+
+            # Test the datamodule
+            task_kwargs = {
+                "df_path": csv_file,
+                "splits_path": temp.name,
+                "split_val": 0.0,
+                "split_test": 0.0,
+            }
+            task_specific_args = {
+                "task": {
+                    "task_level": "graph",
+                    "label_cols": ["score"],
+                    "smiles_col": "SMILES",
+                    **task_kwargs,
+                }
+            }
+
+            ds2 = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+            ds2.prepare_data(save_smiles_and_ids=True)
+            ds2.setup(save_smiles_and_ids=True)
+
+            self.assertEqual(len(ds2.train_ds), len(split_train))
+            self.assertEqual(len(ds2.val_ds), len(split_val))
+            self.assertEqual(len(ds2.test_ds), len(split_test))
+
+            # Check that the splits are the same
+            self.assertEqual(len(ds.train_ds.smiles), len(split_train))
+            np.testing.assert_array_equal(ds.train_ds.smiles, ds2.train_ds.smiles)
+            np.testing.assert_array_equal(ds.val_ds.smiles, ds2.val_ds.smiles)
+            np.testing.assert_array_equal(ds.test_ds.smiles, ds2.test_ds.smiles)
 
 
 if __name__ == "__main__":
