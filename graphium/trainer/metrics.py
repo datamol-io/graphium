@@ -10,6 +10,7 @@ from torchmetrics.utilities.distributed import reduce
 import torchmetrics.functional.regression.mae
 
 from graphium.utils.tensor import nan_mean
+from graphium.ipu import ipu_isnan
 
 # NOTE(hadim): the below is a fix to be able to import previously saved Graphium model that are incompatible
 # with the current version of torchmetrics.
@@ -265,7 +266,8 @@ class MetricWrapper:
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
 
-        target_nans = torch.isnan(target)
+        #target_nans = torch.isnan(target)
+        target_nans = ipu_isnan(target)
 
         # for the classifigression task, cast predictions from
         # (batch_size, n_targets * n_brackets) to (batch_size, n_targets, n_brackets)
@@ -329,13 +331,15 @@ class MetricWrapper:
 
     def _filter_nans(self, preds: Tensor, target: Tensor):
         """Handle the NaNs according to the chosen options"""
-        target_nans = torch.isnan(target)
+        #target_nans = torch.isnan(target)
+        target_nans = ipu_isnan(target)
 
         if self.target_nan_mask is None:
             pass
         elif isinstance(self.target_nan_mask, (int, float)):
             target = target.clone()
-            target[torch.isnan(target)] = self.target_nan_mask
+            #target[torch.isnan(target)] = self.target_nan_mask
+            target[ipu_isnan(target)] = self.target_nan_mask
         elif self.target_nan_mask == "ignore":
             target = target[~target_nans]
             preds = preds[~target_nans]

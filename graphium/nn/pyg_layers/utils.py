@@ -9,7 +9,7 @@ from torch_geometric.typing import SparseTensor
 
 from graphium.nn.base_layers import MLP, get_norm
 from graphium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
-
+from graphium.ipu import ipu_isnan
 
 class PreprocessPositions(nn.Module):
     """
@@ -96,7 +96,8 @@ class PreprocessPositions(nn.Module):
         # for real nodes, if 3d position does not exit, it is nans. For padding nodes, 3d positions will be 0
         # if the first node of a molecule has 3d position as nan, the whole molecule will be masked out.
         # [batch]
-        nan_mask = torch.isnan(pos)[:, 0, 0]
+        #nan_mask = torch.isnan(pos)[:, 0, 0]
+        nan_mask = ipu_isnan(pos)[:, 0, 0]
         # apply nan_mask on pos so that it does not give nan gradient
         # when applying gaussian kernels
         pos.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2), 0.0)

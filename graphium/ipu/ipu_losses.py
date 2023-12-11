@@ -5,6 +5,7 @@ from torch._C import _infer_size
 from loguru import logger
 from graphium.trainer.losses import HybridCELoss
 
+from graphium.ipu import ipu_isnan
 
 class BCEWithLogitsLossIPU(BCEWithLogitsLoss):
     """
@@ -29,7 +30,8 @@ class BCEWithLogitsLossIPU(BCEWithLogitsLoss):
 
         # Replace the nan-targets by 0 or 1. Take the value closest to the input.
         # Give a weight of 0 where there are nan-targets
-        nan_targets = target.isnan()
+        #nan_targets = target.isnan()
+        nan_targets = ipu_isnan(target)
         nan_targets_0 = (input < 0.5) & nan_targets
         nan_targets_1 = (input >= 0.5) & nan_targets
         target[nan_targets_0] = 0.0
@@ -74,7 +76,8 @@ class BCELossIPU(BCELoss):
 
         # Replace the nan-targets by 0 or 1. Take the value closest to the input.
         # Give a weight of 0 where there are nan-targets
-        nan_targets = target.isnan()
+        #nan_targets = target.isnan()
+        nan_targets = ipu_isnan(target)
         nan_targets_0 = (input < 0.5) & nan_targets
         nan_targets_1 = (input >= 0.5) & nan_targets
         target[nan_targets_0] = 0.0
@@ -109,7 +112,8 @@ class MSELossIPU(MSELoss):
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
-        nan_targets = target.isnan()
+        #nan_targets = target.isnan()
+        nan_targets = ipu_isnan(target)
         input[nan_targets] = 0.0
         target[nan_targets] = 0.0
 
@@ -137,7 +141,8 @@ class L1LossIPU(L1Loss):
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
-        nan_targets = target.isnan()
+        #nan_targets = target.isnan()
+        nan_targets = ipu_isnan(target)
         input[nan_targets] = 0.0
         target[nan_targets] = 0.0
 
@@ -175,7 +180,8 @@ class HybridCELossIPU(HybridCELoss):
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
-        nan_targets = target.isnan()
+        #nan_targets = target.isnan()
+        nan_targets = ipu_isnan(target)
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target, nan_targets)

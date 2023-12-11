@@ -6,6 +6,7 @@ from torch_geometric.data import Batch
 from graphium.nn.base_layers import MLP, get_norm, FCLayer, TransformerEncoderLayerMup
 from graphium.nn.encoders.base_encoder import BaseEncoder
 
+from graphium.ipu import ipu_isnan
 
 class LapPENodeEncoder(BaseEncoder):
     def __init__(
@@ -191,7 +192,8 @@ class LapPENodeEncoder(BaseEncoder):
         pos_enc = torch.cat(
             (eigvecs.unsqueeze(2), eigvals.unsqueeze(2)), dim=2
         )  # (Num nodes) x (Num Eigenvectors) x 2
-        empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
+        #empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
+        empty_mask = ipu_isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2
         if self.first_normalization:

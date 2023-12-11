@@ -133,7 +133,8 @@ def nan_mean(input: Tensor, *args, **kwargs) -> Tensor:
     """
 
     sum = torch.nansum(input, *args, **kwargs)
-    num = torch.sum(~torch.isnan(input), *args, **kwargs)
+    #num = torch.sum(~torch.isnan(input), *args, **kwargs)
+    num = torch.sum(~ipu_isnan(input), *args, **kwargs)
     mean = sum / num
     return mean
 
@@ -220,7 +221,8 @@ def nan_var(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
     var = nan_mean(dist2, **kwargs)
 
     if unbiased:
-        num = torch.sum(~torch.isnan(input), **kwargs)
+        #num = torch.sum(~torch.isnan(input), **kwargs)
+        num = torch.sum(~ipu_isnan(input), **kwargs)
         var = var * num / (num - 1)
 
     return var
