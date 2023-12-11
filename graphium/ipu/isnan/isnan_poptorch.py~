@@ -1,0 +1,37 @@
+import torch
+import poptorch
+import pathlib
+import ctypes
+
+myso = list(pathlib.Path("build").rglob("cus*.so"))
+assert myso, "Failed to find custom op .so file"
+assert len(myso) == 1, f"Too many ({len(myso)}) custom op .so files, there should only be one"
+ctypes.cdll.LoadLibrary(myso[0])
+
+class INM(torch.nn.Module):
+
+    def forward(self, x):
+
+        return poptorch.custom_op(
+            inputs=(x,),
+            name="IsNanCustom",
+            domain="custom.ops",
+            domain_version=1,
+            example_outputs=(x > 0,),
+        )
+
+x = torch.rand(1_000_000) - 0.5
+
+x[::2] = torch.nan
+x[1::4] = torch.inf
+x[3::8] = -torch.inf
+
+inm = INM()
+pop_inm = poptorch.inferenceModel(inm)
+
+out = pop_inm(x)[0]
+
+print(out[::2].sum())
+print(out[1::2].sum())
+assert out[::2].all()
+assert not out[1::2].any()
