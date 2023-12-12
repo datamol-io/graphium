@@ -27,6 +27,10 @@ FC_LAYERS_DICT = {
     "fc": BaseLayers.FCLayer,
 }
 
+ENSEMBLE_FC_LAYERS_DICT = {
+    "ens-fc": BaseLayers.EnsembleFCLayer,
+}
+
 PYG_LAYERS_DICT = {
     "pyg:gcn": PygLayers.GCNConvPyg,
     "pyg:gin": PygLayers.GINConvPyg,
@@ -41,6 +45,7 @@ PYG_LAYERS_DICT = {
 LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
+ENSEMBLE_LAYERS_DICT = deepcopy(ENSEMBLE_FC_LAYERS_DICT)
 
 RESIDUALS_DICT = {
     "none": Residuals.ResidualConnectionNone,
