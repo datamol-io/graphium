@@ -174,6 +174,7 @@ class FeedForwardNN(nn.Module, MupMixin):
     def _parse_layers(self, layer_type, residual_type):
         # Parse the layer and residuals
         from graphium.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
+
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
 
@@ -532,7 +533,9 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
         if num_ensemble_2 is None:
             layer_kwargs["num_ensemble"] = num_ensemble
         else:
-            assert num_ensemble_2 == num_ensemble, f"num_ensemble={num_ensemble} != num_ensemble_2={num_ensemble_2}"
+            assert (
+                num_ensemble_2 == num_ensemble
+            ), f"num_ensemble={num_ensemble} != num_ensemble_2={num_ensemble_2}"
 
         super().__init__(
             in_dim=in_dim,
@@ -558,7 +561,6 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
         # Parse the reduction
         self.reduction = reduction
         self.reduction_fn = self._parse_reduction(reduction)
-
 
     def _parse_reduction(self, reduction: Optional[Union[str, Callable]]) -> Optional[Callable]:
         r"""
@@ -587,9 +589,9 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
     def _parse_layers(self, layer_type, residual_type):
         # Parse the layer and residuals
         from graphium.utils.spaces import ENSEMBLE_LAYERS_DICT, RESIDUALS_DICT
+
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, ENSEMBLE_LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
-
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""

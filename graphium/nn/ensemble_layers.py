@@ -10,14 +10,16 @@ from mup import set_base_shapes
 
 from graphium.nn.base_layers import FCLayer, MLP
 
+
 class EnsembleLinear(nn.Module):
-    def __init__(self,
-                in_dim: int,
-                out_dim: int,
-                num_ensemble: int,
-                bias: bool = True,
-                init_fn: Optional[Callable] = None,
-                 ):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        num_ensemble: int,
+        bias: bool = True,
+        init_fn: Optional[Callable] = None,
+    ):
         r"""
         Multiple linear layers that are applied in parallel with batched matrix multiplication with `torch.matmul`.
 
@@ -38,7 +40,7 @@ class EnsembleLinear(nn.Module):
         if bias:
             self.bias = nn.Parameter(torch.Tensor(num_ensemble, 1, out_dim))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
 
         # Initialize parameters
         self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
@@ -78,6 +80,7 @@ class EnsembleLinear(nn.Module):
             h += self.bias
 
         return h
+
 
 class EnsembleFCLayer(FCLayer):
     def __init__(
@@ -162,7 +165,9 @@ class EnsembleFCLayer(FCLayer):
 
         # Linear layer, or MuReadout layer
         if not is_readout_layer:
-            self.linear = EnsembleLinear(in_dim, out_dim, num_ensemble=num_ensemble, bias=bias, init_fn=init_fn)
+            self.linear = EnsembleLinear(
+                in_dim, out_dim, num_ensemble=num_ensemble, bias=bias, init_fn=init_fn
+            )
         else:
             self.linear = EnsembleMuReadoutGraphium(in_dim, out_dim, bias=bias)
 
@@ -180,20 +185,23 @@ class EnsembleFCLayer(FCLayer):
         rep = rep[:-1] + f", num_ensemble={self.linear.weight.shape[0]})"
         return rep
 
+
 class EnsembleMuReadoutGraphium(EnsembleLinear):
     """
     This layer implements an ensemble version of μP with a 1/width multiplier and a
     constant variance initialization for both weights and biases.
     """
-    def __init__(self,
-                in_dim: int,
-                out_dim: int,
-                num_ensemble: int,
-                bias: bool = True,
-                init_fn: Optional[Callable] = None,
-                readout_zero_init=False,
-                output_mult=1.0
-                 ):
+
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        num_ensemble: int,
+        bias: bool = True,
+        init_fn: Optional[Callable] = None,
+        readout_zero_init=False,
+        output_mult=1.0,
+    ):
         self.output_mult = output_mult
         self.readout_zero_init = readout_zero_init
         self.base_width = in_dim
@@ -214,35 +222,35 @@ class EnsembleMuReadoutGraphium(EnsembleLinear):
             super().reset_parameters()
 
     def width_mult(self):
-        assert hasattr(self.weight, 'infshape'), (
-            'Please call set_base_shapes(...). If using torch.nn.DataParallel, '
-            'switch to distributed training with '
-            'torch.nn.parallel.DistributedDataParallel instead'
+        assert hasattr(self.weight, "infshape"), (
+            "Please call set_base_shapes(...). If using torch.nn.DataParallel, "
+            "switch to distributed training with "
+            "torch.nn.parallel.DistributedDataParallel instead"
         )
         return self.weight.infshape.width_mult()
 
     def _rescale_parameters(self):
-        '''Rescale parameters to convert SP initialization to μP initialization.
+        """Rescale parameters to convert SP initialization to μP initialization.
 
         Warning: This method is NOT idempotent and should be called only once
         unless you know what you are doing.
-        '''
-        if hasattr(self, '_has_rescaled_params') and self._has_rescaled_params:
+        """
+        if hasattr(self, "_has_rescaled_params") and self._has_rescaled_params:
             raise RuntimeError(
                 "`_rescale_parameters` has been called once before already. "
                 "Unless you know what you are doing, usually you should not be calling `_rescale_parameters` more than once.\n"
                 "If you called `set_base_shapes` on a model loaded from a checkpoint, "
                 "or just want to re-set the base shapes of an existing model, "
                 "make sure to set the flag `rescale_params=False`.\n"
-                "To bypass this error and *still rescale parameters*, set `self._has_rescaled_params=False` before this call.")
+                "To bypass this error and *still rescale parameters*, set `self._has_rescaled_params=False` before this call."
+            )
         if self.bias is not None:
-            self.bias.data *= self.width_mult()**0.5
-        self.weight.data *= self.width_mult()**0.5
+            self.bias.data *= self.width_mult() ** 0.5
+        self.weight.data *= self.width_mult() ** 0.5
         self._has_rescaled_params = True
 
     def forward(self, x):
-        return super().forward(
-            self.output_mult * x / self.width_mult())
+        return super().forward(self.output_mult * x / self.width_mult())
 
     @property
     def absolute_width(self):
@@ -361,7 +369,6 @@ class EnsembleMLP(MLP):
             last_layer_is_readout=last_layer_is_readout,
             droppath_rate=droppath_rate,
             constant_droppath_rate=constant_droppath_rate,
-
         )
 
         self.reduction = self._parse_reduction(reduction)
@@ -415,4 +422,3 @@ class EnsembleMLP(MLP):
         """
         rep = super().__repr__()
         rep = rep[:-1] + f", num_ensemble={self.layers[0].linear.weight.shape[0]})"
-
