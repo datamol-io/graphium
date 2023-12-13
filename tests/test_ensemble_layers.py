@@ -318,6 +318,7 @@ class test_Ensemble_Layers(ut.TestCase):
 
     def test_ensemble_feed_forward_nn(self):
         raise NotImplementedError
+        # Don't forget to test the `reduce` argument
 
 
 if __name__ == "__main__":
