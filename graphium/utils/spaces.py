@@ -4,6 +4,7 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as TorchMetrics
 
 import graphium.nn.base_layers as BaseLayers
+import graphium.nn.ensemble_layers as EnsembleLayers
 from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, TaskHeads
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
@@ -28,7 +29,7 @@ FC_LAYERS_DICT = {
 }
 
 ENSEMBLE_FC_LAYERS_DICT = {
-    "ens-fc": BaseLayers.EnsembleFCLayer,
+    "ens-fc": EnsembleLayers.EnsembleFCLayer,
 }
 
 PYG_LAYERS_DICT = {

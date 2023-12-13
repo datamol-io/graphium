@@ -236,7 +236,7 @@ class MuReadoutGraphium(MuReadout):
 
     def __init__(self, in_features, *args, **kwargs):
         super().__init__(in_features, *args, **kwargs)
-        self.base_width = in_features
+        self._base_width = in_features
 
     @property
     def absolute_width(self):
@@ -442,7 +442,7 @@ class MLP(nn.Module):
         in_dim: int,
         hidden_dims: Union[Iterable[int], int],
         out_dim: int,
-        depth: int,
+        depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -530,12 +530,12 @@ class MLP(nn.Module):
 
         all_dims = [in_dim] + self.hidden_dims + [out_dim]
         fully_connected = []
-        if depth == 0:
+        if self.depth == 0:
             self.fully_connected = None
             return
         else:
-            for ii in range(depth):
-                if ii < (depth - 1):
+            for ii in range(self.depth):
+                if ii < (self.depth - 1):
                     # Define the parameters for all intermediate layers
                     this_activation = activation
                     this_normalization = normalization
@@ -551,7 +551,7 @@ class MLP(nn.Module):
                 if constant_droppath_rate:
                     this_drop_rate = droppath_rate
                 else:
-                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, depth)
+                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, self.depth)
 
                 # Add a fully-connected layer
                 fully_connected.append(

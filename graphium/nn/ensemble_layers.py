@@ -50,6 +50,7 @@ class EnsembleLinear(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         # Initialize weight using the provided initialization function
         self.init_fn(self.weight)
 
@@ -169,7 +170,7 @@ class EnsembleFCLayer(FCLayer):
                 in_dim, out_dim, num_ensemble=num_ensemble, bias=bias, init_fn=init_fn
             )
         else:
-            self.linear = EnsembleMuReadoutGraphium(in_dim, out_dim, bias=bias)
+            self.linear = EnsembleMuReadoutGraphium(in_dim, out_dim, num_ensemble=num_ensemble, bias=bias)
 
         self.reset_parameters()
 
@@ -202,9 +203,10 @@ class EnsembleMuReadoutGraphium(EnsembleLinear):
         readout_zero_init=False,
         output_mult=1.0,
     ):
+        self.in_dim = in_dim
         self.output_mult = output_mult
         self.readout_zero_init = readout_zero_init
-        self.base_width = in_dim
+        self._base_width = in_dim
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -254,7 +256,7 @@ class EnsembleMuReadoutGraphium(EnsembleLinear):
 
     @property
     def absolute_width(self):
-        return float(self.in_features)
+        return float(self.in_dim)
 
     @property
     def base_width(self):
@@ -279,8 +281,8 @@ class EnsembleMLP(MLP):
         in_dim: int,
         hidden_dims: Union[Iterable[int], int],
         out_dim: int,
-        depth: int,
         num_ensemble: int,
+        depth: Optional[int] = None,
         reduction: Optional[Union[str, Callable]] = "none",
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
@@ -304,13 +306,13 @@ class EnsembleMLP(MLP):
                 or a list of dimensions in the hidden layers.
             out_dim:
                 Output dimension of the MLP.
+            num_ensemble:
+                Number of MLPs that run in parallel.
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
                 hidden layers to use.
                 If `hidden_dims` is a list, then
                 `depth` must be `None` or equal to `len(hidden_dims) + 1`
-            num_ensemble:
-                Number of MLPs that run in parallel.
             reduction:
                 Reduction to use at the end of the MLP. Choices:
 
@@ -358,7 +360,6 @@ class EnsembleMLP(MLP):
             hidden_dims=hidden_dims,
             out_dim=out_dim,
             depth=depth,
-            num_ensemble=num_ensemble,
             activation=activation,
             last_activation=last_activation,
             dropout=dropout,
@@ -369,6 +370,8 @@ class EnsembleMLP(MLP):
             last_layer_is_readout=last_layer_is_readout,
             droppath_rate=droppath_rate,
             constant_droppath_rate=constant_droppath_rate,
+            fc_layer=EnsembleFCLayer,
+            fc_layer_kwargs={"num_ensemble": num_ensemble},
         )
 
         self.reduction = self._parse_reduction(reduction)
