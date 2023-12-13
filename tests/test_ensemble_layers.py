@@ -7,7 +7,7 @@ import torch
 from torch.nn import Linear
 import unittest as ut
 
-from graphium.nn.base_layers import FCLayer, MLP
+from graphium.nn.base_layers import FCLayer, MLP, MuReadoutGraphium
 from graphium.nn.ensemble_layers import (
     EnsembleLinear,
     EnsembleFCLayer,
@@ -19,15 +19,27 @@ from graphium.nn.ensemble_layers import (
 class test_Ensemble_Layers(ut.TestCase):
     # for drop_rate=0.5, test if the output shape is correct
     def check_ensemble_linear(
-        self, in_dim: int, out_dim: int, num_ensemble: int, batch_size: int, more_batch_dim: int
+        self,
+        in_dim: int,
+        out_dim: int,
+        num_ensemble: int,
+        batch_size: int,
+        more_batch_dim: int,
+        use_mureadout=False,
     ):
         msg = f"Testing EnsembleLinear with in_dim={in_dim}, out_dim={out_dim}, num_ensemble={num_ensemble}, batch_size={batch_size}, more_batch_dim={more_batch_dim}"
 
-        # Create EnsembleLinear instance
-        ensemble_linear = EnsembleLinear(in_dim, out_dim, num_ensemble)
+        if use_mureadout:
+            # Create EnsembleMuReadoutGraphium instance
+            ensemble_linear = EnsembleMuReadoutGraphium(in_dim, out_dim, num_ensemble)
+            # Create equivalent separate Linear layers with synchronized weights and biases
+            linear_layers = [MuReadoutGraphium(in_dim, out_dim) for _ in range(num_ensemble)]
+        else:
+            # Create EnsembleLinear instance
+            ensemble_linear = EnsembleLinear(in_dim, out_dim, num_ensemble)
+            # Create equivalent separate Linear layers with synchronized weights and biases
+            linear_layers = [Linear(in_dim, out_dim) for _ in range(num_ensemble)]
 
-        # Create equivalent separate Linear layers with synchronized weights and biases
-        linear_layers = [Linear(in_dim, out_dim) for _ in range(num_ensemble)]
         for i, linear_layer in enumerate(linear_layers):
             linear_layer.weight.data = ensemble_linear.weight.data[i]
             if ensemble_linear.bias is not None:
@@ -86,6 +98,41 @@ class test_Ensemble_Layers(ut.TestCase):
         self.check_ensemble_linear(in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7)
         self.check_ensemble_linear(in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=7)
         self.check_ensemble_linear(in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=7)
+
+    def test_ensemble_mureadout_graphium(self):
+        # Test `use_mureadout`
+        # more_batch_dim=0
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=0, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=0, use_mureadout=True
+        )
+
+        # more_batch_dim=1
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=1, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=1, use_mureadout=True
+        )
+
+        # more_batch_dim=7
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=7, use_mureadout=True
+        )
+        self.check_ensemble_linear(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=7, use_mureadout=True
+        )
 
     # for drop_rate=0.5, test if the output shape is correct
     def check_ensemble_fclayer(
