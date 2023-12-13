@@ -14,6 +14,7 @@ from graphium.nn.ensemble_layers import (
     EnsembleMLP,
     EnsembleMuReadoutGraphium,
 )
+from graphium.nn.architectures import FeedForwardNN, EnsembleFeedForwardNN
 
 
 class test_Ensemble_Layers(ut.TestCase):
@@ -315,6 +316,8 @@ class test_Ensemble_Layers(ut.TestCase):
             in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, last_layer_is_readout=True
         )
 
+    def test_ensemble_feed_forward_nn(self):
+        raise NotImplementedError
 
 if __name__ == "__main__":
     ut.main()
