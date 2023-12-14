@@ -18,7 +18,6 @@ from graphium.nn.architectures import FeedForwardNN, EnsembleFeedForwardNN
 
 
 class test_Ensemble_Layers(ut.TestCase):
-
     def check_ensemble_linear(
         self,
         in_dim: int,
@@ -135,7 +134,6 @@ class test_Ensemble_Layers(ut.TestCase):
             in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=7, use_mureadout=True
         )
 
-
     def check_ensemble_fclayer(
         self,
         in_dim: int,
@@ -221,7 +219,6 @@ class test_Ensemble_Layers(ut.TestCase):
         self.check_ensemble_fclayer(
             in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, is_readout_layer=True
         )
-
 
     def check_ensemble_mlp(
         self,
@@ -316,7 +313,6 @@ class test_Ensemble_Layers(ut.TestCase):
             in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, last_layer_is_readout=True
         )
 
-
     def check_ensemble_feedforwardnn(
         self,
         in_dim: int,
@@ -331,7 +327,12 @@ class test_Ensemble_Layers(ut.TestCase):
         # Create EnsembleFeedForwardNN instance
         hidden_dims = [17, 17, 17]
         ensemble_mlp = EnsembleFeedForwardNN(
-            in_dim, out_dim, hidden_dims, num_ensemble, reduction=None, last_layer_is_readout=last_layer_is_readout
+            in_dim,
+            out_dim,
+            hidden_dims,
+            num_ensemble,
+            reduction=None,
+            last_layer_is_readout=last_layer_is_readout,
         )
 
         # Create equivalent separate MLP layers with synchronized weights and biases
@@ -359,7 +360,9 @@ class test_Ensemble_Layers(ut.TestCase):
         individual_outputs = torch.stack(individual_outputs).detach().numpy()
         for i, mlp in enumerate(mlps):
             ensemble_output_i = ensemble_output[i].detach().numpy()
-            np.testing.assert_allclose(ensemble_output_i, individual_outputs[..., i, :, :], atol=1e-5, err_msg=msg)
+            np.testing.assert_allclose(
+                ensemble_output_i, individual_outputs[..., i, :, :], atol=1e-5, err_msg=msg
+            )
 
         # Test with a sample input with the extra `num_ensemble` and `more_batch_dim` dimension
         if more_batch_dim:
@@ -385,7 +388,6 @@ class test_Ensemble_Layers(ut.TestCase):
             ensemble_output_i = ensemble_output_i.detach().numpy()
             np.testing.assert_allclose(ensemble_output_i, individual_output, atol=1e-5, err_msg=msg)
 
-
     def check_ensemble_feedforwardnn_mean(
         self,
         in_dim: int,
@@ -400,7 +402,12 @@ class test_Ensemble_Layers(ut.TestCase):
         # Create EnsembleFeedForwardNN instance
         hidden_dims = [17, 17, 17]
         ensemble_mlp = EnsembleFeedForwardNN(
-            in_dim, out_dim, hidden_dims, num_ensemble, reduction="mean", last_layer_is_readout=last_layer_is_readout
+            in_dim,
+            out_dim,
+            hidden_dims,
+            num_ensemble,
+            reduction="mean",
+            last_layer_is_readout=last_layer_is_readout,
         )
 
         # Create equivalent separate MLP layers with synchronized weights and biases
@@ -421,14 +428,15 @@ class test_Ensemble_Layers(ut.TestCase):
         # Check for the output shape
         self.assertEqual(ensemble_output.shape, (batch_size, out_dim), msg=msg)
 
-
         # Make sure that the outputs of the individual layers are the same as the ensemble output
         individual_outputs = []
         for i, mlp in enumerate(mlps):
             individual_outputs.append(mlp(input_tensor))
         individual_outputs = torch.stack(individual_outputs, dim=-3)
         individual_outputs = individual_outputs.mean(dim=-3).detach().numpy()
-        np.testing.assert_allclose(ensemble_output.detach().numpy(), individual_outputs, atol=1e-5, err_msg=msg)
+        np.testing.assert_allclose(
+            ensemble_output.detach().numpy(), individual_outputs, atol=1e-5, err_msg=msg
+        )
 
         # Test with a sample input with the extra `num_ensemble` and `more_batch_dim` dimension
         if more_batch_dim:
@@ -452,24 +460,39 @@ class test_Ensemble_Layers(ut.TestCase):
         individual_output = torch.stack(individual_outputs, dim=-3).mean(dim=-3).detach().numpy()
         np.testing.assert_allclose(ensemble_output, individual_output, atol=1e-5, err_msg=msg)
 
-
-
-
     def test_ensemble_feedforwardnn(self):
         # more_batch_dim=0
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=0)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=0)
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=0
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=0
+        )
 
         # more_batch_dim=1
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=1)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=1)
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=1
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=1
+        )
 
         # more_batch_dim=7
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=7)
-        self.check_ensemble_feedforwardnn(in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=7)
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=1, more_batch_dim=7
+        )
+        self.check_ensemble_feedforwardnn(
+            in_dim=11, out_dim=5, num_ensemble=1, batch_size=13, more_batch_dim=7
+        )
 
         # Test `last_layer_is_readout`
         self.check_ensemble_feedforwardnn(
@@ -492,6 +515,7 @@ class test_Ensemble_Layers(ut.TestCase):
         self.check_ensemble_feedforwardnn_mean(
             in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, last_layer_is_readout=True
         )
+
 
 if __name__ == "__main__":
     ut.main()

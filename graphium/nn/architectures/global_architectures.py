@@ -579,7 +579,9 @@ class EnsembleFeedForwardNN(FeedForwardNN):
             ), f"num_ensemble={num_ensemble} != num_ensemble_2={num_ensemble_2}"
 
         # Check that `num_ensemble_out` is not None
-        assert num_ensemble_out is not None, f"num_ensemble={num_ensemble} and num_ensemble_2={num_ensemble_2}"
+        assert (
+            num_ensemble_out is not None
+        ), f"num_ensemble={num_ensemble} and num_ensemble_2={num_ensemble_2}"
 
         return num_ensemble_out
 
