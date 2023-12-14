@@ -321,8 +321,9 @@ class EnsembleMLP(MLP):
                 - "sum": Sum reduction
                 - "max": Max reduction
                 - "min": Min reduction
+                - "median": Median reduction
                 - `Callable`: Any callable function. Must take `dim` as a keyword argument.
-            activation:
+           activation:
                 Activation function to use in all the layers except the last.
                 if `layers==1`, this parameter is ignored
             last_activation:
@@ -389,7 +390,12 @@ class EnsembleMLP(MLP):
             return torch.mean
         elif reduction == "sum":
             return torch.sum
-
+        elif reduction == "max":
+            return torch.max
+        elif reduction == "min":
+            return torch.min
+        elif reduction == "median":
+            return torch.median
         elif callable(reduction):
             return reduction
         else:
