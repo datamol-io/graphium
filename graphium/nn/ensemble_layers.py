@@ -374,7 +374,7 @@ class EnsembleMLP(MLP):
             fc_layer_kwargs={"num_ensemble": num_ensemble},
         )
 
-        self.reduction = self._parse_reduction(reduction)
+        self.reduction_fn = self._parse_reduction(reduction)
 
     def _parse_reduction(self, reduction: Optional[Union[str, Callable]]) -> Optional[Callable]:
         r"""
@@ -415,8 +415,8 @@ class EnsembleMLP(MLP):
                 `L` is removed if a reduction is specified.
         """
         h = super().forward(h)
-        if self.reduction is not None:
-            h = self.reduction(h, dim=-2)
+        if self.reduction_fn is not None:
+            h = self.reduction_fn(h, dim=-3)
         return h
 
     def __repr__(self):

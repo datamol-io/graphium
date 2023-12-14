@@ -405,7 +405,7 @@ class FeedForwardNN(nn.Module, MupMixin):
         return class_str + layer_str
 
 
-class EnsembleFeedForwardNN(nn.Module, MupMixin):
+class EnsembleFeedForwardNN(FeedForwardNN):
     def __init__(
         self,
         in_dim: int,
@@ -528,14 +528,9 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
         """
 
         # Parse the ensemble arguments
-        self.num_ensemble = num_ensemble
-        num_ensemble_2 = layer_kwargs.get("num_ensemble", None)
-        if num_ensemble_2 is None:
-            layer_kwargs["num_ensemble"] = num_ensemble
-        else:
-            assert (
-                num_ensemble_2 == num_ensemble
-            ), f"num_ensemble={num_ensemble} != num_ensemble_2={num_ensemble_2}"
+        if layer_kwargs is None:
+            layer_kwargs = {}
+        layer_kwargs["num_ensemble"] = self._parse_num_ensemble(num_ensemble, layer_kwargs)
 
         super().__init__(
             in_dim=in_dim,
@@ -555,12 +550,38 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
             layer_type=layer_type,
             layer_kwargs=layer_kwargs,
             last_layer_is_readout=last_layer_is_readout,
-            reduction=reduction,
         )
 
         # Parse the reduction
         self.reduction = reduction
         self.reduction_fn = self._parse_reduction(reduction)
+
+    def _parse_num_ensemble(self, num_ensemble: int, layer_kwargs) -> int:
+        r"""
+        Parse the num_ensemble argument.
+        """
+        num_ensemble_out = num_ensemble
+
+        # Get the num_ensemble from the layer_kwargs if it exists
+        num_ensemble_2 = None
+        if layer_kwargs is None:
+            layer_kwargs = {}
+        else:
+            num_ensemble_2 = layer_kwargs.get("num_ensemble", None)
+
+        if num_ensemble is None:
+            num_ensemble_out = num_ensemble_2
+
+        # Check that the num_ensemble is consistent
+        if num_ensemble_2 is not None:
+            assert (
+                num_ensemble_2 == num_ensemble
+            ), f"num_ensemble={num_ensemble} != num_ensemble_2={num_ensemble_2}"
+
+        # Check that `num_ensemble_out` is not None
+        assert num_ensemble_out is not None, f"num_ensemble={num_ensemble} and num_ensemble_2={num_ensemble_2}"
+
+        return num_ensemble_out
 
     def _parse_reduction(self, reduction: Optional[Union[str, Callable]]) -> Optional[Callable]:
         r"""
@@ -614,8 +635,8 @@ class EnsembleFeedForwardNN(nn.Module, MupMixin):
         """
 
         h = super().forward(h)
-        if self.reduction is not None:
-            h = self.reduction(h, dim=-2)
+        if self.reduction_fn is not None:
+            h = self.reduction_fn(h, dim=-3)
 
         return h
 
