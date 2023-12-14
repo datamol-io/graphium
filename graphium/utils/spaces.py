@@ -143,4 +143,4 @@ FINETUNING_HEADS_DICT = {
     "gnn": Architectures.FeedForwardPyg,
     "task_head": Architectures.TaskHeads,
     "ens-mlp": Architectures.EnsembleFeedForwardNN,
-    }
+}
