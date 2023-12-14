@@ -599,15 +599,22 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         elif reduction == "sum":
             return torch.sum
         elif reduction == "max":
-            return torch.max
+            def max_vals(x, dim):
+                return torch.max(x, dim=dim).values
+            return max_vals
         elif reduction == "min":
-            return torch.min
+            def min_vals(x, dim):
+                return torch.min(x, dim=dim).values
+            return min_vals
         elif reduction == "median":
-            return torch.median
+            def median_vals(x, dim):
+                return torch.median(x, dim=dim).values
+            return median_vals
         elif callable(reduction):
             return reduction
         else:
             raise ValueError(f"Unknown reduction {reduction}")
+
 
     def _parse_layers(self, layer_type, residual_type):
         # Parse the layer and residuals
