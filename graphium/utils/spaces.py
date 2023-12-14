@@ -5,7 +5,7 @@ import torchmetrics.functional as TorchMetrics
 
 import graphium.nn.base_layers as BaseLayers
 import graphium.nn.ensemble_layers as EnsembleLayers
-from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, TaskHeads
+import graphium.nn.architectures as Architectures
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
 import graphium.ipu.ipu_losses as IPULosses
@@ -138,4 +138,9 @@ GRAPHIUM_PRETRAINED_MODELS_DICT = {
     "dummy-pretrained-model": "tests/dummy-pretrained-model.ckpt",  # dummy model used for testing purposes
 }
 
-FINETUNING_HEADS_DICT = {"mlp": FeedForwardNN, "gnn": FeedForwardPyg, "task_head": TaskHeads}
+FINETUNING_HEADS_DICT = {
+    "mlp": Architectures.FeedForwardNN,
+    "gnn": Architectures.FeedForwardPyg,
+    "task_head": Architectures.TaskHeads,
+    "ens-mlp": Architectures.EnsembleFeedForwardNN,
+    }
