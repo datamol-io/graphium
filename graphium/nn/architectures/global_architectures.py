@@ -413,6 +413,7 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         hidden_dims: Union[List[int], int],
         num_ensemble: int,
         reduction: Union[str, Callable],
+        subset_sample_ratio: float = 1.0,
         depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
@@ -460,6 +461,11 @@ class EnsembleFeedForwardNN(FeedForwardNN):
                 - "min": Min reduction
                 - "median": Median reduction
                 - `Callable`: Any callable function. Must take `dim` as a keyword argument.
+
+            subset_sample_ratio:
+                Ratio of the subset of the ensemble to use.
+                Must be between 0 and 1. A different subset is used for each ensemble.
+                Only valid if the input shape is `[B, Din]`.
 
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
@@ -532,6 +538,9 @@ class EnsembleFeedForwardNN(FeedForwardNN):
             layer_kwargs = {}
         layer_kwargs["num_ensemble"] = self._parse_num_ensemble(num_ensemble, layer_kwargs)
 
+        # Parse the sample ratio
+        self.subset_sample_ratio, self.subset_in_dim, self.subset_idx = self._parse_subset_sample(subset_sample_ratio, num_ensemble)
+
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -555,6 +564,10 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         # Parse the reduction
         self.reduction = reduction
         self.reduction_fn = self._parse_reduction(reduction)
+
+    def _create_layers(self):
+        self.full_dims[0] = self.subset_in_dim
+        super()._create_layers()
 
     def _parse_num_ensemble(self, num_ensemble: int, layer_kwargs) -> int:
         r"""
@@ -615,6 +628,52 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         else:
             raise ValueError(f"Unknown reduction {reduction}")
 
+    def _parse_subset_sample(self, in_dim: int, subset_sample_ratio: float, num_ensemble: int) -> Tuple[float, int]:
+        r"""
+        Parse the subset_sample_ratio argument and the subset_in_dim.
+
+        The subset_sample_ratio is the ratio of the hidden features to use by each MLP of the ensemble.
+        The subset_in_dim is the number of input features to use by each MLP of the ensemble.
+
+        Parameters:
+
+            in_dim: The number of input features, before subsampling
+
+            subset_sample_ratio:
+                Ratio of the subset of features to use by each MLP of the ensemble.
+                Must be between 0 and 1. A different subset is used for each ensemble.
+                Only valid if the input shape is `[B, Din]`.
+
+                If None, the subset_sample_ratio is set to 1.0.
+
+            num_ensemble:
+                Number of MLPs that run in parallel.
+
+        Returns:
+
+                subset_sample_ratio: The ratio of the subset of features to use by each MLP of the ensemble.
+                subset_in_dim: The number of input features to use by each MLP of the ensemble.
+                subset_idx: The indices of the features to use by each MLP of the ensemble.
+        """
+
+        # Parse the subset_sample_ratio, make sure value is between 0 and 1
+        if subset_sample_ratio is None:
+            subset_sample_ratio = 1.0
+        assert subset_sample_ratio > 0.0 and subset_sample_ratio <= 1.0, f"subset_sample_ratio={subset_sample_ratio}"
+
+        # Parse the subset_in_dim, make sure value is between 0 and in_dim
+        subset_in_dim = int(torch.ceil(in_dim * subset_sample_ratio).item())
+        if subset_in_dim == 0:
+            subset_in_dim = 1
+
+        # Create the subset_idx, which is a list of indices to use for each ensemble
+        if subset_in_dim == in_dim:
+            subset_idx = None
+        else:
+            subset_idx = torch.stack([
+                torch.randperm(in_dim)[:subset_in_dim] for _ in range(num_ensemble)])
+
+        return subset_sample_ratio, subset_in_dim, subset_idx
 
     def _parse_layers(self, layer_type, residual_type):
         # Parse the layer and residuals
@@ -625,7 +684,9 @@ class EnsembleFeedForwardNN(FeedForwardNN):
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
-        Apply the ensemble MLP on the input features, then reduce the output if specified.
+        Subset the hidden dimension for each MLP,
+        forward the ensemble MLP on the input features,
+        then reduce the output if specified.
 
         Parameters:
 
@@ -642,8 +703,16 @@ class EnsembleFeedForwardNN(FeedForwardNN):
                 `Dout` is the number of output features, `B` is the batch size, and `L` is the number of ensembles.
                 `L` is removed if a reduction is specified.
         """
+        # Subset the input features for each MLP in the ensemble
+        if self.subset_idx is not None:
+            if len(h.shape) != 2:
+                assert h.shape[-3] == 1, f"Expected shape to be [B, Din] or [..., 1, B, Din], got {h.shape}"
+                h = h[..., self.subset_idx]
 
+        # Run the standard forward pass
         h = super().forward(h)
+
+        # Reduce the output if specified
         if self.reduction_fn is not None:
             h = self.reduction_fn(h, dim=-3)
 
