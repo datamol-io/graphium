@@ -460,6 +460,37 @@ class test_Ensemble_Layers(ut.TestCase):
         individual_output = torch.stack(individual_outputs, dim=-3).mean(dim=-3).detach().numpy()
         np.testing.assert_allclose(ensemble_output, individual_output, atol=1e-5, err_msg=msg)
 
+    def check_ensemble_feedforwardnn_simple(
+        self,
+        in_dim: int,
+        out_dim: int,
+        num_ensemble: int,
+        batch_size: int,
+        more_batch_dim: int,
+        last_layer_is_readout=False,
+        **kwargs,
+    ):
+        msg = f"Testing EnsembleFeedForwardNN with in_dim={in_dim}, out_dim={out_dim}, num_ensemble={num_ensemble}, batch_size={batch_size}, more_batch_dim={more_batch_dim}"
+
+        # Create EnsembleFeedForwardNN instance
+        hidden_dims = [17, 17, 17]
+        ensemble_mlp = EnsembleFeedForwardNN(
+            in_dim,
+            out_dim,
+            hidden_dims,
+            num_ensemble,
+            reduction=None,
+            last_layer_is_readout=last_layer_is_readout,
+            **kwargs,
+        )
+
+        # Test with a sample input
+        input_tensor = torch.randn(batch_size, in_dim)
+        ensemble_output = ensemble_mlp(input_tensor)
+
+        # Check for the output shape
+        self.assertEqual(ensemble_output.shape, (num_ensemble, batch_size, out_dim), msg=msg)
+
     def test_ensemble_feedforwardnn(self):
         # more_batch_dim=0
         self.check_ensemble_feedforwardnn(
@@ -515,6 +546,38 @@ class test_Ensemble_Layers(ut.TestCase):
         self.check_ensemble_feedforwardnn_mean(
             in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, last_layer_is_readout=True
         )
+
+        # Test `subset_in_dim`
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0, subset_in_dim=0.5
+        )
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1, subset_in_dim=0.5
+        )
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, subset_in_dim=0.5
+        )
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0, subset_in_dim=7
+        )
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1, subset_in_dim=7
+        )
+        self.check_ensemble_feedforwardnn_simple(
+            in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, subset_in_dim=7
+        )
+        with self.assertRaises(AssertionError):
+            self.check_ensemble_feedforwardnn_simple(
+                in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=0, subset_in_dim=1.5
+            )
+        with self.assertRaises(AssertionError):
+            self.check_ensemble_feedforwardnn_simple(
+                in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=1, subset_in_dim=39
+            )
+        with self.assertRaises(AssertionError):
+            self.check_ensemble_feedforwardnn_simple(
+                in_dim=11, out_dim=5, num_ensemble=3, batch_size=13, more_batch_dim=7, subset_in_dim=39
+            )
 
 
 if __name__ == "__main__":

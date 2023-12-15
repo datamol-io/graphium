@@ -684,9 +684,7 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         if subset_in_dim == in_dim:
             subset_idx = None
         else:
-            subset_idx = torch.stack(
-                [torch.randperm(in_dim)[:subset_in_dim] for _ in range(num_ensemble)]
-            ).unsqueeze(-2)
+            subset_idx = torch.stack([torch.randperm(in_dim)[:subset_in_dim] for _ in range(num_ensemble)])
 
         return subset_in_dim, subset_idx
 
@@ -721,8 +719,8 @@ class EnsembleFeedForwardNN(FeedForwardNN):
         # Subset the input features for each MLP in the ensemble
         if self.subset_idx is not None:
             if len(h.shape) != 2:
-                assert h.shape[-3] == 1, f"Expected shape to be [B, Din] or [..., 1, B, Din], got {h.shape}"
-            h = h[..., self.subset_idx]
+                assert h.shape[-3] == 1, f"Expected shape to be [B, Din] or [..., 1, B, Din], got {h.shape}."
+            h = h[..., self.subset_idx].transpose(-2, -3)
 
         # Run the standard forward pass
         h = super().forward(h)
