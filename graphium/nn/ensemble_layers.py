@@ -391,16 +391,22 @@ class EnsembleMLP(MLP):
         elif reduction == "sum":
             return torch.sum
         elif reduction == "max":
+
             def max_vals(x, dim):
                 return torch.max(x, dim=dim).values
+
             return max_vals
         elif reduction == "min":
+
             def min_vals(x, dim):
                 return torch.min(x, dim=dim).values
+
             return min_vals
         elif reduction == "median":
+
             def median_vals(x, dim):
                 return torch.median(x, dim=dim).values
+
             return median_vals
         elif callable(reduction):
             return reduction
