@@ -4,7 +4,8 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as TorchMetrics
 
 import graphium.nn.base_layers as BaseLayers
-from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, TaskHeads
+import graphium.nn.ensemble_layers as EnsembleLayers
+import graphium.nn.architectures as Architectures
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
 import graphium.ipu.ipu_losses as IPULosses
@@ -27,6 +28,10 @@ FC_LAYERS_DICT = {
     "fc": BaseLayers.FCLayer,
 }
 
+ENSEMBLE_FC_LAYERS_DICT = {
+    "ens-fc": EnsembleLayers.EnsembleFCLayer,
+}
+
 PYG_LAYERS_DICT = {
     "pyg:gcn": PygLayers.GCNConvPyg,
     "pyg:gin": PygLayers.GINConvPyg,
@@ -41,6 +46,7 @@ PYG_LAYERS_DICT = {
 LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
+ENSEMBLE_LAYERS_DICT = deepcopy(ENSEMBLE_FC_LAYERS_DICT)
 
 RESIDUALS_DICT = {
     "none": Residuals.ResidualConnectionNone,
@@ -132,4 +138,9 @@ GRAPHIUM_PRETRAINED_MODELS_DICT = {
     "dummy-pretrained-model": "tests/dummy-pretrained-model.ckpt",  # dummy model used for testing purposes
 }
 
-FINETUNING_HEADS_DICT = {"mlp": FeedForwardNN, "gnn": FeedForwardPyg, "task_head": TaskHeads}
+FINETUNING_HEADS_DICT = {
+    "mlp": Architectures.FeedForwardNN,
+    "gnn": Architectures.FeedForwardPyg,
+    "task_head": Architectures.TaskHeads,
+    "ens-mlp": Architectures.EnsembleFeedForwardNN,
+}

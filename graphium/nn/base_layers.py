@@ -236,44 +236,7 @@ class MuReadoutGraphium(MuReadout):
 
     def __init__(self, in_features, *args, **kwargs):
         super().__init__(in_features, *args, **kwargs)
-        self.base_width = in_features
-
-    @property
-    def absolute_width(self):
-        return float(self.in_features)
-
-    @property
-    def base_width(self):
-        return self._base_width
-
-    @base_width.setter
-    def base_width(self, val):
-        if val is None:
-            return
-        assert isinstance(
-            val, (int, torch.int, torch.long)
-        ), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
-        self._base_width = val
-
-    def width_mult(self):
-        return self.absolute_width / self.base_width
-
-
-class MuReadoutGraphium(MuReadout):
-    """
-    PopTorch-compatible replacement for `mup.MuReadout`
-
-    Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
-    `base_width`.
-
-    Set `base_width` to width of base model passed to `mup.set_base_shapes`
-    to get same results on IPU and CPU. Should still "work" with any other
-    value, but won't give the same results as CPU
-    """
-
-    def __init__(self, in_features, *args, **kwargs):
-        super().__init__(in_features, *args, **kwargs)
-        self.base_width = in_features
+        self._base_width = in_features
 
     @property
     def absolute_width(self):
@@ -479,7 +442,7 @@ class MLP(nn.Module):
         in_dim: int,
         hidden_dims: Union[Iterable[int], int],
         out_dim: int,
-        depth: int,
+        depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -490,6 +453,8 @@ class MLP(nn.Module):
         last_layer_is_readout: bool = False,
         droppath_rate: float = 0.0,
         constant_droppath_rate: bool = True,
+        fc_layer: FCLayer = FCLayer,
+        fc_layer_kwargs: Optional[dict] = None,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -538,12 +503,17 @@ class MLP(nn.Module):
                 If `True`, drop rates will remain constant accross layers.
                 Otherwise, drop rates will vary stochastically.
                 See `DropPath.get_stochastic_drop_rate`
+            fc_layer:
+                The fully connected layer to use. Must inherit from `FCLayer`.
+            fc_layer_kwargs:
+                Keyword arguments to pass to the fully connected layer.
         """
 
         super().__init__()
 
         self.in_dim = in_dim
         self.out_dim = out_dim
+        self.fc_layer_kwargs = deepcopy(fc_layer_kwargs) or {}
 
         # Parse the hidden dimensions and depth
         if isinstance(hidden_dims, int):
@@ -560,12 +530,12 @@ class MLP(nn.Module):
 
         all_dims = [in_dim] + self.hidden_dims + [out_dim]
         fully_connected = []
-        if depth == 0:
+        if self.depth == 0:
             self.fully_connected = None
             return
         else:
-            for ii in range(depth):
-                if ii < (depth - 1):
+            for ii in range(self.depth):
+                if ii < (self.depth - 1):
                     # Define the parameters for all intermediate layers
                     this_activation = activation
                     this_normalization = normalization
@@ -581,11 +551,11 @@ class MLP(nn.Module):
                 if constant_droppath_rate:
                     this_drop_rate = droppath_rate
                 else:
-                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, depth)
+                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, self.depth)
 
                 # Add a fully-connected layer
                 fully_connected.append(
-                    FCLayer(
+                    fc_layer(
                         all_dims[ii],
                         all_dims[ii + 1],
                         activation=this_activation,
@@ -593,6 +563,7 @@ class MLP(nn.Module):
                         dropout=this_dropout,
                         is_readout_layer=is_readout_layer,
                         droppath_rate=this_drop_rate,
+                        **self.fc_layer_kwargs,
                     )
                 )
 
