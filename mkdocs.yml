@@ -24,7 +24,6 @@ nav:
       - graphium.utils: api/graphium.utils.md
       - graphium.config: api/graphium.config.md
       - graphium.ipu: api/graphium.ipu.md
-      - graphium.visualization: api/graphium.visualization.md
       - graphium.finetuning: api/graphium.finetuning.md
   - Tutorials:
       - feature_processing:
@@ -41,9 +40,9 @@ nav:
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
-  - CLI: 
+  - CLI:
     - About: cli/reference.md
-    - Commands: 
+    - Commands:
       - graphium: cli/graphium.md
       - graphium-train: cli/graphium-train.md
   - Contribute: contribute.md

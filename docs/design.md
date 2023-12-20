@@ -46,7 +46,6 @@ Below are a list of directory and their respective documentations:
 - [nn](https://github.com/datamol-io/graphium/tree/main/graphium/nn/README.md)
 - [trainer](https://github.com/datamol-io/graphium/tree/main/graphium/trainer/README.md)
 - [utils](https://github.com/datamol-io/graphium/tree/main/graphium/features/README.md)
-- [visualization](https://github.com/datamol-io/graphium/tree/main/graphium/visualization/README.md)
 
 
 ## Structure of the configs
