@@ -339,7 +339,7 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("embed_dim", self.in_dim)
         if force_consistent_in_dim:
             embed_dim = attn_kwargs["embed_dim"]
-            # assert embed_dim == self.in_dim, f"embed_dim={embed_dim} must be equal to in_dim={self.in_dim}"
+            assert embed_dim == self.in_dim, f"embed_dim={embed_dim} must be equal to in_dim={self.in_dim}"
 
         # Initialize the Attention layer
         attn_layer, attn_class = None, None
