@@ -13,8 +13,6 @@ for any damages arising from its use. Refer to the LICENSE file for the full ter
 """
 
 
-
-
 from typing import List, Tuple, Iterable, Optional
 import numpy as np
 import torch

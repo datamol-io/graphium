@@ -15,6 +15,7 @@ for any damages arising from its use. Refer to the LICENSE file for the full ter
 
 from dataclasses import dataclass
 
+
 @dataclass
 class MovingAverageTracker:
     num_samples: int = 0

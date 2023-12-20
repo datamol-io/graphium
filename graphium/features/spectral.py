@@ -13,7 +13,6 @@ for any damages arising from its use. Refer to the LICENSE file for the full ter
 """
 
 
-
 from typing import Tuple, Union, Dict, Any
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
