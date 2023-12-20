@@ -194,7 +194,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.biased_attention_key = biased_attention_key
         # Initialize the MPNN and Attention layers
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
-        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs, force_consistent_in_dim=force_consistent_in_dim)
+        self.attn_layer = self._parse_attn_layer(
+            attn_type, self.biased_attention_key, attn_kwargs, force_consistent_in_dim=force_consistent_in_dim
+        )
 
         self.output_scale = output_scale
         self.use_edges = True if self.in_dim_edges is not None else False
@@ -307,7 +309,11 @@ class GPSLayerPyg(BaseGraphModule):
         return mpnn_layer
 
     def _parse_attn_layer(
-        self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any], force_consistent_in_dim: bool = True
+        self,
+        attn_type,
+        biased_attention_key: str,
+        attn_kwargs: Dict[str, Any],
+        force_consistent_in_dim: bool = True,
     ) -> Optional[Module]:
         """
         parse the input attention layer and check if it is valid

@@ -1327,7 +1327,9 @@ class FeedForwardGraph(FeedForwardNN):
                 elif k in ["embed_dim"]:
                     num_heads = x.get("num_heads", 1)
                     x[k] = round(v / divide_factor)
-                    assert x[k] % num_heads == 0, f"embed_dim={x[k]} is not divisible by num_heads={num_heads}"
+                    assert (
+                        x[k] % num_heads == 0
+                    ), f"embed_dim={x[k]} is not divisible by num_heads={num_heads}"
 
         _recursive_divide_dim(kwargs["layer_kwargs"])
 
