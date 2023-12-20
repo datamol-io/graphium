@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="docs/images/logo.png" height="200px">
+    <img src="docs/images/banner.png" height="200px">
     <h3>Scaling molecular GNNs to infinity</h3>
 </div>
 
@@ -91,7 +91,7 @@ Integrating `hydra` also allows you to quickly switch between accelerators. E.g.
 graphium-train dataset=toymix model=gcn accelerator=gpu
 ```
 automatically selects the correct configs to run the experiment on GPU.
-Finally, you can also run a fine-tuning loop: 
+Finally, you can also run a fine-tuning loop:
 ```bash
 graphium-train +finetuning=admet
 ```
