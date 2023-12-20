@@ -1353,14 +1353,15 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             g["edge_feat"] = e
 
         # Apologies for the similar names here
-        extras_to_return = []
+        extras_to_return = {}
 
+        #g, gnn_extras_to_return = self.gnn.forward(g, extra_return_names=extra_return_names)
+        #extras_to_return.update(gnn_extras_to_return)
+        g = self.gnn.forward(g)
         if extra_return_names:
             # Run the graph neural network
-            g, gnn_extras_to_return = self.gnn.forward(g, extra_return_names=extra_return_names)
-            extras_to_return.update(gnn_extras_to_return)
 
-            if "pre_task_heads" in extra_returns:
+            if "pre_task_heads" in extra_return_names:
                 extras_to_return.update({"pre_task_heads": g})
 
             if self.task_heads is None:
