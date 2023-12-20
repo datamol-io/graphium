@@ -186,7 +186,10 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2021 Valence
+   Copyright 2023 Valence Labs
+   Copyright 2023 Recursion Pharmaceuticals
+   Copyright 2023 Graphcore Limited
+   Copyright 2023 --- various academic groups have also contributed to the code and detain copyright.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
