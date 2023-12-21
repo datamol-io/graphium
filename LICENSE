@@ -189,7 +189,17 @@
    Copyright 2023 Valence Labs
    Copyright 2023 Recursion Pharmaceuticals
    Copyright 2023 Graphcore Limited
-   Copyright 2023 --- various academic groups have also contributed to the code and detain copyright.
+
+   Various Academic groups have also contributed to this software under
+   the given license. These include, but are not limited, to the following
+
+   1. University of Montreal
+   2. McGill University
+   3. Mila - Institut Quebecois d'intelligence artificielle
+   4. HEC Montreal
+   5. CIFAR AI Chair
+   6. New Jersey Institute of Technology
+   7. RWTH Aachen University
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
