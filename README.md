@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="docs/images/banner.png" height="200px">
+    <img src="docs/images/banner-tight.png" height="200px">
     <h3>Scaling molecular GNNs to infinity</h3>
 </div>
 
