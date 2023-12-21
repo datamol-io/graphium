@@ -7,8 +7,8 @@ Use of this software is subject to the terms and conditions outlined in the LICE
 Unauthorized modification, distribution, or use is prohibited. Provided 'as is' without
 warranties of any kind.
 
-Valence Labs, Recursion Pharmaceuticals are not liable
-for any damages arising from its use. Refer to the LICENSE file for the full terms and conditions.
+Valence Labs, Recursion Pharmaceuticals are not liable for any damages arising from its use.
+Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
