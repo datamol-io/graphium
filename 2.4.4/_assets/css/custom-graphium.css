@@ -1,0 +1,91 @@
+:root {
+  --graphium-primary: #548235;
+  --graphium-secondary: #343a40;
+
+  /* Primary color shades */
+  --md-primary-fg-color: var(--graphium-primary);
+  --md-primary-fg-color--light: var(--graphium-primary);
+  --md-primary-fg-color--dark: var(--graphium-primary);
+  --md-primary-bg-color: var(--graphium-secondary);
+  --md-primary-bg-color--light: var(--graphium-secondary);
+  --md-text-link-color: var(--graphium-secondary);
+
+  /* Accent color shades */
+  --md-accent-fg-color: var(--graphium-secondary);
+  --md-accent-fg-color--transparent: var(--graphium-secondary);
+  --md-accent-bg-color: var(--graphium-secondary);
+  --md-accent-bg-color--light: var(--graphium-secondary);
+}
+
+:root > * {
+  /* Code block color shades */
+  --md-code-bg-color: hsla(0, 0%, 96%, 1);
+  --md-code-fg-color: hsla(200, 18%, 26%, 1);
+
+  /* Footer */
+  --md-footer-bg-color: var(--graphium-primary);
+  /* --md-footer-bg-color--dark: hsla(0, 0%, 0%, 0.32); */
+  --md-footer-fg-color: var(--graphium-secondary);
+  --md-footer-fg-color--light: var(--graphium-secondary);
+  --md-footer-fg-color--lighter: var(--graphium-secondary);
+}
+
+.md-header {
+  background-image: linear-gradient(to right, #548235, #8DB771);
+}
+
+.md-footer {
+  background-image: linear-gradient(to right, #548235, #8DB771);
+}
+
+.md-tabs {
+  background-image: linear-gradient(to right, #f4f6f9, #e2cec3);
+}
+
+.md-header__topic {
+  color: #fff;
+}
+
+.md-source__repository,
+.md-source__icon,
+.md-search__input,
+.md-search__input::placeholder,
+.md-search__input ~ .md-search__icon,
+.md-footer__inner.md-grid,
+.md-copyright__highlight,
+.md-copyright,
+.md-footer-meta.md-typeset a,
+.md-version {
+  color: #fff !important;
+}
+
+.md-search__form {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.md-search__input {
+  color: #222 !important;
+}
+
+.md-header__topic {
+  color: #fff;
+  font-size: 1.4em;
+}
+
+/* Increase the size of the logo */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2rem !important;
+}
+
+/* Reduce the margin around the logo */
+.md-header__button.md-logo {
+  margin: 0.4em;
+  padding: 0.4em;
+}
+
+/* Remove the `In` and `Out` block in rendered Jupyter notebooks */
+.md-container .jp-Cell-outputWrapper .jp-OutputPrompt.jp-OutputArea-prompt,
+.md-container .jp-Cell-inputWrapper .jp-InputPrompt.jp-InputArea-prompt {
+  display: none !important;
+}
