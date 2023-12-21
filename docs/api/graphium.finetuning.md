@@ -1,8 +1,13 @@
+graphium.finetuning
+====================
+Module for finetuning models and doing linear probing (fingerprinting).
+
+::: graphium.finetuning.finetuning.GraphFinetuning
+
+::: graphium.finetuning.finetuning_architecture.FullGraphFinetuningNetwork
+
+::: graphium.finetuning.finetuning_architecture.PretrainedModel
+
+::: graphium.finetuning.finetuning_architecture.FinetuningHead
+
 ::: graphium.finetuning.fingerprinting.Fingerprinter
-    options: 
-        filters: ["!^_"]
-        separate_signature: true
-        show_signature_annotations: true
-        line_length: 80
-        merge_init_into_class: true 
-        members_order: source
