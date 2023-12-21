@@ -41,9 +41,9 @@ nav:
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
-  - CLI: 
+  - CLI:
     - About: cli/reference.md
-    - Commands: 
+    - Commands:
       - graphium: cli/graphium.md
       - graphium-train: cli/graphium-train.md
   - Contribute: contribute.md
@@ -56,8 +56,8 @@ theme:
   features:
     - navigation.tabs
     - navigation.expand
-  favicon: images/logo.png
-  logo: images/logo.svg
+  favicon: images/logo-mini-dark.png
+  logo: images/logo-mini-white.svg
 
 extra_css:
   - _assets/css/custom.css

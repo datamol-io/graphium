@@ -1,5 +1,5 @@
 :root {
-  --graphium-primary: #70ad47;
+  --graphium-primary: #548235;
   --graphium-secondary: #343a40;
 
   /* Primary color shades */
@@ -31,11 +31,11 @@
 }
 
 .md-header {
-  background-color: #70ad47;
+  background-image: linear-gradient(to right, #548235, #8DB771);
 }
 
 .md-footer {
-  background-color: #70ad47;
+  background-image: linear-gradient(to right, #548235, #8DB771);
 }
 
 .md-tabs {
