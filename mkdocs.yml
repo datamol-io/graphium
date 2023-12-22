@@ -24,7 +24,6 @@ nav:
       - graphium.utils: api/graphium.utils.md
       - graphium.config: api/graphium.config.md
       - graphium.ipu: api/graphium.ipu.md
-      - graphium.visualization: api/graphium.visualization.md
       - graphium.finetuning: api/graphium.finetuning.md
   - Tutorials:
       - feature_processing:
