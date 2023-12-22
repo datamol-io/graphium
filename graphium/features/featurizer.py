@@ -631,6 +631,25 @@ def get_mol_edge_features(
 
     return prop_dict
 
+def smiles_to_node_ordering(mol: dm.Mol) -> List[int]:
+    r"""
+    Get the node ordering of a molecule from the "molAtomMapNumber" property.
+    This property is available when using an ordered smiles rather than a regular smiles.
+
+    Parameters:
+
+    """
+    atoms = list(mol.GetAtoms())
+
+    node_ordering = []
+    for atom in atoms:
+        if atom.HasProp("molAtomMapNumber"):
+            node_ordering.append(int(atom.GetProp("molAtomMapNumber")))
+        else:
+            smiles = dm.to_smiles(mol, canonical=False, isomeric=False)
+            raise ValueError(f"Molecule has no atom map number. \nsmiles: {smiles} \natom: {atom.GetSymbol()}")
+    return node_ordering
+
 
 def mol_to_adj_and_features(
     mol: Union[str, dm.Mol],
@@ -651,6 +670,7 @@ def mol_to_adj_and_features(
     Dict[str, Tensor],
     Union[Tensor, None],
     Dict[str, Tensor],
+    Union[Tensor, None],
 ]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -740,6 +760,13 @@ def mol_to_adj_and_features(
         conf_dict:
             contains the 3d positions of a conformer of the molecule or 0s if none is found
 
+        node_ordering:
+            The ordering of the nodes in the graph. This is useful to keep track of
+            the original ordering of the nodes in the molecule, in case of
+            node-level, edge-level or nodepair-level predictions. The ordering is determined
+            by
+            In the case of graph-level predictions, this is not needed and returns `None`.
+
     """
 
     if isinstance(mol, str):
@@ -786,7 +813,14 @@ def mol_to_adj_and_features(
         pe_val = np.asarray(pe_val, dtype=dtype)
         pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_val, pe_key)
 
-    return adj, ndata, edata, pe_dict, conf_dict
+    # Get the node ordering
+    node_ordering = None
+    atoms = list(mol.GetAtoms())
+    all_prop_names = set(sum([list(atom.GetPropNames()) for atom in atoms], []))
+    if "molAtomMapNumber" in all_prop_names:
+        node_ordering = torch.as_tensor(smiles_to_node_ordering(mol), dtype=torch.int16)
+
+    return adj, ndata, edata, pe_dict, conf_dict, node_ordering
 
 
 def mol_to_adjacency_matrix(
@@ -890,14 +924,8 @@ class GraphDict(dict):
             "mask_nan": "raise",
         }
         data = dic.pop("data", {})
-        # ndata = dic.pop("ndata", {})
-        # edata = dic.pop("edata", {})
-        # for key in edata.keys():
-        #     assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
         default_dic.update(dic)
         default_dic.update(data)
-        # default_dic.update(ndata)
-        # default_dic.update(edata)
         super().__init__(default_dic)
 
     @property
@@ -1085,6 +1113,7 @@ def mol_to_graph_dict(
             edata,
             pe_dict,
             conf_dict,
+            node_ordering,
         ) = mol_to_adj_and_features(
             mol=mol,
             atom_property_list_onehot=atom_property_list_onehot,
@@ -1131,6 +1160,10 @@ def mol_to_graph_dict(
     # put the conformer positions here
     for key, val in conf_dict.items():
         graph_dict["data"][key] = val
+
+    # Put the node ordering, if available
+    if node_ordering is not None:
+        graph_dict["data"]["_node_ordering"] = node_ordering
 
     graph_dict = GraphDict(graph_dict)
     return graph_dict
