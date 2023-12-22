@@ -1,6 +1,6 @@
 # `graphium-train`
 
-To support advanced configuration, Graphium uses [`hydra`](https://hydra.cc/) to manage and write config files. A limitation of `hydra`, is that it is designed to function as the main entrypoint for a CLI application and does not easily support subcommands. For that reason, we introduced the `graphium-train` command in addition to the [`graphium`](./graphium.md) command. 
+To support advanced configuration, Graphium uses [`hydra`](https://hydra.cc/) to manage and write config files. A limitation of `hydra`, is that it is designed to function as the main entrypoint for a CLI application and does not easily support subcommands. For that reason, we introduced the `graphium-train` command in addition to the [`graphium`](./graphium.md) command.
 
 !!! info "Curious about the configs?"
     If you would like to learn more about the configs, please visit the docs [here](https://github.com/datamol-io/graphium/tree/main/expts/hydra-configs).
@@ -8,21 +8,21 @@ To support advanced configuration, Graphium uses [`hydra`](https://hydra.cc/) to
 This page documents `graphium-train`.
 
 ## Running an experiment
-To run an experiment go to the `expts/hydra-configs` folder for all available configurations. For example, to benchmark a GCN on the ToyMix dataset run
+We have setup Graphium with `hydra` for managing config files. To run an experiment go to the `expts/` folder. For example, to benchmark a GCN on the ToyMix dataset run
 ```bash
-graphium-train dataset=toymix model=gcn
+graphium-train architecture=toymix tasks=toymix training=toymix model=gcn
 ```
 To change parameters specific to this experiment like switching from `fp16` to `fp32` precision, you can either override them directly in the CLI via
 ```bash
-graphium-train dataset=toymix model=gcn trainer.trainer.precision=32
+graphium-train architecture=toymix tasks=toymix training=toymix model=gcn trainer.trainer.precision=32
 ```
-or change them permamently in the dedicated experiment config under `expts/hydra-configs/toymix_gcn.yaml`.
+or change them permanently in the dedicated experiment config under `expts/hydra-configs/toymix_gcn.yaml`.
 Integrating `hydra` also allows you to quickly switch between accelerators. E.g., running
 ```bash
-graphium-train dataset=toymix model=gcn accelerator=gpu
+graphium-train architecture=toymix tasks=toymix training=toymix model=gcn accelerator=gpu
 ```
 automatically selects the correct configs to run the experiment on GPU.
-Finally, you can also run a fine-tuning loop: 
+Finally, you can also run a fine-tuning loop:
 ```bash
 graphium-train +finetuning=admet
 ```
@@ -50,5 +50,5 @@ graphium-train [...] datamodule.args.processed_graph_data_path=[path_to_cached_d
 ??? note "Config vs. Override"
     As with any configuration, note that `datamodule.args.processed_graph_data_path` can also be specified in the configs at `expts/hydra_configs/`.
 
-??? note "Featurization" 
+??? note "Featurization"
     Every time the configs of `datamodule.args.featurization` change, you will need to run a new data preparation, which will automatically be saved in a separate directory that uses a hash unique to the configs.
