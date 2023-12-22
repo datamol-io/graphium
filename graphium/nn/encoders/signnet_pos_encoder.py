@@ -12,7 +12,7 @@ from torch_geometric.data import Batch
 
 from graphium.nn.base_layers import MLP
 from graphium.nn.encoders.base_encoder import BaseEncoder
-
+from graphium.ipu import ipu_isnan
 
 class SimpleGIN(nn.Module):
     def __init__(
@@ -306,7 +306,8 @@ class SignNetNodeEncoder(BaseEncoder):
         eigvecs, edge_index, batch_index = batch[input_keys[0]], batch["edge_index"], batch["batch_index"]
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
 
-        empty_mask = torch.isnan(pos_enc)
+        #empty_mask = torch.isnan(pos_enc)
+        empty_mask = ipu_isnan(pos_enc)
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 1
 
         # SignNet

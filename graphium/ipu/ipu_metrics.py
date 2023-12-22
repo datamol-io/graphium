@@ -32,7 +32,7 @@ from torchmetrics.utilities.enums import AverageMethod
 
 from graphium.utils.tensor import nan_mean
 from graphium.ipu.ipu_utils import import_poptorch
-
+from graphium.ipu import ipu_isnan
 
 def auroc_ipu(
     preds: Tensor,
@@ -55,7 +55,7 @@ def auroc_ipu(
     preds = preds.clone()
 
     # Replace the nan-targets in the preds/target tensors by 0
-    nan_targets = target.isnan()
+    nan_targets = ipu_isnan(target)
     preds[nan_targets] = 0.0
     target[nan_targets] = 0.0
 
@@ -99,9 +99,7 @@ def average_precision_ipu(
     target = target.clone()
     preds = preds.clone()
 
-    # Replace the nan-targets in the preds/target tensors by 0
-    # Average precision is not sensitive to true negatives
-    nan_targets = target.isnan()
+    )
     preds[nan_targets] = 0.0
     target[nan_targets] = 0.0
 
@@ -415,7 +413,7 @@ def get_confusion_matrix(
 
     #### ADDED ####
     # Put all the NaNs as the 0-class
-    nans = torch.isnan(target)
+    nans = ipu_isnan(target)
     target[nans] = 0
     preds[nans] = 0
     if (preds.ndim > 1) and (preds.shape[1] > 1):
@@ -466,7 +464,7 @@ class NaNTensor(Tensor):
         In the case of a boolean tensor, this returns a Tensor filled with `False`
         """
         if self.is_floating_point():
-            return self.isnan()
+            return ipu_isnan(self)
         elif self.is_signed():
             return self == torch.iinfo(self.dtype).min
         else:
@@ -592,7 +590,7 @@ def spearman_ipu(preds, target):
         preds: estimated scores
         target: ground truth scores
     """
-    nans = target.isnan()
+    nans = ipu_isnan(target)
     dtype = preds.dtype
     preds[nans] = float("inf")
     target[nans] = float("inf")
@@ -863,7 +861,7 @@ def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tens
     preds = preds.clone()
 
     # Replace the nan-targets in the preds/target tensors by 0
-    nan_targets = target.isnan()
+    nan_targets = ipu_isnan(target)
     preds[nan_targets] = 0.0
     target[nan_targets] = 0.0
 
@@ -896,7 +894,7 @@ def mean_absolute_error_ipu(preds: Tensor, target: Tensor) -> Tensor:
     preds = preds.clone()
 
     # Replace the nan-targets in the preds/target tensors by 0
-    nan_targets = target.isnan()
+    nan_targets = ipu_isnan(target)
     preds[nan_targets] = 0.0
     target[nan_targets] = 0.0
 
