@@ -1,7 +1,6 @@
 """
 --------------------------------------------------------------------------------
 Copyright (c) 2023 Graphcore Limited.
-
 Use of this software is subject to the terms and conditions outlined in the LICENSE file.
 Unauthorized modification, distribution, or use is prohibited. Provided 'as is' without
 warranties of any kind.
