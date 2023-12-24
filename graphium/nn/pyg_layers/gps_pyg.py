@@ -68,6 +68,7 @@ class GPSLayerPyg(BaseGraphModule):
         precision: str = "32",
         biased_attention_key: Optional[str] = None,
         attn_kwargs=None,
+        force_consistent_in_dim: bool = True,
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
         hidden_dim_scaling: float = 4.0,
@@ -92,12 +93,6 @@ class GPSLayerPyg(BaseGraphModule):
 
             out_dim:
                 Output node feature dimensions of the layer
-
-            in_dim:
-                Input edge feature dimensions of the layer
-
-            out_dim:
-                Output edge feature dimensions of the layer
 
             in_dim_edges:
                 input edge-feature dimensions of the layer
@@ -133,6 +128,11 @@ class GPSLayerPyg(BaseGraphModule):
 
             attn_kwargs:
                 kwargs for attention layer
+
+            force_consistent_in_dim:
+                whether to force the `embed_dim` to be the same as the `in_dim` for the attention and mpnn.
+                The argument is only valid if `attn_type` is not None. If `embed_dim` is not provided,
+                it will be set to `in_dim` by default, so this parameter won't have an effect.
 
             droppath_rate_attn:
                 stochastic depth drop rate for attention layer https://arxiv.org/abs/1603.09382
@@ -208,7 +208,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.biased_attention_key = biased_attention_key
         # Initialize the MPNN and Attention layers
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
-        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(
+            attn_type, self.biased_attention_key, attn_kwargs, force_consistent_in_dim=force_consistent_in_dim
+        )
 
         self.output_scale = output_scale
         self.use_edges = True if self.in_dim_edges is not None else False
@@ -251,8 +253,6 @@ class GPSLayerPyg(BaseGraphModule):
         """
         # pe, feat, edge_index, edge_feat = batch.pos_enc_feats_sign_flip, batch.feat, batch.edge_index, batch.edge_feat
         feat = batch.feat
-        if self.use_edges:
-            edges_feat_in = batch.edge_feat
 
         feat_in = feat  # for first residual connection
 
@@ -323,13 +323,20 @@ class GPSLayerPyg(BaseGraphModule):
         return mpnn_layer
 
     def _parse_attn_layer(
-        self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]
+        self,
+        attn_type,
+        biased_attention_key: str,
+        attn_kwargs: Dict[str, Any],
+        force_consistent_in_dim: bool = True,
     ) -> Optional[Module]:
         """
         parse the input attention layer and check if it is valid
         Parameters:
             attn_type: type of the attention layer
             biased_attention_key: key for the attenion bias
+            attn_kwargs: kwargs for the attention layer
+            force_consistent_in_dim: whether to force the `embed_dim` to be the same as the `in_dim`
+
         Returns:
             attn_layer: the attention layer
         """
@@ -337,11 +344,16 @@ class GPSLayerPyg(BaseGraphModule):
         # Set the default values for the Attention layer
         if attn_kwargs is None:
             attn_kwargs = {}
-        attn_kwargs.setdefault("embed_dim", self.in_dim)
         attn_kwargs.setdefault("num_heads", 1)
         attn_kwargs.setdefault("dropout", self.dropout)
         attn_kwargs.setdefault("batch_first", True)
         self.attn_kwargs = attn_kwargs
+
+        # Force the `embed_dim` to be the same as the `in_dim`
+        attn_kwargs.setdefault("embed_dim", self.in_dim)
+        if force_consistent_in_dim:
+            embed_dim = attn_kwargs["embed_dim"]
+            assert embed_dim == self.in_dim, f"embed_dim={embed_dim} must be equal to in_dim={self.in_dim}"
 
         # Initialize the Attention layer
         attn_layer, attn_class = None, None
