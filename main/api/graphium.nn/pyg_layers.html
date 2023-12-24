@@ -3820,7 +3820,7 @@ of heads.</p>
 
 
 <h5 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="doc doc-heading">
-          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;32&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_consistent_in_dim</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3841,12 +3841,6 @@ Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam
 
 out_dim:
     Output node feature dimensions of the layer
-
-in_dim:
-    Input edge feature dimensions of the layer
-
-out_dim:
-    Output edge feature dimensions of the layer
 
 in_dim_edges:
     input edge-feature dimensions of the layer
@@ -3882,6 +3876,11 @@ attn_type:
 
 attn_kwargs:
     kwargs for attention layer
+
+force_consistent_in_dim:
+    whether to force the `embed_dim` to be the same as the `in_dim` for the attention and mpnn.
+    The argument is only valid if `attn_type` is not None. If `embed_dim` is not provided,
+    it will be set to `in_dim` by default, so this parameter won't have an effect.
 
 droppath_rate_attn:
     stochastic depth drop rate for attention layer https://arxiv.org/abs/1603.09382
