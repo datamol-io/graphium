@@ -150,7 +150,17 @@ class SingleTaskDataset(Dataset):
     @staticmethod
     def reorder_labels(labels, canonical_rank_pairs, task_level):
         """
-        Reorder the labels according to the canonical rank pairs
+        Reorder the labels according to the canonical rank pairs.
+        This is useful for tasks such as node/edge/nodepair classification where the order of the nodes is important.
+
+        Parameters:
+            labels: A list of labels for the given task
+            canonical_rank_pairs: A list of `None` or pairs representing the canonical ranks for each molecule generated
+                from `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`. The first element of the pair is the canonical
+                order for the atoms of the featurized molecule, and the second element is the canonical order
+                for the atoms of the original molecule.
+                If `None` is provided rather than a pair, then the ordering is not important.
+            task_level: The level of the task. One of "graph", "node", "edge", "nodepair"
         """
         if task_level not in ("graph", "node", "edge", "nodepair"):
             raise ValueError(f"task_level must be one of 'graph', 'node', 'edge', 'nodepair', got {task_level}")
@@ -163,12 +173,15 @@ class SingleTaskDataset(Dataset):
                 if (canonical_rank_pairs[i] is None):
                     reordered_labels.append(labels[i])
                 else:
+
+                    # Map the indices from `b` (original molecule) to `a` (featurized molecule)
                     a, b = canonical_rank_pairs[i]
                     index_map = {value: index for index, value in enumerate(b)}
                     mapped_indices = [index_map[value] for value in a]
 
                     if task_level == "node":
                         reordered_labels.append(labels[i][mapped_indices])
+                        # TODO: Not sure that the mapping is done on the right indices
                     elif task_level == "edge":
                         raise NotImplementedError("Reordering of edge labels is not implemented yet. Need to figure out how to do this efficiently.")
                     elif task_level == "nodepair":
