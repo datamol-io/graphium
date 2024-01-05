@@ -1340,6 +1340,7 @@ class FeedForwardGraph(FeedForwardNN):
                     x[k] = round(v / divide_factor)
                 elif k in ["embed_dim"]:
                     x[k] = round(v / divide_factor)
+
         _recursive_divide_dim(kwargs["layer_kwargs"])
 
         return kwargs
