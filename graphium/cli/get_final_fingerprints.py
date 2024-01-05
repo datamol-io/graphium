@@ -70,6 +70,7 @@ def get_final_fingerprints(cfg: DictConfig) -> None:
     if not os.path.exists("saved_admet_smiles.pt"):
         admet = admet_group(path="admet-data/")
         admet_mol_ids = set()
+        #for dn in tqdm([admet.dataset_names[0]], desc="Getting IDs for ADMET", file=sys.stdout):        
         for dn in tqdm(admet.dataset_names, desc="Getting IDs for ADMET", file=sys.stdout):
             admet_mol_ids |= set(admet.get(dn)["train_val"]["Drug"].apply(dm.unique_id))
             admet_mol_ids |= set(admet.get(dn)["test"]["Drug"].apply(dm.unique_id))
@@ -78,6 +79,7 @@ def get_final_fingerprints(cfg: DictConfig) -> None:
         admet_mol_ids_to_find = deepcopy(admet_mol_ids)
 
         for dn in tqdm(admet.dataset_names, desc="Matching molecules to IDs", file=sys.stdout):
+        #for dn in tqdm([admet.dataset_names[0]], desc="Matching molecules to IDs", file=sys.stdout):
             for key in ["train_val", "test"]:
                 train_mols = set(admet.get(dn)[key]["Drug"])
                 for smiles in train_mols:
@@ -167,21 +169,22 @@ def get_final_fingerprints(cfg: DictConfig) -> None:
 
     batch_size = 100
 
-    results = []
-
-
     # Run the model to get fingerprints
     
-    for index in tqdm(range(0, len(input_features), batch_size)):
+    for i, index in tqdm(enumerate(range(0, len(input_features), batch_size))):
         batch = Batch.from_data_list(input_features[index:(index + batch_size)])
         model_fp32 = predictor.model.float()
         output, extras = model_fp32.forward(batch, extra_return_names=["pre_task_heads"])
         fingerprint = extras['pre_task_heads']['graph_feat']
-        results.extend([fingerprint[i] for i in range(batch_size)])
+        num_molecules = min(batch_size, fingerprint.shape[0])
+        results = [fingerprint[i] for i in range(num_molecules)]
+
+        torch.save(results, f'results/res-{i:04}.pt')
 
         if index == 0:
             print(fingerprint.shape)
 
+    '''
     torch.save(results, "results.pt")
 
     # Generate dictionary SMILES -> fingerprint vector
@@ -192,6 +195,7 @@ def get_final_fingerprints(cfg: DictConfig) -> None:
     ids = [dm.unique_id(smiles) for smiles in smiles_to_process]
     ids_to_fingerprint = dict(zip(ids, results))
     torch.save(ids_to_fingerprint, "ids_to_fingerprint.pt")
+    '''
     
 
 if __name__ == "__main__":
