@@ -1094,9 +1094,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 this_rank = all_canonical_ranks[ii]
 
                 # If the ranks are different, we need to store them
-                if (featurized_rank is not None) and (this_rank is not None) \
-                    and (len(featurized_rank) > 0) and (len(this_rank) > 0) and \
-                        (featurized_rank != this_rank):
+                if (
+                    (featurized_rank is not None)
+                    and (this_rank is not None)
+                    and (len(featurized_rank) > 0)
+                    and (len(this_rank) > 0)
+                    and (featurized_rank != this_rank)
+                ):
                     canonical_ranks_pair.append((featurized_rank, this_rank))
             else:
                 canonical_ranks_pair.append(None)
@@ -1126,7 +1130,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
                     idx_none.append(idx)
             this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
-            df, features, smiles, labels, sample_idx, extras, this_unique_ids, canonical_rank_pairs = self._filter_none_molecules(
+            (
+                df,
+                features,
+                smiles,
+                labels,
+                sample_idx,
+                extras,
+                this_unique_ids,
+                canonical_rank_pairs,
+            ) = self._filter_none_molecules(
                 idx_none,
                 task_df[task],
                 args["features"],
@@ -1135,7 +1148,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["sample_idx"],
                 args["extras"],
                 this_unique_ids,
-                args["canonical_rank_pairs"]
+                args["canonical_rank_pairs"],
             )
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels

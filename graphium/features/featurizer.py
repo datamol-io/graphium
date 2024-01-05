@@ -631,6 +631,7 @@ def get_mol_edge_features(
 
     return prop_dict
 
+
 def smiles_to_node_ordering(mol: dm.Mol) -> List[int]:
     r"""
     Get the node ordering of a molecule from the "molAtomMapNumber" property.
@@ -647,7 +648,9 @@ def smiles_to_node_ordering(mol: dm.Mol) -> List[int]:
             node_ordering.append(int(atom.GetProp("molAtomMapNumber")))
         else:
             smiles = dm.to_smiles(mol, canonical=False, isomeric=False)
-            raise ValueError(f"Molecule has no atom map number. \nsmiles: {smiles} \natom: {atom.GetSymbol()}")
+            raise ValueError(
+                f"Molecule has no atom map number. \nsmiles: {smiles} \natom: {atom.GetSymbol()}"
+            )
     return node_ordering
 
 

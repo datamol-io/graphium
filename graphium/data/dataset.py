@@ -163,17 +163,18 @@ class SingleTaskDataset(Dataset):
             task_level: The level of the task. One of "graph", "node", "edge", "nodepair"
         """
         if task_level not in ("graph", "node", "edge", "nodepair"):
-            raise ValueError(f"task_level must be one of 'graph', 'node', 'edge', 'nodepair', got {task_level}")
+            raise ValueError(
+                f"task_level must be one of 'graph', 'node', 'edge', 'nodepair', got {task_level}"
+            )
 
         if (canonical_rank_pairs is None) or (task_level == "graph"):
             return labels
         else:
             reordered_labels = []
             for i in range(len(labels)):
-                if (canonical_rank_pairs[i] is None):
+                if canonical_rank_pairs[i] is None:
                     reordered_labels.append(labels[i])
                 else:
-
                     # Map the indices from `b` (original molecule) to `a` (featurized molecule)
                     a, b = canonical_rank_pairs[i]
                     index_map = {value: index for index, value in enumerate(b)}
@@ -183,9 +184,13 @@ class SingleTaskDataset(Dataset):
                         reordered_labels.append(labels[i][mapped_indices])
                         # TODO: Not sure that the mapping is done on the right indices
                     elif task_level == "edge":
-                        raise NotImplementedError("Reordering of edge labels is not implemented yet. Need to figure out how to do this efficiently.")
+                        raise NotImplementedError(
+                            "Reordering of edge labels is not implemented yet. Need to figure out how to do this efficiently."
+                        )
                     elif task_level == "nodepair":
-                        raise NotImplementedError("Reordering of nodepair labels is not implemented yet. Need to figure out how to do this efficiently.")
+                        raise NotImplementedError(
+                            "Reordering of nodepair labels is not implemented yet. Need to figure out how to do this efficiently."
+                        )
 
             return reordered_labels
 
