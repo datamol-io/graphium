@@ -18,7 +18,7 @@ import os
 import datamol as dm
 
 
-def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
+def smiles_to_unique_mol_id_and_rank(smiles: str) -> Tuple[Optional[str], List[int]]:
     """
     Convert a smiles to a unique MD5 Hash ID. Returns None if featurization fails.
     Parameters:
@@ -26,14 +26,19 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     Returns:
         mol_id: a string unique ID
     """
+    canonical_rank = []
+    mol_id = ""
     try:
         mol = dm.to_mol(mol=smiles)
         mol_id = dm.unique_id(mol)
+        canonical_rank = dm.canonical_rank(mol)
     except:
         mol_id = ""
     if mol_id is None:
         mol_id = ""
-    return mol_id
+    if canonical_rank is None:
+        canonical_rank = []
+    return mol_id, canonical_rank
 
 
 def did_featurization_fail(features: Any) -> bool:
@@ -87,14 +92,14 @@ class BatchingSmilesTransform:
         return batch_size
 
 
-def smiles_to_unique_mol_ids(
+def smiles_to_unique_mol_ids_and_rank(
     smiles: Iterable[str],
     n_jobs=-1,
     featurization_batch_size=1000,
     backend="loky",
     progress=True,
     progress_desc="mols to ids",
-) -> List[Optional[str]]:
+) -> Tuple[List[Optional[str]], List[List[int]]]:
     """
     This function takes a list of smiles and finds the corresponding datamol unique_id
     in an element-wise fashion, returning the corresponding unique_ids.
@@ -117,8 +122,8 @@ def smiles_to_unique_mol_ids(
         numel=len(smiles), desired_batch_size=featurization_batch_size, n_jobs=n_jobs
     )
 
-    unique_mol_ids = dm.parallelized_with_batches(
-        BatchingSmilesTransform(smiles_to_unique_mol_id),
+    unique_mol_ids_and_ranks = dm.parallelized_with_batches(
+        BatchingSmilesTransform(smiles_to_unique_mol_id_and_rank),
         smiles,
         batch_size=batch_size,
         progress=progress,
@@ -126,5 +131,6 @@ def smiles_to_unique_mol_ids(
         backend=backend,
         tqdm_kwargs={"desc": f"{progress_desc}, batch={batch_size}"},
     )
+    unique_mol_ids, canonical_ranks = zip(*unique_mol_ids_and_ranks)
 
-    return unique_mol_ids
+    return unique_mol_ids, canonical_ranks

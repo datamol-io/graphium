@@ -16,7 +16,7 @@ import unittest as ut
 
 from graphium.data import load_micro_zinc
 from graphium.data.dataset import SingleTaskDataset, MultitaskDataset
-from graphium.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids_and_rank
 from graphium.data.utils import get_keys
 
 
@@ -75,7 +75,7 @@ class Test_Multitask_Dataset(ut.TestCase):
             label_score = ds_micro_zinc_score.labels[idx]
 
             # Search for the mol id in the multitask dataset
-            mol_ids = smiles_to_unique_mol_ids([smiles])
+            mol_ids, canonical_rank = smiles_to_unique_mol_ids_and_rank([smiles])
             mol_id = mol_ids[0]
             found_idx = -1
             for i, id in enumerate(multitask_microzinc.mol_ids):
@@ -146,7 +146,7 @@ class Test_Multitask_Dataset(ut.TestCase):
             label_score = df[["score"]].iloc[idx].values[0]
 
             # Search for that molecule in the multitask dataset
-            mol_ids = smiles_to_unique_mol_ids([smiles])
+            mol_ids, canonical_rank = smiles_to_unique_mol_ids_and_rank([smiles])
             mol_id = mol_ids[0]
             found_idx = -1
             for i, id in enumerate(multitask_microzinc.mol_ids):

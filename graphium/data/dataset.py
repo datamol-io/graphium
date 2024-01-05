@@ -26,7 +26,7 @@ from loguru import logger
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Batch, Data
 
-from graphium.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids_and_rank
 from graphium.features import GraphDict
 
 
@@ -39,6 +39,7 @@ class SingleTaskDataset(Dataset):
         indices: Optional[List[int]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
         unique_ids: Optional[List[str]] = None,
+        canonical_rank: Optional[List[List[int]]] = None,
         mol_ids: Optional[List[str]] = None,
     ):
         r"""
@@ -50,6 +51,7 @@ class SingleTaskDataset(Dataset):
             indices: A list of indices
             weights: A list of weights
             unique_ids: A list of unique ids for each molecule generated from `datamol.unique_id`
+            canonical_rank: A list of canonical ranks for each molecule generated from `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`
             mol_ids: A list of ids coming from the original dataset. Useful to identify the molecule in the original dataset.
         """
 
@@ -67,6 +69,7 @@ class SingleTaskDataset(Dataset):
         _check_if_same_length(indices, "indices")
         _check_if_same_length(weights, "weights")
         _check_if_same_length(unique_ids, "unique_ids")
+        _check_if_same_length(canonical_rank, "canonical_rank")
         _check_if_same_length(mol_ids, "mol_ids")
 
         self.labels = labels
@@ -83,6 +86,7 @@ class SingleTaskDataset(Dataset):
             )  # Avoid memory leaks with `num_workers > 0` by using numpy array
         self.weights = weights
         self.unique_ids = unique_ids
+        self.canonical_rank = canonical_rank
         self.mol_ids = mol_ids
 
     def __len__(self):
@@ -99,7 +103,7 @@ class SingleTaskDataset(Dataset):
         Parameters:
             idx: the index to get the data at
         Returns:
-            datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
+            datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids", "canonical_rank" and "mol_ids"
         """
         datum = {}
 
@@ -121,6 +125,9 @@ class SingleTaskDataset(Dataset):
         if self.unique_ids is not None:
             datum["unique_ids"] = self.unique_ids[idx]
 
+        if self.canonical_rank is not None:
+            datum["canonical_rank"] = self.canonical_rank[idx]
+
         if self.mol_ids is not None:
             datum["mol_ids"] = self.mol_ids[idx]
 
@@ -135,6 +142,7 @@ class SingleTaskDataset(Dataset):
         state["indices"] = self.indices
         state["weights"] = self.weights
         state["unique_ids"] = self.unique_ids
+        state["canonical_rank"] = self.canonical_rank
         state["mol_ids"] = self.mol_ids
         return state
 
@@ -534,6 +542,7 @@ class MultitaskDataset(Dataset):
         all_features = []
         all_labels = []
         all_mol_ids = []
+        all_canonical_rank = []
         all_tasks = []
 
         for task, ds in datasets.items():
@@ -542,10 +551,13 @@ class MultitaskDataset(Dataset):
             # Get data from single task dataset
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
-            if "unique_ids" in ds[0].keys():
+
+            # Check if "unique_ids" and "canonical_rank" are in ds[0].keys()
+            if "unique_ids" in ds[0].keys() and "canonical_rank" in ds[0].keys():
                 ds_mol_ids = [ds[i]["unique_ids"] for i in range(len(ds))]
+                ds_canonical_rank = [ds[i]["canonical_rank"] for i in range(len(ds))]
             else:
-                ds_mol_ids = smiles_to_unique_mol_ids(
+                ds_mol_ids, ds_canonical_rank = smiles_to_unique_mol_ids_and_rank(
                     ds_smiles,
                     n_jobs=self.n_jobs,
                     featurization_batch_size=self.featurization_batch_size,
@@ -560,6 +572,7 @@ class MultitaskDataset(Dataset):
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
             all_mol_ids.extend(ds_mol_ids)
+            all_canonical_rank.extend(ds_canonical_rank)
             if ds_features is not None:
                 all_features.extend(ds_features)
 
@@ -571,6 +584,7 @@ class MultitaskDataset(Dataset):
             "features": all_features,
             "labels": all_labels,
             "mol_ids": all_mol_ids,
+            "canonical_rank": all_canonical_rank,
             "tasks": all_tasks,
         }
 

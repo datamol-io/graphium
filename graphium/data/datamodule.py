@@ -65,7 +65,7 @@ from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
     did_featurization_fail,
     BatchingSmilesTransform,
-    smiles_to_unique_mol_ids,
+    smiles_to_unique_mol_ids_and_rank,
 )
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
@@ -1065,7 +1065,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_unique_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids, all_canonical_ranks = smiles_to_unique_mol_ids_and_rank(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
@@ -1086,6 +1086,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["idx_none"] = []
         # Create a list of features matching up with the original smiles
         all_features = [features[unique_idx] for unique_idx in unique_ids_inv]
+
+        # TODO: Here check for ordered molecules and reorder the features accordingly
 
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
@@ -2668,7 +2670,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             idx_per_task[task] = (total_len, total_len + num_smiles)
             total_len += num_smiles
         # Get all unique mol ids
-        all_unique_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids, all_canonical_ranks = smiles_to_unique_mol_ids_and_rank(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
