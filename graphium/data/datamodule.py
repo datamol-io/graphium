@@ -1055,6 +1055,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """Convert SMILES to feature graphs for the unique molecules found."""
         all_smiles = []
         all_tasks = []
+        all_task_levels = []
         idx_per_task = {}
         total_len = 0
         for task, dataset_args in task_dataset_args.items():
@@ -1064,6 +1065,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             total_len += num_smiles
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
+                all_task_levels.append(self.task_dataset_processing_params[task].task_level)
         # Get all unique mol ids
         all_unique_mol_ids, all_canonical_ranks = smiles_to_unique_mol_ids_and_rank(
             all_smiles,
@@ -1080,6 +1082,25 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Convert SMILES to features
         features, _ = self._featurize_molecules(smiles_to_featurize)
 
+        # For every unique molecule, get a pair of:
+        # (the canonical rank of the featurized molecule, the canonical rank of the original molecule,
+        # if the rank is needed for the task level (node, edge, nodepair)
+        # And if the ranks are different.
+        canonical_ranks_pair = []
+        for ii, inv_idx in enumerate(unique_ids_inv):
+            task_level_need_rank = all_task_levels[ii] in ("node", "edge", "nodepair")
+            if task_level_need_rank:
+                featurized_rank = all_canonical_ranks[inv_idx]
+                this_rank = all_canonical_ranks[ii]
+
+                # If the ranks are different, we need to store them
+                if (featurized_rank is not None) and (this_rank is not None) \
+                    and (len(featurized_rank) > 0) and (len(this_rank) > 0) and \
+                        (featurized_rank != this_rank):
+                    canonical_ranks_pair.append((featurized_rank, this_rank))
+            else:
+                canonical_ranks_pair.append(None)
+
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
             task_dataset_args[task]["features"] = []
@@ -1092,6 +1113,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
             task_dataset_args[task]["features"].append(all_features[all_idx])
+            task_dataset_args[task]["canonical_rank_pairs"].append(canonical_ranks_pair[all_idx])
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
@@ -1104,7 +1126,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
                     idx_none.append(idx)
             this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
-            df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
+            df, features, smiles, labels, sample_idx, extras, this_unique_ids, canonical_rank_pairs = self._filter_none_molecules(
                 idx_none,
                 task_df[task],
                 args["features"],
@@ -1113,16 +1135,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["sample_idx"],
                 args["extras"],
                 this_unique_ids,
+                args["canonical_rank_pairs"]
             )
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
+            task_dataset_args[task]["canonical_rank_pairs"] = canonical_rank_pairs
 
             # We have the necessary components to create single-task datasets.
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
+                task_level=self.task_dataset_processing_params[task].task_level,
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 unique_ids=this_unique_ids,
@@ -2684,6 +2709,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         for task, args in task_dataset_args.items():
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
+                task_level=self.task_dataset_processing_params[task]["task_level"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 indices=task_dataset_args[task]["sample_idx"],
