@@ -1052,7 +1052,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
 
-        """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
+        """Convert SMILES to feature graphs for the unique molecules found."""
         all_smiles = []
         all_tasks = []
         idx_per_task = {}
@@ -1517,7 +1517,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
         """
-        Precompute the features (graphs, fingerprints, etc.) from the SMILES.
+        Precompute the features graphs from the SMILES.
         Features are computed from `self.smiles_transformer`.
         A warning is issued to mention which molecules failed featurization.
 
@@ -2658,7 +2658,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
 
-        """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
+        """Convert SMILES to feature graphs for the unique molecules found."""
         all_smiles = []
         idx_per_task = {}
         total_len = 0
