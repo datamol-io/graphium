@@ -151,7 +151,11 @@ class SingleTaskDataset(Dataset):
         return state
 
     @staticmethod
-    def reorder_labels(labels, canonical_rank_pairs: List[Tuple[Optional[List[int]], Optional[List[int]]]], task_level: TaskLevel) -> List[Any]:
+    def reorder_labels(
+        labels,
+        canonical_rank_pairs: List[Tuple[Optional[List[int]], Optional[List[int]]]],
+        task_level: TaskLevel,
+    ) -> List[Any]:
         """
         Reorder the labels according to the canonical rank pairs.
         This is useful for tasks such as node/edge/nodepair classification where the order of the nodes is important.

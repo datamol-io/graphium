@@ -137,7 +137,9 @@ def smiles_to_unique_mol_ids_and_rank(
     return unique_mol_ids, canonical_ranks
 
 
-def get_canonical_ranks_pair(all_canonical_ranks: List[List[int]], all_task_levels: List[TaskLevel], unique_ids_inv: Iterable[int]) -> List[Optional[Tuple[List[int], List[int]]]]:
+def get_canonical_ranks_pair(
+    all_canonical_ranks: List[List[int]], all_task_levels: List[TaskLevel], unique_ids_inv: Iterable[int]
+) -> List[Optional[Tuple[List[int], List[int]]]]:
     """
     This function takes a list of canonical ranks and task levels and returns a list of canonical ranks pairs.
     The canonical ranks pairs are used to check if the featurized ranks are the same as the canonical ranks.
@@ -153,7 +155,9 @@ def get_canonical_ranks_pair(all_canonical_ranks: List[List[int]], all_task_leve
     """
 
     if {len(all_canonical_ranks)} != set(len(all_canonical_ranks), len(all_task_levels), len(unique_ids_inv)):
-        raise ValueError(f"all_canonical_ranks, all_task_levels, and unique_ids_inv must have the same length, got {len(all_canonical_ranks)}, {len(all_task_levels)}, {len(unique_ids_inv)}")
+        raise ValueError(
+            f"all_canonical_ranks, all_task_levels, and unique_ids_inv must have the same length, got {len(all_canonical_ranks)}, {len(all_task_levels)}, {len(unique_ids_inv)}"
+        )
 
     canonical_ranks_pair = []
     for ii, inv_idx in enumerate(unique_ids_inv):
@@ -174,4 +178,3 @@ def get_canonical_ranks_pair(all_canonical_ranks: List[List[int]], all_task_leve
         else:
             canonical_ranks_pair.append(None)
     return canonical_ranks_pair
-

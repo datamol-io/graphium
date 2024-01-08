@@ -1,9 +1,11 @@
 from typing import Union
 from enum import Enum
 
+
 class TaskLevel(Enum):
     """Enum for the task level of a dataset. Options are graph, node, edge, nodepair."""
-    GRAPH = 1 # Default
+
+    GRAPH = 1  # Default
     NODE = 2
     EDGE = 3
     NODEPAIR = 4
