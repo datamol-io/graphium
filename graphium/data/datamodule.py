@@ -71,7 +71,7 @@ from graphium.data.smiles_transform import (
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
 from graphium.data.normalization import LabelNormalization
-from graphium.data.multilevel_utils import extract_labels.
+from graphium.data.multilevel_utils import extract_labels
 from graphium.utils.enums import TaskLevel
 
 torch.multiprocessing.set_sharing_strategy("file_system")
