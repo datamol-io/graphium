@@ -28,13 +28,14 @@ from torch_geometric.data import Batch, Data
 
 from graphium.data.smiles_transform import smiles_to_unique_mol_ids_and_rank
 from graphium.features import GraphDict
+from graphium.utils.enums import TaskLevel
 
 
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
         labels: List[Union[torch.Tensor, np.ndarray]],
-        task_level: str = "graph",
+        task_level: TaskLevel = TaskLevel.GRAPH,
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[int]] = None,
@@ -70,6 +71,8 @@ class SingleTaskDataset(Dataset):
                 raise ValueError(
                     f"{label} must be the same length as `labels`, got {len(to_check)} and {numel}"
                 )
+
+        self.task_level = TaskLevel.from_str(task_level)
 
         _check_if_same_length(features, "features")
         _check_if_same_length(indices, "indices")
@@ -148,7 +151,7 @@ class SingleTaskDataset(Dataset):
         return state
 
     @staticmethod
-    def reorder_labels(labels, canonical_rank_pairs, task_level):
+    def reorder_labels(labels, canonical_rank_pairs: List[Tuple[Optional[List[int]], Optional[List[int]]]], task_level: TaskLevel) -> List[Any]:
         """
         Reorder the labels according to the canonical rank pairs.
         This is useful for tasks such as node/edge/nodepair classification where the order of the nodes is important.
@@ -161,13 +164,15 @@ class SingleTaskDataset(Dataset):
                 for the atoms of the original molecule.
                 If `None` is provided rather than a pair, then the ordering is not important.
             task_level: The level of the task. One of "graph", "node", "edge", "nodepair"
-        """
-        if task_level not in ("graph", "node", "edge", "nodepair"):
-            raise ValueError(
-                f"task_level must be one of 'graph', 'node', 'edge', 'nodepair', got {task_level}"
-            )
 
-        if (canonical_rank_pairs is None) or (task_level == "graph"):
+        Returns:
+            reordered_labels: A list of labels for the given task reordered according to the canonical rank pairs.
+                Assuming the first element of the pair is the canonical order desired, and the second element is the
+                canonical order of the original molecule.
+        """
+        task_level = TaskLevel.from_str(task_level)
+
+        if (canonical_rank_pairs is None) or (task_level == TaskLevel.GRAPH):
             return labels
         else:
             reordered_labels = []
@@ -180,14 +185,14 @@ class SingleTaskDataset(Dataset):
                     index_map = {value: index for index, value in enumerate(b)}
                     mapped_indices = [index_map[value] for value in a]
 
-                    if task_level == "node":
+                    if task_level == TaskLevel.NODE:
                         reordered_labels.append(labels[i][mapped_indices])
                         # TODO: Not sure that the mapping is done on the right indices
-                    elif task_level == "edge":
+                    elif task_level == TaskLevel.EDGE:
                         raise NotImplementedError(
                             "Reordering of edge labels is not implemented yet. Need to figure out how to do this efficiently."
                         )
-                    elif task_level == "nodepair":
+                    elif task_level == TaskLevel.NODEPAIR:
                         raise NotImplementedError(
                             "Reordering of nodepair labels is not implemented yet. Need to figure out how to do this efficiently."
                         )

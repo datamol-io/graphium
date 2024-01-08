@@ -19,8 +19,10 @@ from typing import List
 import itertools
 import math
 
+from graphium.utils.enums import TaskLevel
 
-def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
+
+def extract_labels(df: pd.DataFrame, task_level: TaskLevel, label_cols: List[str]):
     """Extracts labels in label_cols from dataframe df for a given task_level.
     Returns a list of numpy arrays converted to the correct shape. Multiple
     targets are concatenated for each graph.
@@ -60,6 +62,6 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
     output = unpacked_df.apply(merge_columns, axis="columns").to_list()
 
-    if task_level == "graph":
+    if task_level == task_level.GRAPH:
         return np.concatenate(output)
     return output

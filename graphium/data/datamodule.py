@@ -66,11 +66,13 @@ from graphium.data.smiles_transform import (
     did_featurization_fail,
     BatchingSmilesTransform,
     smiles_to_unique_mol_ids_and_rank,
+    get_canonical_ranks_pair,
 )
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
 from graphium.data.normalization import LabelNormalization
-from graphium.data.multilevel_utils import extract_labels
+from graphium.data.multilevel_utils import extract_labels.
+from graphium.utils.enums import TaskLevel
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -668,7 +670,7 @@ class BaseDataModule(lightning.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
-        task_level: Optional[str] = None,
+        task_level: Optional[TaskLevel] = TaskLevel.GRAPH,
         df: Optional[pd.DataFrame] = None,
         df_path: Optional[Union[str, os.PathLike, List[Union[str, os.PathLike]]]] = None,
         smiles_col: Optional[str] = None,
@@ -711,7 +713,7 @@ class DatasetProcessingParams:
             raise ValueError("The value of epoch_sampling_fraction must be in the range of (0, 1].")
 
         self.df = df
-        self.task_level = task_level
+        self.task_level = TaskLevel.from_str(task_level)
         self.df_path = df_path
         self.smiles_col = smiles_col
         self.label_cols = label_cols
@@ -1081,29 +1083,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # Convert SMILES to features
         features, _ = self._featurize_molecules(smiles_to_featurize)
-
-        # For every unique molecule, get a pair of:
-        # (the canonical rank of the featurized molecule, the canonical rank of the original molecule,
-        # if the rank is needed for the task level (node, edge, nodepair)
-        # And if the ranks are different.
-        canonical_ranks_pair = []
-        for ii, inv_idx in enumerate(unique_ids_inv):
-            task_level_need_rank = all_task_levels[ii] in ("node", "edge", "nodepair")
-            if task_level_need_rank:
-                featurized_rank = all_canonical_ranks[inv_idx]
-                this_rank = all_canonical_ranks[ii]
-
-                # If the ranks are different, we need to store them
-                if (
-                    (featurized_rank is not None)
-                    and (this_rank is not None)
-                    and (len(featurized_rank) > 0)
-                    and (len(this_rank) > 0)
-                    and (featurized_rank != this_rank)
-                ):
-                    canonical_ranks_pair.append((featurized_rank, this_rank))
-            else:
-                canonical_ranks_pair.append(None)
+        canonical_ranks_pair = get_canonical_ranks_pair(all_canonical_ranks, all_task_levels, unique_ids_inv)
 
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
@@ -1111,8 +1091,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["idx_none"] = []
         # Create a list of features matching up with the original smiles
         all_features = [features[unique_idx] for unique_idx in unique_ids_inv]
-
-        # TODO: Here check for ordered molecules and reorder the features accordingly
 
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
@@ -1784,7 +1762,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def _extract_smiles_labels(
         self,
         df: pd.DataFrame,
-        task_level: str,
+        task_level: TaskLevel,
         smiles_col: Optional[str] = None,
         label_cols: List[str] = [],
         idx_col: Optional[str] = None,
@@ -1827,16 +1805,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
         smiles = df[smiles_col].values
         if len(label_cols) > 0:
-            if task_level == "graph":
-                labels = extract_labels(df, "graph", label_cols)
-            elif task_level == "node":
-                labels = extract_labels(df, "node", label_cols)
-            elif task_level == "edge":
-                labels = extract_labels(df, "edge", label_cols)
-            elif task_level == "nodepair":
-                labels = extract_labels(df, "nodepair", label_cols)
-            else:
-                raise ValueError(f"Unknown task level: {task_level}")
+            labels = extract_labels(df, task_level=task_level, label_cols=label_cols)
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
 
@@ -2570,7 +2539,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             label_cols=["Y"],
             splits_path=split_path,
             split_names=["train", "val", "test"],
-            task_level="graph",
+            task_level=TaskLevel.GRAPH,
         )
 
 
