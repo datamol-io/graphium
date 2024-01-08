@@ -66,12 +66,11 @@ from graphium.data.smiles_transform import (
     did_featurization_fail,
     BatchingSmilesTransform,
     smiles_to_unique_mol_ids_and_rank,
-    get_canonical_ranks_pair,
 )
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
 from graphium.data.normalization import LabelNormalization
-from graphium.data.multilevel_utils import extract_labels
+from graphium.data.multilevel_utils import extract_labels, get_canonical_ranks_pair
 from graphium.utils.enums import TaskLevel
 
 torch.multiprocessing.set_sharing_strategy("file_system")

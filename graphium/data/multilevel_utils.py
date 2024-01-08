@@ -15,7 +15,7 @@ Refer to the LICENSE file for the full terms and conditions.
 import pandas as pd
 import ast
 import numpy as np
-from typing import List
+from typing import List, Optional, Tuple, Iterable
 import itertools
 import math
 
@@ -65,3 +65,47 @@ def extract_labels(df: pd.DataFrame, task_level: TaskLevel, label_cols: List[str
     if task_level == task_level.GRAPH:
         return np.concatenate(output)
     return output
+
+
+def get_canonical_ranks_pair(
+    all_canonical_ranks: List[List[int]], all_task_levels: List[TaskLevel], unique_ids_inv: Iterable[int]
+) -> List[Optional[Tuple[List[int], List[int]]]]:
+    """
+    This function takes a list of canonical ranks and task levels and returns a list of canonical ranks pairs.
+    The canonical ranks pairs are used to check if the featurized ranks are the same as the canonical ranks.
+    If the featurized ranks are different, we need to store them.
+
+    Parameters:
+        all_canonical_ranks: a list of canonical ranks for all molecules.
+            The ranks are a list of integers based on `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`
+        all_task_levels: a list of task levels
+        unique_ids_inv: a list of indices mapping each molecule to another identical molecule, or itself.
+            If the molecule is unique, the index is the same as the index of the molecule in the dataset.
+            If the molecule is not unique, the index is the index of the molecule that will be featurized.
+
+    Returns:
+        canonical_ranks_pair: a list of canonical ranks pairs
+    """
+
+    if {len(all_canonical_ranks)} != {len(all_canonical_ranks), len(all_task_levels), len(unique_ids_inv)}:
+        raise ValueError(
+            f"all_canonical_ranks, all_task_levels, and unique_ids_inv must have the same length, got {len(all_canonical_ranks)}, {len(all_task_levels)}, {len(unique_ids_inv)}"
+        )
+
+    canonical_ranks_pair = [None] * len(all_canonical_ranks)
+    for ii, inv_idx in enumerate(unique_ids_inv):
+        task_level_need_rank = all_task_levels[ii] != TaskLevel.GRAPH
+        if task_level_need_rank:
+            featurized_rank = all_canonical_ranks[inv_idx]
+            this_rank = all_canonical_ranks[ii]
+
+            # If the ranks are different, we need to store them
+            if (
+                (featurized_rank is not None)
+                and (this_rank is not None)
+                and (len(featurized_rank) > 0)
+                and (len(this_rank) > 0)
+                and (featurized_rank != this_rank)
+            ):
+                canonical_ranks_pair[ii] = (featurized_rank, this_rank)
+    return canonical_ranks_pair

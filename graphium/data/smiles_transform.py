@@ -16,7 +16,6 @@ from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iter
 
 import os
 import datamol as dm
-from graphium.utils.enums import TaskLevel
 
 
 def smiles_to_unique_mol_id_and_rank(smiles: str) -> Tuple[Optional[str], List[int]]:
@@ -135,46 +134,3 @@ def smiles_to_unique_mol_ids_and_rank(
     unique_mol_ids, canonical_ranks = zip(*unique_mol_ids_and_ranks)
 
     return unique_mol_ids, canonical_ranks
-
-
-def get_canonical_ranks_pair(
-    all_canonical_ranks: List[List[int]], all_task_levels: List[TaskLevel], unique_ids_inv: Iterable[int]
-) -> List[Optional[Tuple[List[int], List[int]]]]:
-    """
-    This function takes a list of canonical ranks and task levels and returns a list of canonical ranks pairs.
-    The canonical ranks pairs are used to check if the featurized ranks are the same as the canonical ranks.
-    If the featurized ranks are different, we need to store them.
-
-    Parameters:
-        all_canonical_ranks: a list of canonical ranks. The ranks are a list of integers based on `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`
-        all_task_levels: a list of task levels
-        unique_ids_inv: a list of indices
-
-    Returns:
-        canonical_ranks_pair: a list of canonical ranks pairs
-    """
-
-    if {len(all_canonical_ranks)} != set(len(all_canonical_ranks), len(all_task_levels), len(unique_ids_inv)):
-        raise ValueError(
-            f"all_canonical_ranks, all_task_levels, and unique_ids_inv must have the same length, got {len(all_canonical_ranks)}, {len(all_task_levels)}, {len(unique_ids_inv)}"
-        )
-
-    canonical_ranks_pair = []
-    for ii, inv_idx in enumerate(unique_ids_inv):
-        task_level_need_rank = all_task_levels[ii] != TaskLevel.GRAPH
-        if task_level_need_rank:
-            featurized_rank = all_canonical_ranks[inv_idx]
-            this_rank = all_canonical_ranks[ii]
-
-            # If the ranks are different, we need to store them
-            if (
-                (featurized_rank is not None)
-                and (this_rank is not None)
-                and (len(featurized_rank) > 0)
-                and (len(this_rank) > 0)
-                and (featurized_rank != this_rank)
-            ):
-                canonical_ranks_pair.append((featurized_rank, this_rank))
-        else:
-            canonical_ranks_pair.append(None)
-    return canonical_ranks_pair
