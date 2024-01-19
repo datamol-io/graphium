@@ -18,6 +18,7 @@ import numpy as np
 import datamol as dm
 
 from rdkit.Chem import rdMolDescriptors as rdMD
+from loguru import logger
 
 
 def get_prop_or_none(
@@ -33,6 +34,7 @@ def get_prop_or_none(
     Returns:
         The property or a list of `None` with lenght `n`.
     """
+    logger.warning("get_prop_or_none is deprecated. Use `datamol.to_fp` instead.")
     try:
         return prop(*args, **kwargs)
     except RuntimeError:
@@ -75,8 +77,10 @@ def get_props_from_mol(
 
     """
 
+    logger.warning("get_props_from_mol is deprecated. Use `datamol.to_fp` instead.")
+
     if isinstance(mol, str):
-        mol = dm.to_mol(mol)
+        mol = dm.to_mol(mol) # Doesn't need `ordered=True` because the fingerprints don't depend on the atom order
 
     if isinstance(properties, str):
         properties = [properties]
