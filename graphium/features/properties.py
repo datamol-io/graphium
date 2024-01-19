@@ -80,7 +80,9 @@ def get_props_from_mol(
     logger.warning("get_props_from_mol is deprecated. Use `datamol.to_fp` instead.")
 
     if isinstance(mol, str):
-        mol = dm.to_mol(mol) # Doesn't need `ordered=True` because the fingerprints don't depend on the atom order
+        mol = dm.to_mol(
+            mol
+        )  # Doesn't need `ordered=True` because the fingerprints don't depend on the atom order
 
     if isinstance(properties, str):
         properties = [properties]
