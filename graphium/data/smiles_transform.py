@@ -27,7 +27,7 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
         mol_id: a string unique ID
     """
     try:
-        mol = dm.to_mol(mol=smiles)
+        mol = dm.to_mol(mol=smiles) # Doesn't need `ordered=True` because the unique_id doesn't depend on the atom order
         mol_id = dm.unique_id(mol)
     except:
         mol_id = ""
