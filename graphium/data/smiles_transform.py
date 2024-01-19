@@ -30,6 +30,9 @@ def smiles_to_unique_mol_id_and_rank(smiles: str) -> Tuple[Optional[str], List[i
     mol_id = ""
     try:
         mol = dm.to_mol(mol=smiles)
+        # ERROR DO NOT MERGE THIS!!
+        # WITH ORDERED=TRUE, THE CANONICAL RANKING IS THE ONE FROM THE ATOM MAPS!!
+        # DO NOT MERGE!!
         mol_id = dm.unique_id(mol)
         canonical_rank = dm.canonical_rank(mol)
     except:
