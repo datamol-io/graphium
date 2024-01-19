@@ -67,7 +67,9 @@ def main():
 
     graphs = []
     for s in tqdm(smiles):
-        mol = dm.to_mol(s) # Doesn't need `ordered=True` because this is just to test the speed of the featurizer
+        mol = dm.to_mol(
+            s
+        )  # Doesn't need `ordered=True` because this is just to test the speed of the featurizer
         graphs.append(mol_to_graph_dict(mol, **featurizer))
 
     print(graphs[0])
