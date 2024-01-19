@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../images/logo-mini-dark.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.4">
     
     
       
@@ -752,27 +752,6 @@
   
   <span class="md-ellipsis">
     graphium.ipu
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../api/graphium.visualization.html" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    graphium.visualization
   </span>
   
 
@@ -1560,25 +1539,25 @@
 
 
 <h1 id="graphium-train"><code>graphium-train</code><a class="headerlink" href="#graphium-train" title="Permanent link">&para;</a></h1>
-<p>To support advanced configuration, Graphium uses <a href="https://hydra.cc/"><code>hydra</code></a> to manage and write config files. A limitation of <code>hydra</code>, is that it is designed to function as the main entrypoint for a CLI application and does not easily support subcommands. For that reason, we introduced the <code>graphium-train</code> command in addition to the <a href="graphium.html"><code>graphium</code></a> command. </p>
+<p>To support advanced configuration, Graphium uses <a href="https://hydra.cc/"><code>hydra</code></a> to manage and write config files. A limitation of <code>hydra</code>, is that it is designed to function as the main entrypoint for a CLI application and does not easily support subcommands. For that reason, we introduced the <code>graphium-train</code> command in addition to the <a href="graphium.html"><code>graphium</code></a> command.</p>
 <div class="admonition info">
 <p class="admonition-title">Curious about the configs?</p>
 <p>If you would like to learn more about the configs, please visit the docs <a href="https://github.com/datamol-io/graphium/tree/main/expts/hydra-configs">here</a>.</p>
 </div>
 <p>This page documents <code>graphium-train</code>.</p>
 <h2 id="running-an-experiment">Running an experiment<a class="headerlink" href="#running-an-experiment" title="Permanent link">&para;</a></h2>
-<p>To run an experiment go to the <code>expts/hydra-configs</code> folder for all available configurations. For example, to benchmark a GCN on the ToyMix dataset run
-<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">dataset</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn
+<p>We have setup Graphium with <code>hydra</code> for managing config files. To run an experiment go to the <code>expts/</code> folder. For example, to benchmark a GCN on the ToyMix dataset run
+<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">architecture</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">tasks</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">training</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn
 </code></pre></div>
 To change parameters specific to this experiment like switching from <code>fp16</code> to <code>fp32</code> precision, you can either override them directly in the CLI via
-<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">dataset</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn<span class="w"> </span>trainer.trainer.precision<span class="o">=</span><span class="m">32</span>
+<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">architecture</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">tasks</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">training</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn<span class="w"> </span>trainer.trainer.precision<span class="o">=</span><span class="m">32</span>
 </code></pre></div>
-or change them permamently in the dedicated experiment config under <code>expts/hydra-configs/toymix_gcn.yaml</code>.
+or change them permanently in the dedicated experiment config under <code>expts/hydra-configs/toymix_gcn.yaml</code>.
 Integrating <code>hydra</code> also allows you to quickly switch between accelerators. E.g., running
-<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">dataset</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn<span class="w"> </span><span class="nv">accelerator</span><span class="o">=</span>gpu
+<div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span><span class="nv">architecture</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">tasks</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">training</span><span class="o">=</span>toymix<span class="w"> </span><span class="nv">model</span><span class="o">=</span>gcn<span class="w"> </span><span class="nv">accelerator</span><span class="o">=</span>gpu
 </code></pre></div>
 automatically selects the correct configs to run the experiment on GPU.
-Finally, you can also run a fine-tuning loop: 
+Finally, you can also run a fine-tuning loop:
 <div class="highlight"><pre><span></span><code>graphium-train<span class="w"> </span>+finetuning<span class="o">=</span>admet
 </code></pre></div></p>
 <p>To use a config file you built from scratch you can run
@@ -1653,10 +1632,10 @@ graphium-train<span class="w"> </span><span class="o">[</span>...<span class="o"
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.c011b7c0.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      <script src="../assets/javascripts/bundle.7389ff0e.min.js"></script>
       
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
