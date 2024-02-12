@@ -455,4 +455,5 @@ class EnsembleMLP(MLP):
         Controls how the class is printed
         """
         rep = super().__repr__()
-        rep = rep[:-1] + f", num_ensemble={self.layers[0].linear.weight.shape[0]})"
+        rep = rep[:-1] + f", num_ensemble={self.fully_connected[0].linear.weight.shape[0]})"
+        return rep
