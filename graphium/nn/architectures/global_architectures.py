@@ -1338,6 +1338,8 @@ class FeedForwardGraph(FeedForwardNN):
                     _recursive_divide_dim(v)
                 elif k in ["in_dim", "out_dim", "in_dim_edges", "out_dim_edges"]:
                     x[k] = round(v / divide_factor)
+                elif k in ["embed_dim"]:
+                    x[k] = round(v / divide_factor)
 
         _recursive_divide_dim(kwargs["layer_kwargs"])
 
