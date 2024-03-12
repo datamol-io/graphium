@@ -5,7 +5,6 @@
 
 ---
 
-[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
 [![PyPI](https://img.shields.io/pypi/v/graphium)](https://pypi.org/project/graphium/)
 [![Conda](https://img.shields.io/conda/v/conda-forge/graphium?label=conda&color=success)](https://anaconda.org/conda-forge/graphium)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/graphium)](https://pypi.org/project/graphium/)
@@ -33,10 +32,6 @@ A deep learning library focused on graph representation learning for real-world 
 ## Documentation
 
 Visit https://graphium-docs.datamol.io/.
-
-[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
-
-You can try running Graphium on Graphcore IPUs for free on Gradient by clicking on the button above.
 
 ## Installation for developers
 
