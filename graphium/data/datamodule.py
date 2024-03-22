@@ -65,12 +65,13 @@ from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
     did_featurization_fail,
     BatchingSmilesTransform,
-    smiles_to_unique_mol_ids,
+    smiles_to_unique_mol_ids_and_rank,
 )
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
 from graphium.data.normalization import LabelNormalization
-from graphium.data.multilevel_utils import extract_labels
+from graphium.data.multilevel_utils import extract_labels, get_canonical_ranks_pair
+from graphium.utils.enums import TaskLevel
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -668,7 +669,7 @@ class BaseDataModule(lightning.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
-        task_level: Optional[str] = None,
+        task_level: Optional[TaskLevel] = TaskLevel.GRAPH,
         df: Optional[pd.DataFrame] = None,
         df_path: Optional[Union[str, os.PathLike, List[Union[str, os.PathLike]]]] = None,
         smiles_col: Optional[str] = None,
@@ -711,7 +712,7 @@ class DatasetProcessingParams:
             raise ValueError("The value of epoch_sampling_fraction must be in the range of (0, 1].")
 
         self.df = df
-        self.task_level = task_level
+        self.task_level = TaskLevel.from_str(task_level)
         self.df_path = df_path
         self.smiles_col = smiles_col
         self.label_cols = label_cols
@@ -1052,9 +1053,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
 
-        """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
+        """Convert SMILES to feature graphs for the unique molecules found."""
         all_smiles = []
         all_tasks = []
+        all_task_levels = []
         idx_per_task = {}
         total_len = 0
         for task, dataset_args in task_dataset_args.items():
@@ -1064,8 +1066,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             total_len += num_smiles
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
+                all_task_levels.append(self.task_dataset_processing_params[task].task_level)
         # Get all unique mol ids
-        all_unique_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids, all_canonical_ranks = smiles_to_unique_mol_ids_and_rank(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
@@ -1079,6 +1082,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # Convert SMILES to features
         features, _ = self._featurize_molecules(smiles_to_featurize)
+        canonical_ranks_pair = get_canonical_ranks_pair(all_canonical_ranks, all_task_levels, unique_ids_inv)
 
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
@@ -1090,6 +1094,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
             task_dataset_args[task]["features"].append(all_features[all_idx])
+            task_dataset_args[task]["canonical_rank_pairs"].append(canonical_ranks_pair[all_idx])
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
@@ -1102,7 +1107,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
                     idx_none.append(idx)
             this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
-            df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
+            (
+                df,
+                features,
+                smiles,
+                labels,
+                sample_idx,
+                extras,
+                this_unique_ids,
+                canonical_rank_pairs,
+            ) = self._filter_none_molecules(
                 idx_none,
                 task_df[task],
                 args["features"],
@@ -1111,16 +1125,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["sample_idx"],
                 args["extras"],
                 this_unique_ids,
+                args["canonical_rank_pairs"],
             )
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
+            task_dataset_args[task]["canonical_rank_pairs"] = canonical_rank_pairs
 
             # We have the necessary components to create single-task datasets.
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
+                task_level=self.task_dataset_processing_params[task].task_level,
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 unique_ids=this_unique_ids,
@@ -1517,7 +1534,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
         """
-        Precompute the features (graphs, fingerprints, etc.) from the SMILES.
+        Precompute the features graphs from the SMILES.
         Features are computed from `self.smiles_transformer`.
         A warning is issued to mention which molecules failed featurization.
 
@@ -1744,7 +1761,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def _extract_smiles_labels(
         self,
         df: pd.DataFrame,
-        task_level: str,
+        task_level: TaskLevel,
         smiles_col: Optional[str] = None,
         label_cols: List[str] = [],
         idx_col: Optional[str] = None,
@@ -1787,16 +1804,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
         smiles = df[smiles_col].values
         if len(label_cols) > 0:
-            if task_level == "graph":
-                labels = extract_labels(df, "graph", label_cols)
-            elif task_level == "node":
-                labels = extract_labels(df, "node", label_cols)
-            elif task_level == "edge":
-                labels = extract_labels(df, "edge", label_cols)
-            elif task_level == "nodepair":
-                labels = extract_labels(df, "nodepair", label_cols)
-            else:
-                raise ValueError(f"Unknown task level: {task_level}")
+            labels = extract_labels(df, task_level=task_level, label_cols=label_cols)
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
 
@@ -2530,7 +2538,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             label_cols=["Y"],
             splits_path=split_path,
             split_names=["train", "val", "test"],
-            task_level="graph",
+            task_level=TaskLevel.GRAPH,
         )
 
 
@@ -2658,7 +2666,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
 
-        """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
+        """Convert SMILES to feature graphs for the unique molecules found."""
         all_smiles = []
         idx_per_task = {}
         total_len = 0
@@ -2668,7 +2676,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             idx_per_task[task] = (total_len, total_len + num_smiles)
             total_len += num_smiles
         # Get all unique mol ids
-        all_unique_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids, all_canonical_ranks = smiles_to_unique_mol_ids_and_rank(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
@@ -2682,6 +2690,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         for task, args in task_dataset_args.items():
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
+                task_level=self.task_dataset_processing_params[task]["task_level"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 indices=task_dataset_args[task]["sample_idx"],

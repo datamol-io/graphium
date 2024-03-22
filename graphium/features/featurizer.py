@@ -651,6 +651,7 @@ def mol_to_adj_and_features(
     Dict[str, Tensor],
     Union[Tensor, None],
     Dict[str, Tensor],
+    Union[Tensor, None],
 ]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -890,14 +891,8 @@ class GraphDict(dict):
             "mask_nan": "raise",
         }
         data = dic.pop("data", {})
-        # ndata = dic.pop("ndata", {})
-        # edata = dic.pop("edata", {})
-        # for key in edata.keys():
-        #     assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
         default_dic.update(dic)
         default_dic.update(data)
-        # default_dic.update(ndata)
-        # default_dic.update(edata)
         super().__init__(default_dic)
 
     @property
