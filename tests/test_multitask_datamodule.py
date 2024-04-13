@@ -109,9 +109,6 @@ class Test_Multitask_DataModule(ut.TestCase):
 
         # Task-independent arguments
         dm_args["featurization"] = featurization_args
-        dm_args["featurization_n_jobs"] = 16
-        dm_args["featurization_progress"] = True
-        dm_args["featurization_backend"] = "loky"
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
         dm_args["processed_graph_data_path"] = None

@@ -1,12 +1,12 @@
 """
 --------------------------------------------------------------------------------
-Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals and Graphcore Limited.
+Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates.
 
 Use of this software is subject to the terms and conditions outlined in the LICENSE file.
 Unauthorized modification, distribution, or use is prohibited. Provided 'as is' without
 warranties of any kind.
 
-Valence Labs, Recursion Pharmaceuticals and Graphcore Limited are not liable for any damages arising from its use.
+Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates are not liable for any damages arising from its use.
 Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
@@ -51,6 +51,8 @@ import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
+from rdkit import RDLogger
+
 from graphium.utils import fs
 from graphium.features import (
     mol_to_graph_dict,
@@ -62,15 +64,12 @@ from graphium.data.sampler import DatasetSubSampler
 from graphium.data.utils import graphium_package_path, found_size_mismatch
 from graphium.utils.arg_checker import check_arg_iterator
 from graphium.utils.hashing import get_md5_hash
-from graphium.data.smiles_transform import (
-    did_featurization_fail,
-    BatchingSmilesTransform,
-    smiles_to_unique_mol_ids,
-)
 from graphium.data.collate import graphium_collate_fn
 import graphium.data.dataset as Datasets
 from graphium.data.normalization import LabelNormalization
 from graphium.data.multilevel_utils import extract_labels
+
+import graphium_cpp
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -153,7 +152,6 @@ class BaseDataModule(lightning.LightningDataModule):
         self._predict_ds = None
 
         self._data_is_prepared = False
-        self._data_is_cached = False
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -790,8 +788,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __init__(
         self,
         task_specific_args: Union[Dict[str, DatasetProcessingParams], Dict[str, Any]],
-        processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
-        dataloading_from: str = "ram",
+        processed_graph_data_path: Union[str, os.PathLike],
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -800,10 +797,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs: int = -1,
-        featurization_progress: bool = False,
-        featurization_backend: str = "loky",
-        featurization_batch_size: int = 1000,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         **kwargs,
@@ -821,23 +814,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - `df_path`
                 - `smiles_col`
                 - `label_cols`
-            dataloading_from: Whether to load the data from RAM or from disk. If set to "disk", the data
-                must have been previously cached with `processed_graph_data_path` set. If set to "ram", the data
-                will be loaded in RAM and the `processed_graph_data_path` will be ignored.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
-            featurization_n_jobs: Number of cores to use for the featurization.
-            featurization_progress: whether to show a progress bar during featurization.
-            featurization_backend: The backend to use for the molecular featurization.
 
                 - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
-            featurization_batch_size: Batch size to use for the featurization.
 
             collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             prepare_dict_or_graph: Whether to preprocess all molecules as Graph dict or PyG graphs.
@@ -878,11 +864,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task: self.task_dataset_processing_params[task].epoch_sampling_fraction
             for task in self.task_dataset_processing_params.keys()
         }
-
-        self.featurization_n_jobs = featurization_n_jobs
-        self.featurization_progress = featurization_progress
-        self.featurization_backend = featurization_backend
-        self.featurization_batch_size = featurization_batch_size
+        self.task_names = [task for task in self.task_dataset_processing_params.keys()]
 
         self.task_train_indices = None
         self.task_val_indices = None
@@ -897,7 +879,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.val_ds = None
         self.test_ds = None
 
-        self._parse_caching_args(processed_graph_data_path, dataloading_from)
+        self._parse_caching_args(processed_graph_data_path)
 
         self.task_norms = {}
 
@@ -905,12 +887,65 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization = {}
 
         self.featurization = featurization
+        self.encoded_featurization = featurization
+
+        use_graphium_cpp = "use_graphium_cpp" not in featurization or featurization["use_graphium_cpp"]
+        if use_graphium_cpp:
+            # Copy featurization for the representation used by graphium_cpp
+            encoded_featurization = deepcopy(featurization)
+            self.encoded_featurization = encoded_featurization
+            encoded_featurization["use_graphium_cpp"] = True
+            if "atom_property_list_onehot" not in featurization:
+                featurization["atom_property_list_onehot"] = None
+            if "atom_property_list_float" not in featurization:
+                featurization["atom_property_list_float"] = None
+            if "edge_property_list" not in featurization:
+                featurization["edge_property_list"] = None
+            if "pos_encoding_as_features" not in featurization:
+                featurization["pos_encoding_as_features"] = None
+            encoded_featurization["original_featurization"] = {
+                "atom_property_list_onehot": featurization["atom_property_list_onehot"],
+                "atom_property_list_float": featurization["atom_property_list_float"],
+                "edge_property_list": featurization["edge_property_list"],
+                "pos_encoding_as_features": featurization["pos_encoding_as_features"]
+                }
+            if featurization["atom_property_list_onehot"] is not None:
+                self.atom_onehot_property_tensor = graphium_cpp.atom_onehot_feature_names_to_tensor(featurization["atom_property_list_onehot"])
+            else:
+                self.atom_onehot_property_tensor = torch.tensor(data=[], dtype=torch.int64)
+            encoded_featurization["atom_property_list_onehot"] = self.atom_onehot_property_tensor
+
+            if featurization["atom_property_list_float"] is not None:
+                self.atom_float_property_tensor = graphium_cpp.atom_float_feature_names_to_tensor(featurization["atom_property_list_float"])
+            else:
+                self.atom_float_property_tensor = torch.tensor(data=[], dtype=torch.int64)
+            encoded_featurization["atom_property_list_float"] = self.atom_float_property_tensor
+
+            if featurization["edge_property_list"] is not None:
+                self.edge_property_tensor = graphium_cpp.bond_feature_names_to_tensor(featurization["edge_property_list"])
+            else:
+                self.edge_property_tensor = torch.tensor(data=[], dtype=torch.int64)
+            encoded_featurization["edge_property_list"] = self.edge_property_tensor
+
+            if featurization["pos_encoding_as_features"] is not None and featurization["pos_encoding_as_features"]["pos_types"] is not None:
+                (self.pos_encoding_names, self.pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(featurization["pos_encoding_as_features"]["pos_types"])
+            else:
+                self.pos_encoding_names = []
+                self.pos_encoding_tensor = torch.tensor(data=[], dtype=torch.int64)
+            encoded_featurization["pos_encoding_as_features"] = (self.pos_encoding_names, self.pos_encoding_tensor)
+
+        explicit_H = featurization["explicit_H"] if "explicit_H" in featurization else False
+        add_self_loop = featurization["add_self_loop"] if "add_self_loop" in featurization else False
+
+        # Save these for calling graphium_cpp.prepare_and_save_data later
+        self.add_self_loop = add_self_loop
+        self.explicit_H = explicit_H
 
         # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
         if prepare_dict_or_graph == "pyg:dict":
-            self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
+            self.smiles_transformer = partial(mol_to_graph_dict, **encoded_featurization)
         elif prepare_dict_or_graph == "pyg:graph":
-            self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
+            self.smiles_transformer = partial(mol_to_pyggraph, **encoded_featurization)
         else:
             raise ValueError(
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
@@ -920,28 +955,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if self.processed_graph_data_path is not None:
             if self._ready_to_load_all_from_file():
                 self._data_is_prepared = True
-                self._data_is_cached = True
 
-    def _parse_caching_args(self, processed_graph_data_path, dataloading_from):
+    def _parse_caching_args(self, processed_graph_data_path):
         """
         Parse the caching arguments, and raise errors if the arguments are invalid.
         """
 
-        # Whether to load the data from RAM or from disk
-        dataloading_from = dataloading_from.lower()
-        if dataloading_from not in ["disk", "ram"]:
-            raise ValueError(
-                f"`dataloading_from` should be either 'disk' or 'ram', Provided: `{dataloading_from}`"
-            )
-
         # If loading from disk, the path to the cached data must be provided
-        if dataloading_from == "disk" and processed_graph_data_path is None:
+        if processed_graph_data_path is None:
             raise ValueError(
-                "When `dataloading_from` is 'disk', `processed_graph_data_path` must be provided."
+                "`processed_graph_data_path` must be provided."
             )
 
         self.processed_graph_data_path = processed_graph_data_path
-        self.dataloading_from = dataloading_from
 
     def _get_task_key(self, task_level: str, task: str):
         task_prefix = f"{task_level}_"
@@ -959,7 +985,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return task_level_map
 
-    def prepare_data(self, save_smiles_and_ids: bool = False):
+    def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
         - If each cache is set and exists, reload from cache and return. Otherwise,
@@ -970,30 +996,51 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         - In the previous step, we were also able to get the unique smiles, which we use to compute the features
         - For each single-task dataframe and associated data (smiles, labels, etc.):
             - Filter out the data corresponding to molecules which failed featurization.
-            - Create a corresponding SingletaskDataset
-            - Split the SingletaskDataset according to the task-specific splits for train, val and test
+            - Split the dataset according to the task-specific splits for train, val and test
         """
 
-        def has_atoms_after_h_removal(smiles):
-            # Remove all 'H' characters from the SMILES
-            smiles_without_h = re.sub("H", "", smiles)
-            # Check if any letters are remaining in the modified string
-            has_atoms = bool(re.search("[a-zA-Z]", smiles_without_h))
-            if has_atoms == False:
-                logger.info(f"Removed Hydrogen molecule: {smiles}")
-            return has_atoms
+        # Don't log error messages from SMILES parsing in RDKit.
+        # Common error messages were:
+        # WARNING: not removing hydrogen atom without neighbors
+        # SMILES Parse Error: syntax error while parsing: restricted
+        # SMILES Parse Error: Failed parsing SMILES 'restricted' for input: 'restricted'
+        RDLogger.DisableLog('rdApp.*')
 
-        if self._data_is_prepared:
-            logger.info("Data is already prepared.")
-            self.get_label_statistics(self.processed_graph_data_path, self.data_hash, dataset=None)
-            return
+        self.data_offsets_tensor_index = 0
+        self.concat_smiles_tensor_index = 1
+        self.smiles_offsets_tensor_index = 2
+        self.num_nodes_tensor_index = 3
+        self.num_edges_tensor_index = 4
 
-        """Load all single-task dataframes."""
-        task_df = {}
         for task, args in self.task_dataset_processing_params.items():
             if args.label_normalization is None:
                 args.label_normalization = {}
             label_normalization = LabelNormalization(**args.label_normalization)
+            self.task_norms[task] = label_normalization
+
+        if self._data_is_prepared:
+            logger.info("Data is already prepared.")
+            self.label_num_cols, self.label_dtypes = graphium_cpp.load_num_cols_and_dtypes(self.processed_graph_data_path, self.data_hash)
+            self.stage_data = {
+                "train": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "train", self.data_hash),
+                "val": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "val", self.data_hash),
+                "test": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "test", self.data_hash),
+            }
+            for task in self.task_dataset_processing_params.keys():
+                stats = graphium_cpp.load_stats(self.processed_graph_data_path, self.data_hash, task)
+                if len(stats) < 4:
+                    raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
+
+                self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
+            return
+
+        task_dataset_args = {}
+        self.task_train_indices = {}
+        self.task_val_indices = {}
+        self.task_test_indices = {}
+
+        """Load all single-task dataframes."""
+        for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
@@ -1007,24 +1054,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
-                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
+                df = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
 
             else:
                 label_cols = self._parse_label_cols(
                     df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
                 )
-                task_df[task] = args.df
-            task_df[task] = task_df[task]
+                df = args.df
+
             args.label_cols = label_cols
-            self.task_norms[task] = label_normalization
-        logger.info("Done reading datasets")
 
-        """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
-        task_dataset_args = {}
-        for task in task_df.keys():
-            task_dataset_args[task] = {}
+            """Subsample the data frames and extract the necessary data for each task (smiles, labels, extras)."""
 
-        for task, df in task_df.items():
             # Subsample all the dataframes
             sample_size = self.task_dataset_processing_params[task].sample_size
             df = self._sub_sample_df(df, sample_size, self.task_dataset_processing_params[task].seed)
@@ -1036,7 +1077,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
-            smiles, labels, sample_idx, extras = self._extract_smiles_labels(
+            smiles, labels, label_offsets, sample_idx, extras = self._extract_smiles_labels(
                 df,
                 task_level=args.task_level,
                 smiles_col=args.smiles_col,
@@ -1045,126 +1086,66 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 weights_col=args.weights_col,
                 weights_type=args.weights_type,
             )
+            
+            num_molecules = len(smiles)
+            
+            # Clear the reference to the DataFrame, so that Python can free up the memory.
+            df = None
 
             # Store the relevant information for each task's dataset
-            task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = labels
-            task_dataset_args[task]["sample_idx"] = sample_idx
-            task_dataset_args[task]["extras"] = extras
+            task_dataset_args[task] = {
+                "smiles": smiles,
+                "labels": labels,
+                "label_offsets": label_offsets,
+                # sample_idx is not needed here anymore
+                #"sample_idx": sample_idx,
+                "extras": extras,
+            }
 
-        """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
-        all_smiles = []
-        all_tasks = []
-        idx_per_task = {}
-        total_len = 0
-        for task, dataset_args in task_dataset_args.items():
-            all_smiles.extend(dataset_args["smiles"])
-            num_smiles = len(dataset_args["smiles"])
-            idx_per_task[task] = (total_len, total_len + num_smiles)
-            total_len += num_smiles
-            for count in range(len(dataset_args["smiles"])):
-                all_tasks.append(task)
-        # Get all unique mol ids
-        all_unique_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles,
-            n_jobs=self.featurization_n_jobs,
-            featurization_batch_size=self.featurization_batch_size,
-            backend=self.featurization_backend,
-        )
-        _, unique_ids_idx, unique_ids_inv = np.unique(
-            all_unique_mol_ids, return_index=True, return_inverse=True
-        )
+            """We split the data up to create train, val and test datasets"""
 
-        smiles_to_featurize = [all_smiles[ii] for ii in unique_ids_idx]
-
-        # Convert SMILES to features
-        features, _ = self._featurize_molecules(smiles_to_featurize)
-
-        # Store the features (including Nones, which will be filtered in the next step)
-        for task in task_dataset_args.keys():
-            task_dataset_args[task]["features"] = []
-            task_dataset_args[task]["idx_none"] = []
-        # Create a list of features matching up with the original smiles
-        all_features = [features[unique_idx] for unique_idx in unique_ids_inv]
-
-        # Add the features to the task-specific data
-        for all_idx, task in enumerate(all_tasks):
-            task_dataset_args[task]["features"].append(all_features[all_idx])
-
-        """Filter data based on molecules which failed featurization. Create single task datasets as well."""
-        self.single_task_datasets = {}
-        for task, args in task_dataset_args.items():
-            # Find out which molecule failed featurization, and filter them out
-            idx_none = []
-            for idx, (feat, labels, smiles) in enumerate(
-                zip(args["features"], args["labels"], args["smiles"])
-            ):
-                if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
-                    idx_none.append(idx)
-            this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
-            df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
-                idx_none,
-                task_df[task],
-                args["features"],
-                args["smiles"],
-                args["labels"],
-                args["sample_idx"],
-                args["extras"],
-                this_unique_ids,
-            )
-            task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = labels
-            task_dataset_args[task]["features"] = features
-            task_dataset_args[task]["sample_idx"] = sample_idx
-            task_dataset_args[task]["extras"] = extras
-
-            # We have the necessary components to create single-task datasets.
-            self.single_task_datasets[task] = Datasets.SingleTaskDataset(
-                features=task_dataset_args[task]["features"],
-                labels=task_dataset_args[task]["labels"],
-                smiles=task_dataset_args[task]["smiles"],
-                unique_ids=this_unique_ids,
-                indices=task_dataset_args[task]["sample_idx"],
-                **task_dataset_args[task]["extras"],
-            )
-
-        """We split the data up to create train, val and test datasets"""
-        self.task_train_indices = {}
-        self.task_val_indices = {}
-        self.task_test_indices = {}
-
-        for task, df in task_df.items():
             train_indices, val_indices, test_indices = self._get_split_indices(
-                len(df),
+                num_molecules,
                 split_val=self.task_dataset_processing_params[task].split_val,
                 split_test=self.task_dataset_processing_params[task].split_test,
                 split_seed=self.task_dataset_processing_params[task].seed,
                 splits_path=self.task_dataset_processing_params[task].splits_path,
                 split_names=self.task_dataset_processing_params[task].split_names,
-                sample_idx=task_dataset_args[task]["sample_idx"],
+                # smiles and labels are already sub-sampled, so the split indices need to be
+                # relative to the sample, not the original.
+                #sample_idx=task_dataset_args[task]["sample_idx"],
             )
             self.task_train_indices[task] = train_indices
             self.task_val_indices[task] = val_indices
             self.task_test_indices[task] = test_indices
 
-        (
-            self.train_singletask_datasets,
-            self.val_singletask_datasets,
-            self.test_singletask_datasets,
-        ) = self.get_subsets_of_datasets(
-            self.single_task_datasets, self.task_train_indices, self.task_val_indices, self.task_test_indices
-        )
+        logger.info("Done reading datasets")
 
-        if self.processed_graph_data_path is not None:
-            self._save_data_to_files(save_smiles_and_ids)
-            self._data_is_cached = True
+        # The rest of the data preparation and caching is done in graphium_cpp.prepare_and_save_data
+        normalizations = {task: self.task_dataset_processing_params[task].label_normalization for task in self.task_dataset_processing_params.keys()}
+        self.stage_data, all_stats, self.label_num_cols, self.label_dtypes = graphium_cpp.prepare_and_save_data(
+            self.task_names,
+            task_dataset_args,
+            normalizations,
+            self.processed_graph_data_path,
+            self.data_hash,
+            self.task_train_indices,
+            self.task_val_indices,
+            self.task_test_indices,
+            self.add_self_loop,
+            self.explicit_H)
+
+        for task, stats in all_stats.items():
+            if len(stats) < 4:
+                raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
+
+            self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
 
         self._data_is_prepared = True
 
     def setup(
         self,
         stage: str = None,
-        save_smiles_and_ids: bool = False,
     ):
         """
         Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
@@ -1174,54 +1155,46 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
-        labels_size = {}
-        labels_dtype = {}
+        label_num_cols = {}
+        label_dtypes = {}
         if stage == "fit" or stage is None:
             if self.train_ds is None:
-                self.train_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "train", save_smiles_and_ids=save_smiles_and_ids
-                )
+                self.train_ds = self._make_multitask_dataset("train")
 
             if self.val_ds is None:
-                self.val_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "val", save_smiles_and_ids=save_smiles_and_ids
-                )
+                self.val_ds = self._make_multitask_dataset("val")
 
             logger.info(self.train_ds)
             logger.info(self.val_ds)
-            labels_size.update(
-                self.train_ds.labels_size
+            label_num_cols.update(
+                dict(zip(self.train_ds.task_names, self.train_ds.label_num_cols))
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
-            labels_size.update(self.val_ds.labels_size)
-            labels_dtype.update(self.train_ds.labels_dtype)
-            labels_dtype.update(self.val_ds.labels_dtype)
+            label_num_cols.update(dict(zip(self.val_ds.task_names, self.val_ds.label_num_cols)))
+            label_dtypes.update(dict(zip(self.train_ds.task_names, self.train_ds.label_dtypes)))
+            label_dtypes.update(dict(zip(self.val_ds.task_names, self.val_ds.label_dtypes)))
 
         if stage == "test" or stage is None:
             if self.test_ds is None:
-                self.test_ds = self._make_multitask_dataset(
-                    self.dataloading_from, "test", save_smiles_and_ids=save_smiles_and_ids
-                )
+                self.test_ds = self._make_multitask_dataset("test")
 
             logger.info(self.test_ds)
 
-            labels_size.update(self.test_ds.labels_size)
-            labels_dtype.update(self.test_ds.labels_dtype)
+            label_num_cols.update(dict(zip(self.test_ds.task_names, self.test_ds.label_num_cols)))
+            label_dtypes.update(dict(zip(self.test_ds.task_names, self.test_ds.label_dtypes)))
 
-        default_labels_size_dict = self.collate_fn.keywords.get("labels_size_dict", None)
+        default_labels_num_cols_dict = self.collate_fn.keywords.get("labels_num_cols_dict", None)
 
-        if default_labels_size_dict is None:
-            self.collate_fn.keywords["labels_size_dict"] = labels_size
+        if default_labels_num_cols_dict is None:
+            self.collate_fn.keywords["labels_num_cols_dict"] = label_num_cols
 
         default_labels_dtype_dict = self.collate_fn.keywords.get("labels_dtype_dict", None)
 
         if default_labels_dtype_dict is None:
-            self.collate_fn.keywords["labels_dtype_dict"] = labels_dtype
+            self.collate_fn.keywords["labels_dtype_dict"] = label_dtypes
 
     def _make_multitask_dataset(
         self,
-        dataloading_from: Literal["disk", "ram"],
         stage: Literal["train", "val", "test"],
-        save_smiles_and_ids: bool,
     ) -> Datasets.MultitaskDataset:
         """
         Create a MultitaskDataset for the given stage using single task datasets
@@ -1229,7 +1202,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         Parameters:
             stage: Stage to create multitask dataset for
-            save_smiles_and_ids: Whether to save SMILES strings and unique IDs
             processed_graph_data_path: path to save and load processed graph data from
         """
 
@@ -1237,13 +1209,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         assert stage in allowed_stages, f"Multitask dataset stage `{stage}` not in {allowed_stages}"
 
         if stage == "train":
-            singletask_datasets = self.train_singletask_datasets
             about = "training set"
         elif stage == "val":
-            singletask_datasets = self.val_singletask_datasets
             about = "validation set"
         elif stage == "test":
-            singletask_datasets = self.test_singletask_datasets
             about = "test set"
         else:
             raise ValueError(f"Unknown stage {stage}")
@@ -1251,26 +1220,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         processed_graph_data_path = self.processed_graph_data_path
 
         multitask_dataset = Datasets.MultitaskDataset(
-            singletask_datasets,
-            n_jobs=self.featurization_n_jobs,
-            backend=self.featurization_backend,
-            featurization_batch_size=self.featurization_batch_size,
-            progress=self.featurization_progress,
             about=about,
-            save_smiles_and_ids=save_smiles_and_ids,
             data_path=self._path_to_load_from_file(stage) if processed_graph_data_path else None,
-            dataloading_from=dataloading_from,
-            data_is_cached=self._data_is_cached,
+            featurize_smiles=self.smiles_transformer,
+            task_names=self.task_names,
+            label_num_cols=self.label_num_cols,
+            label_dtypes=self.label_dtypes,
+            mol_file_data_offsets=self.stage_data[stage][self.data_offsets_tensor_index],
+            concat_smiles_tensor=self.stage_data[stage][self.concat_smiles_tensor_index],
+            smiles_offsets_tensor=self.stage_data[stage][self.smiles_offsets_tensor_index],
+            num_nodes_tensor=self.stage_data[stage][self.num_nodes_tensor_index],
+            num_edges_tensor=self.stage_data[stage][self.num_edges_tensor_index],
         )  # type: ignore
-
-        # calculate statistics for the train split and used for all splits normalization
-        if stage == "train":
-            self.get_label_statistics(
-                self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
-            )
-        # Normalization has already been applied in cached data
-        if not self._data_is_prepared:
-            self.normalize_label(multitask_dataset, stage)
 
         return multitask_dataset
 
@@ -1300,138 +1261,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return can_load_from_file
 
-    def _save_data_to_files(self, save_smiles_and_ids: bool = False) -> None:
-        """
-        Save data to files so that they can be loaded from file during training/validation/test
-        """
-
-        stages = ["train", "val", "test"]
-
-        # At the moment, we need to merge the `SingleTaskDataset`'s into `MultitaskDataset`s in order to save to file
-        #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
-        temp_datasets = {
-            stage: self._make_multitask_dataset(
-                dataloading_from="ram", stage=stage, save_smiles_and_ids=save_smiles_and_ids
-            )
-            for stage in stages
-        }
-        for stage in stages:
-            self.save_featurized_data(temp_datasets[stage], self._path_to_load_from_file(stage))
-            temp_datasets[stage].save_metadata(self._path_to_load_from_file(stage))
-        # self.train_ds, self.val_ds, self.test_ds will be created during `setup()`
-
-        if self.dataloading_from == "disk":
-            del temp_datasets
-        else:
-            self.train_ds = temp_datasets["train"]
-            self.val_ds = temp_datasets["val"]
-            self.test_ds = temp_datasets["test"]
-
     def get_folder_size(self, path):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
-
-    def calculate_statistics(self, dataset: Datasets.MultitaskDataset, train: bool = False):
-        """
-        Calculate the statistics of the labels for each task, and overwrites the `self.task_norms` attribute.
-
-        Parameters:
-            dataset: the dataset to calculate the statistics from
-            train: whether the dataset is the training set
-
-        """
-
-        if self.task_norms and train:
-            for task in dataset.labels_size.keys():
-                # if the label type is graph_*, we need to stack them as the tensor shape is (num_labels, )
-                if task.startswith("graph"):
-                    labels = np.stack(
-                        np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]),
-                        axis=0,
-                    )
-                # for other tasks with node_ and edge_, the label shape is [num_nodes/num_edges, num_labels]
-                # we can concatenate them directly
-                else:
-                    labels = np.concatenate(
-                        [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
-                    )
-
-                self.task_norms[task].calculate_statistics(labels)
-
-    def get_label_statistics(
-        self,
-        data_path: Union[str, os.PathLike],
-        data_hash: str,
-        dataset: Datasets.MultitaskDataset,
-        train: bool = False,
-    ):
-        """
-        Get the label statistics from the dataset, and save them to file, if needed.
-        `self.task_norms` will be modified in-place with the label statistics.
-
-        Parameters:
-            data_path: the path to save and load the label statistics to. If None, no saving and loading will be done.
-            data_hash: the hash of the dataset generated by `get_data_hash()`
-            dataset: the dataset to calculate the statistics from
-            train: whether the dataset is the training set
-
-        """
-        if data_path is None:
-            self.calculate_statistics(dataset, train=train)
-        else:
-            path_with_hash = os.path.join(data_path, data_hash)
-            os.makedirs(path_with_hash, exist_ok=True)
-            filename = os.path.join(path_with_hash, "task_norms.pkl")
-            if self.task_norms and train and not os.path.isfile(filename):
-                self.calculate_statistics(dataset, train=train)
-                torch.save(self.task_norms, filename, pickle_protocol=4)
-            # if any of the above three condition does not satisfy, we load from file.
-            else:
-                self.task_norms = torch.load(filename)
-
-    def normalize_label(self, dataset: Datasets.MultitaskDataset, stage) -> Datasets.MultitaskDataset:
-        """
-        Normalize the labels in the dataset using the statistics in `self.task_norms`.
-
-        Parameters:
-            dataset: the dataset to normalize the labels from
-
-        Returns:
-            the dataset with normalized labels
-        """
-        for task in dataset.labels_size.keys():
-            # we normalize the dataset if (it is train split) or (it is val/test splits and normalize_val_test is set to true)
-            if (stage == "train") or (stage in ["val", "test"] and self.task_norms[task].normalize_val_test):
-                for i in range(len(dataset)):
-                    if task in dataset[i]["labels"]:
-                        dataset[i]["labels"][task] = self.task_norms[task].normalize(
-                            dataset[i]["labels"][task]
-                        )
-        return dataset
-
-    def save_featurized_data(self, dataset: Datasets.MultitaskDataset, processed_data_path):
-        os.makedirs(processed_data_path)  # In case the len(dataset) is 0
-        for i in range(0, len(dataset), 1000):
-            os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
-        process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
-
-        # Check if "about" is in the Dataset object
-        about = ""
-        if hasattr(dataset, "about"):
-            about = dataset.about
-        for param in tqdm(process_params, desc=f"Saving featurized data {about}"):
-            self.process_func(param)
-        return
-
-    def process_func(self, param):
-        index, datum, folder = param
-        filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
-        torch.save(
-            {"graph_with_features": datum["features"], "labels": datum["labels"]},
-            filename,
-            pickle_protocol=4,
-        )
-        return
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -1513,110 +1345,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )
             collate_fn.__name__ = graphium_collate_fn.__name__
         return collate_fn
-
-    # Cannot be used as is for the multitask version, because sample_idx does not apply.
-    def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
-        """
-        Precompute the features (graphs, fingerprints, etc.) from the SMILES.
-        Features are computed from `self.smiles_transformer`.
-        A warning is issued to mention which molecules failed featurization.
-
-        Note:
-            (hadim): in case of very large dataset we could:
-            - or cache the data and read from it during `next(iter(dataloader))`
-            - or compute the features on-the-fly during `next(iter(dataloader))`
-            For now we compute in advance and hold everything in memory.
-
-        Parameters:
-            smiles: A list of all the molecular SMILES to featurize
-            sample_idx: The indexes corresponding to the sampled SMILES.
-                If not provided, computed from `numpy.arange`.
-
-        Returns:
-            features: A list of all the featurized molecules
-            idx_none: A list of the indexes that failed featurization
-        """
-
-        batch_size = BatchingSmilesTransform.parse_batch_size(
-            numel=len(smiles),
-            desired_batch_size=self.featurization_batch_size,
-            n_jobs=self.featurization_n_jobs,
-        )
-
-        # Loop all the smiles and compute the features
-        features = dm.parallelized_with_batches(
-            BatchingSmilesTransform(self.smiles_transformer),
-            smiles,
-            batch_size=batch_size,
-            progress=True,
-            n_jobs=self.featurization_n_jobs,
-            backend=self.featurization_backend,
-            tqdm_kwargs={"desc": f"featurizing_smiles, batch={batch_size}"},
-        )
-
-        # Warn about None molecules
-        idx_none = [ii for ii, feat in enumerate(features) if did_featurization_fail(feat)]
-        if len(idx_none) > 0:
-            mols_to_msg = [
-                f"idx={idx} - smiles={smiles[idx]} - Error_msg[:-200]=\n{str(features[idx])[:-200]}"
-                for idx in idx_none
-            ]
-            msg = "\n".join(mols_to_msg)
-            logger.warning(
-                (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
-            )
-
-        return features, idx_none
-
-    @staticmethod
-    def _filter_none_molecules(
-        idx_none: Iterable,
-        *args: Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]],
-    ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]]]:
-        """
-        Filter the molecules, labels, etc. for the molecules that failed featurization.
-
-        Parameters:
-            idx_none: A list of the indexes that failed featurization
-            args: Any argument from which to filter the failed SMILES.
-                Can be a `list`, `tuple`, `Tensor`, `np.array`, `Dict`, `pd.DataFrame`, `pd.Series`.
-                Otherwise, it is not filtered.
-                WARNING: If a `pd.DataFrame` or `pd.Series` is passed, it filters by the row indexes,
-                NOT by the `DataFrame.index` or `Series.index`! Be careful!
-
-        Returns:
-            out: All the `args` with the indexes from `idx_none` removed.
-        """
-        if len(idx_none) == 0:
-            return args
-        idx_none = np.asarray(idx_none)
-
-        out = []
-        for arg in args:
-            if isinstance(arg, pd.DataFrame):
-                new = arg.drop(arg.index[idx_none], axis=0)
-            elif isinstance(arg, pd.Series):
-                new = arg.drop(arg.index[idx_none], axis=0)
-            elif isinstance(arg, np.ndarray):
-                new = np.delete(arg, idx_none, axis=0)
-            elif isinstance(arg, torch.Tensor):
-                not_none = torch.ones(arg.shape[0], dtype=bool)
-                not_none[idx_none] = False
-                new = arg[not_none]
-            elif isinstance(arg, (list, tuple)):
-                arg = list(arg)
-                new = [elem for ii, elem in enumerate(arg) if ii not in idx_none]
-            elif isinstance(arg, dict):
-                new = {}
-                for key, val in arg.items():
-                    new[key] = MultitaskFromSmilesDataModule._filter_none_molecules(idx_none, val)  # Careful
-            else:
-                new = arg
-            out.append(new)
-
-        out = tuple(out) if len(out) > 1 else out[0]
-
-        return out
 
     def _parse_label_cols(
         self,
@@ -1735,11 +1463,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         return graph
 
     ########################## Private methods ######################################
-    def _save_to_cache(self):
-        raise NotImplementedError()
-
-    def _load_from_cache(self):
-        raise NotImplementedError()
 
     def _extract_smiles_labels(
         self,
@@ -1752,7 +1475,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         weights_col: Optional[str] = None,
         weights_type: Optional[str] = None,
     ) -> Tuple[
-        np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
+        np.ndarray, np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
     ]:
         """
         For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
@@ -1788,17 +1511,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         smiles = df[smiles_col].values
         if len(label_cols) > 0:
             if task_level == "graph":
-                labels = extract_labels(df, "graph", label_cols)
+                labels, label_offsets = extract_labels(df, "graph", label_cols)
             elif task_level == "node":
-                labels = extract_labels(df, "node", label_cols)
+                labels, label_offsets = extract_labels(df, "node", label_cols)
             elif task_level == "edge":
-                labels = extract_labels(df, "edge", label_cols)
+                labels, label_offsets = extract_labels(df, "edge", label_cols)
             elif task_level == "nodepair":
-                labels = extract_labels(df, "nodepair", label_cols)
+                labels, label_offsets = extract_labels(df, "nodepair", label_cols)
             else:
                 raise ValueError(f"Unknown task level: {task_level}")
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
+            label_offsets = None
 
         # Get the indices, used for sub-sampling and splitting the dataset
         if idx_col is not None:
@@ -1837,7 +1561,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             weights /= np.max(weights)  # Put the max weight to 1
 
         extras = {"weights": weights, "mol_ids": mol_ids}
-        return smiles, labels, sample_idx, extras
+        return smiles, labels, label_offsets, sample_idx, extras
 
     def _get_split_indices(
         self,
@@ -1919,8 +1643,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
         train_indices = train_idx.tolist()
-        _, valid_idx, _ = np.intersect1d(sample_idx, val_indices, return_indices=True)
-        val_indices = valid_idx.tolist()
+        _, val_idx, _ = np.intersect1d(sample_idx, val_indices, return_indices=True)
+        val_indices = val_idx.tolist()
         _, test_idx, _ = np.intersect1d(sample_idx, test_indices, return_indices=True)
         test_indices = test_idx.tolist()
 
@@ -1954,7 +1678,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def get_data_hash(self):
         """
-        Get a hash specific to a dataset and smiles_transformer.
+        Get a hash specific to a dataset.
         Useful to cache the pre-processed data.
         """
         args = {}
@@ -1975,113 +1699,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             args[task_key] = task_args
 
         hash_dict = {
-            "smiles_transformer": self.smiles_transformer,
             "task_specific_args": args,
         }
         data_hash = get_md5_hash(hash_dict)
         return data_hash
-
-    def get_data_cache_fullname(self, compress: bool = False) -> str:
-        """
-        Create a hash for the dataset, and use it to generate a file name
-
-        Parameters:
-            compress: Whether to compress the data
-        Returns:
-            full path to the data cache file
-        """
-        if self.processed_graph_data_path is None:
-            return
-        ext = ".datacache"
-        if compress:
-            ext += ".gz"
-        data_cache_fullname = fs.join(self.processed_graph_data_path, self.data_hash + ext)
-        return data_cache_fullname
-
-    def load_data_from_cache(self, verbose: bool = True, compress: bool = False) -> bool:
-        """
-        Load the datasets from cache. First create a hash for the dataset, and verify if that
-        hash is available at the path given by `self.processed_graph_data_path`.
-
-        Parameters:
-            verbose: Whether to print the progress
-            compress: Whether to compress the data
-
-        Returns:
-            cache_data_exists: Whether the cache exists (if the hash matches) and the loading succeeded
-        """
-        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
-
-        if full_cache_data_path is None:
-            logger.info("No cache data path specified. Skipping loading the data from cache.")
-            return False
-
-        cache_data_exists = fs.exists(full_cache_data_path)
-
-        if cache_data_exists:
-            try:
-                logger.info(f"Loading the data from cache at path `{full_cache_data_path}`")
-                now = time.time()
-                with fsspec.open(full_cache_data_path, mode="rb", compression="infer") as file:
-                    load_params = torch.load(file)
-                    self.__dict__.update(load_params)
-                    (
-                        self.train_singletask_datasets,
-                        self.val_singletask_datasets,
-                        self.test_singletask_datasets,
-                    ) = self.get_subsets_of_datasets(
-                        self.single_task_datasets,
-                        self.task_train_indices,
-                        self.task_val_indices,
-                        self.task_test_indices,
-                    )
-                elapsed = round(time.time() - now)
-                logger.info(
-                    f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`"
-                )
-                return True
-            except Exception as e:
-                if verbose:
-                    logger.warning(
-                        f"Data cache failed to load path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
-                    )
-                    logger.warning(e.__str__())
-                return False
-        else:
-            if verbose:
-                logger.info(
-                    f"Data cache not found at path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
-                )
-            return False
-
-    def get_subsets_of_datasets(
-        self,
-        single_task_datasets: Dict[str, Datasets.SingleTaskDataset],
-        task_train_indices: Dict[str, Iterable],
-        task_val_indices: Dict[str, Iterable],
-        task_test_indices: Dict[str, Iterable],
-    ) -> Tuple[Subset, Subset, Subset]:
-        """
-        From a dictionary of datasets and their associated indices, subset the train/val/test sets
-
-        Parameters:
-            single_task_datasets: Dictionary of datasets
-            task_train_indices: Dictionary of train indices
-            task_val_indices: Dictionary of val indices
-            task_test_indices: Dictionary of test indices
-        Returns:
-            train_singletask_datasets: Dictionary of train subsets
-            val_singletask_datasets: Dictionary of val subsets
-            test_singletask_datasets: Dictionary of test subsets
-        """
-        train_singletask_datasets = {}
-        val_singletask_datasets = {}
-        test_singletask_datasets = {}
-        for task in task_train_indices.keys():
-            train_singletask_datasets[task] = Subset(single_task_datasets[task], task_train_indices[task])
-            val_singletask_datasets[task] = Subset(single_task_datasets[task], task_val_indices[task])
-            test_singletask_datasets[task] = Subset(single_task_datasets[task], task_test_indices[task])
-        return train_singletask_datasets, val_singletask_datasets, test_singletask_datasets
 
     def __len__(self) -> int:
         r"""
@@ -2138,7 +1759,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         self,
         task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
-        dataloading_from: str = "ram",
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2147,9 +1767,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs: int = -1,
-        featurization_progress: bool = False,
-        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         **kwargs,
@@ -2168,16 +1785,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 meaning that all molecules will be considered.
             processed_graph_data_path: Path to the processed graph data. If None, the data will be
               downloaded from the OGB website.
-            dataloading_from: Whether to load the data from RAM or disk. Default is "ram".
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
-            featurization_n_jobs: Number of cores to use for the featurization.
-            featurization_progress: whether to show a progress bar during featurization.
-            featurization_backend: The backend to use for the molecular featurization.
 
                 - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
@@ -2214,17 +1827,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args = {}
         dm_args["task_specific_args"] = new_task_specific_args
         dm_args["processed_graph_data_path"] = processed_graph_data_path
-        dm_args["dataloading_from"] = dataloading_from
-        dm_args["dataloader_from"] = dataloading_from
         dm_args["featurization"] = featurization
         dm_args["batch_size_training"] = batch_size_training
         dm_args["batch_size_inference"] = batch_size_inference
         dm_args["batch_size_per_pack"] = batch_size_per_pack
         dm_args["num_workers"] = num_workers
         dm_args["pin_memory"] = pin_memory
-        dm_args["featurization_n_jobs"] = featurization_n_jobs
-        dm_args["featurization_progress"] = featurization_progress
-        dm_args["featurization_backend"] = featurization_backend
         dm_args["persistent_workers"] = persistent_workers
         dm_args["multiprocessing_context"] = multiprocessing_context
         dm_args["collate_fn"] = collate_fn
@@ -2400,7 +2008,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         tdc_train_val_seed: int = 0,
         # Inherited arguments from superclass
         processed_graph_data_path: Optional[Union[str, Path]] = None,
-        dataloading_from: str = "ram",
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2409,9 +2016,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs: int = -1,
-        featurization_progress: bool = False,
-        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         **kwargs,
@@ -2460,7 +2064,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             task_specific_args=task_specific_args,
             featurization=featurization,
             processed_graph_data_path=processed_graph_data_path,
-            dataloading_from=dataloading_from,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
             batch_size_per_pack=batch_size_per_pack,
@@ -2468,9 +2071,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             multiprocessing_context=multiprocessing_context,
-            featurization_n_jobs=featurization_n_jobs,
-            featurization_progress=featurization_progress,
-            featurization_backend=featurization_backend,
             collate_fn=collate_fn,
             prepare_dict_or_graph=prepare_dict_or_graph,
             **kwargs,
@@ -2676,6 +2276,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         )
         # Convert SMILES to features
         features, _ = self._featurize_molecules(all_smiles)
+        # FIXME: What is task supposed to be here?
         task_dataset_args[task]["features"] = features
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}

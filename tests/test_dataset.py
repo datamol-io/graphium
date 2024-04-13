@@ -60,7 +60,7 @@ class Test_Multitask_Dataset(ut.TestCase):
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
         multitask_microzinc = MultitaskDataset(
-            datasets_dict, save_smiles_and_ids=True
+            datasets_dict
         )  # Can optionally have features
 
         # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
@@ -122,7 +122,7 @@ class Test_Multitask_Dataset(ut.TestCase):
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
         multitask_microzinc = MultitaskDataset(
-            datasets_dict, save_smiles_and_ids=True
+            datasets_dict
         )  # Can optionally have features
 
         # The total dataset has as many molecules as there are smiles in all tasks put together
@@ -202,7 +202,7 @@ class Test_Multitask_Dataset(ut.TestCase):
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
         multitask_microzinc = MultitaskDataset(
-            datasets_dict, save_smiles_and_ids=True
+            datasets_dict
         )  # Can optionally have features
 
         # The multitask dataset has as many molecules as there are unique smiles across the single task datasets.

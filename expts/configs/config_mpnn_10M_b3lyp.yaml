@@ -93,7 +93,6 @@ datamodule:
     featurization_progress: True
     featurization_backend: "loky"
     processed_graph_data_path: "../datacache/b3lyp/"
-    dataloading_from: ram
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',

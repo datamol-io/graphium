@@ -76,7 +76,6 @@ class TestCLITraining:
             "+datamodule.args.task_specific_args.zinc.sample_size=1000",
             "trainer.trainer.check_val_every_n_epoch=1",
             f"trainer.trainer.precision={acc_prec}",
-            f"datamodule.args.dataloading_from={load_type}",
         ]
         if acc_type == "ipu":
             overrides.append("accelerator.ipu_config=['useIpuModel(True)']")

@@ -1,12 +1,12 @@
 """
 --------------------------------------------------------------------------------
-Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals and Graphcore Limited.
+Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates.
 
 Use of this software is subject to the terms and conditions outlined in the LICENSE file.
 Unauthorized modification, distribution, or use is prohibited. Provided 'as is' without
 warranties of any kind.
 
-Valence Labs, Recursion Pharmaceuticals and Graphcore Limited are not liable for any damages arising from its use.
+Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates are not liable for any damages arising from its use.
 Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
@@ -30,6 +30,7 @@ from graphium.features import nmp
 from graphium.utils.tensor import one_of_k_encoding
 from graphium.features.positional_encoding import get_all_positional_encodings
 
+import graphium_cpp
 
 def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
     r"""
@@ -644,6 +645,7 @@ def mol_to_adj_and_features(
     pos_encoding_as_features: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
+    use_graphium_cpp: bool = False,
 ) -> Union[
     coo_matrix,
     Union[Tensor, None],
@@ -831,7 +833,7 @@ def mol_to_adjacency_matrix(
         adj_idx.append([bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()])
         adj_idx.append([bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()])
         if use_bonds_weights:
-            val = nmp.BOND_TYPES[bond.GetBondType()]
+            val = bond.GetBondTypeAsDouble()
         else:
             val = 1
         adj_val.extend([val, val])
@@ -967,21 +969,26 @@ class GraphDict(dict):
         else:
             return np.count_nonzero(self.adj)  # No division by 2 because edges are counted twice
 
+# These are the integers that correspond with the torch data types in C++
+NP_DTYPE_TO_TORCH_INT = {np.float16: 5, np.float32: 6, np.float64: 7}
 
 def mol_to_graph_dict(
-    mol: dm.Mol,
-    atom_property_list_onehot: List[str] = [],
-    atom_property_list_float: List[Union[str, Callable]] = [],
+    mol: Union[str, dm.Mol],
+    atom_property_list_onehot: Union[List[str],torch.Tensor] = [],
+    atom_property_list_float: Union[List[Union[str, Callable]],torch.Tensor] = [],
     conformer_property_list: List[str] = [],
-    edge_property_list: List[str] = [],
+    edge_property_list: Union[List[str],torch.Tensor] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_features: Union[Dict[str, Any], Tuple[List[str],torch.Tensor]] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
+    use_graphium_cpp: bool = False,
+    original_featurization: Optional[Dict[str, Any]] = None,
+    output_pyg_graph = False
 ) -> Union[GraphDict, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -1070,33 +1077,114 @@ def mol_to_graph_dict(
 
     input_mol = mol
     try:
-        if isinstance(mol, str):
-            mol = dm.to_mol(mol, ordered=True)
-        if explicit_H:
-            mol = Chem.AddHs(mol)
+        if use_graphium_cpp:
+            if not isinstance(mol, str):
+                raise ValueError(f"use_graphium_cpp option requires that molecule be received as a string in mol_to_graph_dict, not type "+str(type(mol)))
+            has_conformer = ('positions_3d' in conformer_property_list)
+            pe_index = 4
+            if has_conformer:
+                pe_index = 5;
+            mask_nan_value = 0.0
+            if mask_nan is None:
+                mask_nan_style_int = 0
+            elif mask_nan == "raise" or mask_nan == "warn":
+                mask_nan_style_int = 1
+            else:
+                mask_nan_style_int = 2
+                mask_nan_value = float(mask_nan)
+            tensors, num_nans, nan_tensor_index = graphium_cpp.featurize_smiles(
+                mol,
+                atom_property_list_onehot,
+                atom_property_list_float,
+                'positions_3d' in conformer_property_list,
+                edge_property_list,
+                pos_encoding_as_features[1],
+                True, # duplicate_edges, so that we don't have to duplicate below
+                add_self_loop,
+                explicit_H,
+                use_bonds_weights,
+                True, #offset_carbon
+                NP_DTYPE_TO_TORCH_INT[dtype],
+                mask_nan_style_int,
+                mask_nan_value
+            )
+
+            if num_nans > 0:
+                if nan_tensor_index == 2:
+                    array_name = "atom featurization"
+                elif nan_tensor_index == 3:
+                    array_name = "edge property"
+                elif nan_tensor_index == 4 and has_conformer:
+                    array_name = 'positions_3d'
+                else:
+                    array_name = pos_encoding_as_features[0][nan_tensor_index - pe_index]
+                msg = f"There are {num_nans} NaNs in `{array_name}`"
+                if mask_nan == "raise":
+                    raise ValueError(msg)
+                elif mask_nan == "warn":
+                    logger.warning(msg)
+
+            num_atoms = tensors[2].size(0)
+            if not output_pyg_graph:
+                adj = coo_matrix(
+                        (tensors[1], tensors[0]),
+                        shape=(num_atoms, num_atoms),
+                        dtype=dtype,
+                    )
+            else:
+                data_dict = {
+                    "feat": tensors[2],
+                    "edge_feat": tensors[3]
+                    }
+                if has_conformer:
+                    data_dict['positions_3d'] = tensors[4]
+                for i in range(len(tensors)-pe_index):
+                    data_dict[pos_encoding_as_features[0][i]] = tensors[i+pe_index]
+                # Create the PyG graph object `Data`
+                data = Data(edge_index=tensors[0], edge_weight=tensors[1], num_nodes=num_atoms, **data_dict)
+                return data
+
+            ndata = tensors[2]
+            edata = tensors[3]
+            if has_conformer:
+                conf_dict = {'positions_3d': tensors[4]}
+            else:
+                conf_dict = {}
+            pe_tensors = tensors[pe_index:]
+            pe_dict = {pos_encoding_as_features[0][i]: pe_tensors[i] for i in range(len(pe_tensors))}
+
         else:
-            mol = Chem.RemoveHs(mol)
-        num_atoms = mol.GetNumAtoms()
-        if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
-            raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
-        (
-            adj,
-            ndata,
-            edata,
-            pe_dict,
-            conf_dict,
-        ) = mol_to_adj_and_features(
-            mol=mol,
-            atom_property_list_onehot=atom_property_list_onehot,
-            atom_property_list_float=atom_property_list_float,
-            conformer_property_list=conformer_property_list,
-            edge_property_list=edge_property_list,
-            add_self_loop=add_self_loop,
-            explicit_H=explicit_H,
-            use_bonds_weights=use_bonds_weights,
-            pos_encoding_as_features=pos_encoding_as_features,
-            mask_nan=mask_nan,
-        )
+            if isinstance(mol, str):
+                mol = dm.to_mol(mol, ordered=True)
+            if explicit_H:
+                mol = Chem.AddHs(mol)
+            else:
+                mol = Chem.RemoveHs(mol)
+            num_atoms = mol.GetNumAtoms()
+            if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
+                raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
+            (
+                adj,
+                ndata,
+                edata,
+                pe_dict,
+                conf_dict,
+            ) = mol_to_adj_and_features(
+                mol=mol,
+                atom_property_list_onehot=atom_property_list_onehot,
+                atom_property_list_float=atom_property_list_float,
+                conformer_property_list=conformer_property_list,
+                edge_property_list=edge_property_list,
+                add_self_loop=add_self_loop,
+                explicit_H=explicit_H,
+                use_bonds_weights=use_bonds_weights,
+                pos_encoding_as_features=pos_encoding_as_features,
+                mask_nan=mask_nan,
+            )
+            if edata is not None:
+                if issparse(edata):
+                    edata = to_dense_array(edata, dtype=dtype)
+                edata = edata.repeat(2, axis=0)
     except Exception as e:
         if on_error.lower() == "raise":
             raise e
@@ -1118,10 +1206,7 @@ def mol_to_graph_dict(
 
     # Assign the edge data
     if edata is not None:
-        if issparse(edata):
-            edata = to_dense_array(edata, dtype=dtype)
-        hetero_edata = edata.repeat(2, axis=0)
-        graph_dict["data"]["edge_feat"] = hetero_edata
+        graph_dict["data"]["edge_feat"] = edata
 
     # Put the positional encodings as node features
     # TODO: add support for PE on edges
@@ -1137,19 +1222,21 @@ def mol_to_graph_dict(
 
 
 def mol_to_pyggraph(
-    mol: dm.Mol,
-    atom_property_list_onehot: List[str] = [],
-    atom_property_list_float: List[Union[str, Callable]] = [],
+    mol: Union[str, dm.Mol],
+    atom_property_list_onehot: Union[List[str],torch.Tensor] = [],
+    atom_property_list_float: Union[List[Union[str, Callable]],torch.Tensor] = [],
     conformer_property_list: List[str] = [],
-    edge_property_list: List[str] = [],
+    edge_property_list: Union[List[str],torch.Tensor] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_features: Union[Dict[str, Any], Tuple[List[str],torch.Tensor]] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
+    use_graphium_cpp: bool = False,
+    original_featurization: Optional[Dict[str, Any]] = None,
 ) -> Union[Data, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -1242,12 +1329,12 @@ def mol_to_pyggraph(
         on_error=on_error,
         mask_nan=mask_nan,
         max_num_atoms=max_num_atoms,
+        use_graphium_cpp=use_graphium_cpp,
+        original_featurization=original_featurization,
+        output_pyg_graph=True
     )
 
-    if (graph_dict is not None) and not isinstance(graph_dict, str):
-        return graph_dict.make_pyg_graph()
-    else:
-        return graph_dict
+    return graph_dict
 
 
 def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, Any]:
