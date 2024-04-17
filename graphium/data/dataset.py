@@ -27,8 +27,6 @@ from loguru import logger
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Batch, Data
 
-from graphium.features import GraphDict
-
 import graphium_cpp
 
 

@@ -54,11 +54,7 @@ from torch.utils.data import Subset
 from rdkit import RDLogger
 
 from graphium.utils import fs
-from graphium.features import (
-    mol_to_graph_dict,
-    GraphDict,
-    mol_to_pyggraph,
-)
+from graphium.features import mol_to_pyggraph
 
 from graphium.data.sampler import DatasetSubSampler
 from graphium.data.utils import graphium_package_path, found_size_mismatch
@@ -100,6 +96,9 @@ PCQM4Mv2_meta.update(
     }
 )
 
+def warn_deprecated(value, name, function_name):
+    if value is not None:
+        logger.warn("In "+function_name+", "+name+" is deprecated")
 
 class BaseDataModule(lightning.LightningDataModule):
     def __init__(
@@ -789,6 +788,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Union[Dict[str, DatasetProcessingParams], Dict[str, Any]],
         processed_graph_data_path: Union[str, os.PathLike],
+        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -797,8 +797,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
+        featurization_n_jobs = None,
+        featurization_progress = None,
+        featurization_backend = None,
+        featurization_batch_size = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "pyg:graph",
+        prepare_dict_or_graph = None,
+        preprocessing_n_jobs: int = -1,
         **kwargs,
     ):
         """
@@ -814,6 +819,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - `df_path`
                 - `smiles_col`
                 - `label_cols`
+            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
@@ -825,15 +831,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
 
+            featurization_n_jobs: Deprecated.
+            featurization_progress: Deprecated.
+            featurization_backend: Deprecated.
+            featurization_batch_size: Deprecated.
             collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
-            prepare_dict_or_graph: Whether to preprocess all molecules as Graph dict or PyG graphs.
-                Possible options:
-
-                - "pyg:dict": Process molecules as a `dict`. It's faster and requires less RAM during
-                  pre-processing. It is slower during training with with `num_workers=0` since
-                  pyg `Data` will be created during data-loading, but faster with large
-                  `num_workers`, and less likely to cause memory issues with the parallelization.
-                - "pyg:graph": Process molecules as `pyg.data.Data`.
+            prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
+            preprocessing_n_jobs: Number of threads to use during preprocessing.
+                Use -1 to use all available cores.
         """
         BaseDataModule.__init__(
             self,
@@ -847,6 +852,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             collate_fn=collate_fn,
         )
         IPUDataModuleModifier.__init__(self, **kwargs)
+
+        warn_deprecated(dataloading_from, "dataloading_from", "MultitaskFromSmilesDataModule::__init__")
+        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "MultitaskFromSmilesDataModule::__init__")
+        warn_deprecated(featurization_progress, "featurization_progress", "MultitaskFromSmilesDataModule::__init__")
+        warn_deprecated(featurization_backend, "featurization_backend", "MultitaskFromSmilesDataModule::__init__")
+        warn_deprecated(featurization_batch_size, "featurization_batch_size", "MultitaskFromSmilesDataModule::__init__")
+        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "MultitaskFromSmilesDataModule::__init__")
 
         self.task_specific_args = task_specific_args
 
@@ -870,11 +882,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.task_val_indices = None
         self.task_test_indices = None
 
-        self.single_task_datasets = None
-        self.train_singletask_datasets = None
-        self.val_singletask_datasets = None
-        self.test_singletask_datasets = None
-
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
@@ -887,52 +894,29 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization = {}
 
         self.featurization = featurization
-        self.encoded_featurization = featurization
 
-        use_graphium_cpp = "use_graphium_cpp" not in featurization or featurization["use_graphium_cpp"]
-        if use_graphium_cpp:
-            # Copy featurization for the representation used by graphium_cpp
-            encoded_featurization = deepcopy(featurization)
-            self.encoded_featurization = encoded_featurization
-            encoded_featurization["use_graphium_cpp"] = True
-            if "atom_property_list_onehot" not in featurization:
-                featurization["atom_property_list_onehot"] = None
-            if "atom_property_list_float" not in featurization:
-                featurization["atom_property_list_float"] = None
-            if "edge_property_list" not in featurization:
-                featurization["edge_property_list"] = None
-            if "pos_encoding_as_features" not in featurization:
-                featurization["pos_encoding_as_features"] = None
-            encoded_featurization["original_featurization"] = {
-                "atom_property_list_onehot": featurization["atom_property_list_onehot"],
-                "atom_property_list_float": featurization["atom_property_list_float"],
-                "edge_property_list": featurization["edge_property_list"],
-                "pos_encoding_as_features": featurization["pos_encoding_as_features"]
-                }
-            if featurization["atom_property_list_onehot"] is not None:
-                self.atom_onehot_property_tensor = graphium_cpp.atom_onehot_feature_names_to_tensor(featurization["atom_property_list_onehot"])
+        # Copy featurization for the representation used by graphium_cpp
+        encoded_featurization = deepcopy(featurization)
+        self.encoded_featurization = encoded_featurization
+        
+        def encode_feature_options(options, name, encoding_function):
+            if name not in options or options[name] is None:
+                options[name] = torch.tensor(data=[], dtype=torch.int64)
             else:
-                self.atom_onehot_property_tensor = torch.tensor(data=[], dtype=torch.int64)
-            encoded_featurization["atom_property_list_onehot"] = self.atom_onehot_property_tensor
+                options[name] = encoding_function(options[name])
+        encode_feature_options(encoded_featurization, "atom_property_list_onehot", graphium_cpp.atom_onehot_feature_names_to_tensor)
+        encode_feature_options(encoded_featurization, "atom_property_list_float", graphium_cpp.atom_float_feature_names_to_tensor)
+        encode_feature_options(encoded_featurization, "edge_property_list", graphium_cpp.bond_feature_names_to_tensor)
 
-            if featurization["atom_property_list_float"] is not None:
-                self.atom_float_property_tensor = graphium_cpp.atom_float_feature_names_to_tensor(featurization["atom_property_list_float"])
-            else:
-                self.atom_float_property_tensor = torch.tensor(data=[], dtype=torch.int64)
-            encoded_featurization["atom_property_list_float"] = self.atom_float_property_tensor
-
-            if featurization["edge_property_list"] is not None:
-                self.edge_property_tensor = graphium_cpp.bond_feature_names_to_tensor(featurization["edge_property_list"])
-            else:
-                self.edge_property_tensor = torch.tensor(data=[], dtype=torch.int64)
-            encoded_featurization["edge_property_list"] = self.edge_property_tensor
-
-            if featurization["pos_encoding_as_features"] is not None and featurization["pos_encoding_as_features"]["pos_types"] is not None:
-                (self.pos_encoding_names, self.pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(featurization["pos_encoding_as_features"]["pos_types"])
-            else:
-                self.pos_encoding_names = []
-                self.pos_encoding_tensor = torch.tensor(data=[], dtype=torch.int64)
-            encoded_featurization["pos_encoding_as_features"] = (self.pos_encoding_names, self.pos_encoding_tensor)
+        if "pos_encoding_as_features" in featurization and
+                featurization["pos_encoding_as_features"] is not None and
+                featurization["pos_encoding_as_features"]["pos_types"] is not None:
+            (pos_encoding_names, pos_encoding_tensor) =
+                graphium_cpp.positional_feature_options_to_tensor(featurization["pos_encoding_as_features"]["pos_types"])
+        else:
+            pos_encoding_names = []
+            pos_encoding_tensor = torch.tensor(data=[], dtype=torch.int64)
+        encoded_featurization["pos_encoding_as_features"] = (pos_encoding_names, pos_encoding_tensor)
 
         explicit_H = featurization["explicit_H"] if "explicit_H" in featurization else False
         add_self_loop = featurization["add_self_loop"] if "add_self_loop" in featurization else False
@@ -941,20 +925,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.add_self_loop = add_self_loop
         self.explicit_H = explicit_H
 
-        # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
-        if prepare_dict_or_graph == "pyg:dict":
-            self.smiles_transformer = partial(mol_to_graph_dict, **encoded_featurization)
-        elif prepare_dict_or_graph == "pyg:graph":
-            self.smiles_transformer = partial(mol_to_pyggraph, **encoded_featurization)
-        else:
-            raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
-            )
+        self.preprocessing_n_jobs = preprocessing_n_jobs
+
+        self.smiles_transformer = partial(mol_to_pyggraph, **encoded_featurization)
         self.data_hash = self.get_data_hash()
 
-        if self.processed_graph_data_path is not None:
-            if self._ready_to_load_all_from_file():
-                self._data_is_prepared = True
+        if self._ready_to_load_all_from_file():
+            self._data_is_prepared = True
 
     def _parse_caching_args(self, processed_graph_data_path):
         """
@@ -985,6 +962,22 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return task_level_map
 
+    @property
+    def data_offsets_tensor_index(self):
+        return 0
+    @property
+    def concat_smiles_tensor_index(self):
+        return 1
+    @property
+    def smiles_offsets_tensor_index(self):
+        return 2
+    @property
+    def num_nodes_tensor_index(self):
+        return 3
+    @property
+    def num_edges_tensor_index(self):
+        return 4
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -1005,12 +998,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # SMILES Parse Error: syntax error while parsing: restricted
         # SMILES Parse Error: Failed parsing SMILES 'restricted' for input: 'restricted'
         RDLogger.DisableLog('rdApp.*')
-
-        self.data_offsets_tensor_index = 0
-        self.concat_smiles_tensor_index = 1
-        self.smiles_offsets_tensor_index = 2
-        self.num_nodes_tensor_index = 3
-        self.num_edges_tensor_index = 4
 
         for task, args in self.task_dataset_processing_params.items():
             if args.label_normalization is None:
@@ -1423,8 +1410,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         graph = self.get_fake_graph()
-        if isinstance(graph, (GraphDict)):
-            graph = graph.data
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
@@ -1698,10 +1683,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_args.pop("epoch_sampling_fraction", None)
             args[task_key] = task_args
 
-        hash_dict = {
-            "task_specific_args": args,
-        }
-        data_hash = get_md5_hash(hash_dict)
+        data_hash = get_md5_hash(args)
         return data_hash
 
     def __len__(self) -> int:
@@ -1759,6 +1741,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         self,
         task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
+        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -1767,8 +1750,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
+        featurization_n_jobs = None,
+        featurization_progress = None,
+        featurization_backend = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "pyg:graph",
+        prepare_dict_or_graph = None,
+        preprocessing_n_jobs: int = -1,
         **kwargs,
     ):
         r"""
@@ -1785,24 +1772,32 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 meaning that all molecules will be considered.
             processed_graph_data_path: Path to the processed graph data. If None, the data will be
               downloaded from the OGB website.
+            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
-
-                - "multiprocessing": Found to cause less memory issues.
-                - "loky": joblib's Default. Found to cause memory leaks.
-                - "threading": Found to be slow.
-
+            featurization_n_jobs: Deprecated.
+            featurization_progress: Deprecated.
+            featurization_backend: Deprecated.
             collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
                 - `None`: all elements are considered.
+            prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
+            preprocessing_n_jobs: Number of threads to use during preprocessing.
+                Use -1 to use all available cores.
         """
+
+        warn_deprecated(dataloading_from, "dataloading_from", "GraphOGBDataModule::__init__")
+        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "GraphOGBDataModule::__init__")
+        warn_deprecated(featurization_progress, "featurization_progress", "GraphOGBDataModule::__init__")
+        warn_deprecated(featurization_backend, "featurization_backend", "GraphOGBDataModule::__init__")
+        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "GraphOGBDataModule::__init__")
 
         new_task_specific_args = {}
         self.metadata = {}
@@ -1836,7 +1831,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["persistent_workers"] = persistent_workers
         dm_args["multiprocessing_context"] = multiprocessing_context
         dm_args["collate_fn"] = collate_fn
-        dm_args["prepare_dict_or_graph"] = prepare_dict_or_graph
+        dm_args["preprocessing_n_jobs"] = preprocessing_n_jobs
 
         super().__init__(**dm_args, **kwargs)
 
@@ -2008,6 +2003,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         tdc_train_val_seed: int = 0,
         # Inherited arguments from superclass
         processed_graph_data_path: Optional[Union[str, Path]] = None,
+        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2016,10 +2012,20 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
+        featurization_n_jobs = None,
+        featurization_progress = None,
+        featurization_backend = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "pyg:graph",
+        prepare_dict_or_graph = None,
+        preprocessing_n_jobs: int = -1,
         **kwargs,
     ):
+        warn_deprecated(dataloading_from, "dataloading_from", "ADMETBenchmarkDataModule::__init__")
+        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "ADMETBenchmarkDataModule::__init__")
+        warn_deprecated(featurization_progress, "featurization_progress", "ADMETBenchmarkDataModule::__init__")
+        warn_deprecated(featurization_backend, "featurization_backend", "ADMETBenchmarkDataModule::__init__")
+        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "ADMETBenchmarkDataModule::__init__")
+
         try:
             from tdc.benchmark_group import admet_group
             from tdc.utils import retrieve_benchmark_names
@@ -2072,7 +2078,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             persistent_workers=persistent_workers,
             multiprocessing_context=multiprocessing_context,
             collate_fn=collate_fn,
-            prepare_dict_or_graph=prepare_dict_or_graph,
+            preprocessing_n_jobs=preprocessing_n_jobs,
             **kwargs,
         )
 

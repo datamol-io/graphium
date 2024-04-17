@@ -22,7 +22,7 @@ from torch.utils.data.dataloader import default_collate
 from typing import Union, List, Optional, Dict, Type, Any, Iterable
 from torch_geometric.data import Data, Batch
 
-from graphium.features import GraphDict, to_dense_array
+from graphium.features import to_dense_array
 from graphium.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
 from loguru import logger
 from graphium.data.utils import get_keys
@@ -106,12 +106,6 @@ def graphium_collate_fn(
                 batch[key] = collate_labels(labels, labels_num_cols_dict, labels_dtype_dict, num_nodes, num_edges)
             elif key == "num_nodes" or key == "num_edges":
                 continue
-
-            # If the features are a dictionary containing GraphDict elements,
-            # Convert to pyg graphs and use the pyg batching.
-            elif isinstance(elem[key], GraphDict):
-                pyg_graphs = [d[key].make_pyg_graph(mask_nan=mask_nan) for d in elements]
-                batch[key] = collage_pyg_graph(pyg_graphs)
 
             # If a PyG Graph is provided, use the PyG batching
             elif isinstance(elem[key], Data):
