@@ -155,10 +155,10 @@ class MultitaskDataset(Dataset):
     def __init__(
         self,
         featurize_smiles: Callable[[str],dict],
-        task_names: List[str],
-        label_num_cols: List[int],
-        label_dtypes: List[int],
-        mol_file_data_offsets,
+        task_names: List[str] = None,
+        label_num_cols: List[int] = None,
+        label_dtypes: List[int] = None,
+        mol_file_data_offsets = None,
         concat_smiles_tensor,
         smiles_offsets_tensor,
         num_nodes_tensor,
@@ -311,10 +311,13 @@ class MultitaskDataset(Dataset):
 
         smiles_str = graphium_cpp.extract_string(self.smiles_tensor, self.smiles_offsets_tensor, idx)
 
-        datum = {
-            "labels": self.load_graph_from_index(idx),
-            "features": self.featurize_smiles(smiles_str),
-        }
+        if self.mol_file_data_offsets is None:
+            datum = { "features": self.featurize_smiles(smiles_str) }
+        else:
+            datum = {
+                "labels": self.load_graph_from_index(idx),
+                "features": self.featurize_smiles(smiles_str),
+            }
 
         # One of the featurization error handling options returns a string on error,
         # instead of throwing an exception, so assume that the intention is to just skip,
