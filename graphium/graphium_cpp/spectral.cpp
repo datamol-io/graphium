@@ -46,7 +46,7 @@ void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& da
 
             // Scale each row by the factor in eigenvalues_temp
             for (size_t row = 0, i = 0; row < n; ++row) {
-                cosnt T factor = data.eigenvalues_temp[row];
+                const T factor = data.eigenvalues_temp[row];
                 for (size_t col = 0; col < n; ++col, ++i) {
                     vectors[i] *= factor;
                 }
@@ -168,9 +168,9 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
         // Find the normalization factor for each node (row or col)
         // These values in eigenvalues_temp are also used inside compute_laplacian_eigendecomp_single
         for (uint32_t node = 0; node < n; ++node) {
-            const uint32_t row_degree = row_starts[i + 1] - row_starts[i];
-            const T denominator = (weights == nullptr) ? T(row_degree) : data.eigenvalues_temp[i];
-            data.eigenvalues_temp[i] = T(1) / std::sqrt(denominator);
+            const uint32_t row_degree = row_starts[node + 1] - row_starts[node];
+            const T denominator = (weights == nullptr) ? T(row_degree) : data.eigenvalues_temp[node];
+            data.eigenvalues_temp[node] = T(1) / std::sqrt(denominator);
         }
 
         for (uint32_t i = 0, outi = 0; i < n; ++i, outi += n) {
@@ -263,7 +263,7 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
         }
         
         // Find its eigenvalues and eigenvectors
-        compute_laplacian_eigendecomp_single(sub_n, sub_data, normalization != Normalization::INVERSE);
+        compute_laplacian_eigendecomp_single(sub_n, sub_data, normalization);
         
         // Copy the eigenvalues to the output.  The excess is already zeroed out.
         // Unlike the eigenvectors, below, might as well switch to using columns
