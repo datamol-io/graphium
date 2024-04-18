@@ -908,10 +908,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         encode_feature_options(encoded_featurization, "atom_property_list_float", graphium_cpp.atom_float_feature_names_to_tensor)
         encode_feature_options(encoded_featurization, "edge_property_list", graphium_cpp.bond_feature_names_to_tensor)
 
-        if "pos_encoding_as_features" in featurization and
+        if ("pos_encoding_as_features" in featurization and
                 featurization["pos_encoding_as_features"] is not None and
-                featurization["pos_encoding_as_features"]["pos_types"] is not None:
-            (pos_encoding_names, pos_encoding_tensor) =
+                featurization["pos_encoding_as_features"]["pos_types"] is not None):
+            (pos_encoding_names, pos_encoding_tensor) = \
                 graphium_cpp.positional_feature_options_to_tensor(featurization["pos_encoding_as_features"]["pos_types"])
         else:
             pos_encoding_names = []
