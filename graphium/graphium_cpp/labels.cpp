@@ -527,7 +527,8 @@ std::tuple<
     const pybind11::dict& task_val_indices,
     const pybind11::dict& task_test_indices,
     bool add_self_loop,
-    bool explicit_H) {
+    bool explicit_H,
+    int max_threads) {
 
     ensure_numpy_array_module_initialized();
 
@@ -819,10 +820,25 @@ std::tuple<
 
     // Compute all InChI keys for all molecules, in parallel if applicable.
     std::unique_ptr<MolKey[]> keys(new MolKey[total_num_mols]);
+    
+    // Determine the number of threads to use for computing MolKey values
     const size_t num_mols_per_block = 512;
     const size_t num_blocks = (total_num_mols + num_mols_per_block-1) / num_mols_per_block;
     const size_t num_processors = std::thread::hardware_concurrency();
-    const size_t num_threads = (num_processors == 1 || num_blocks <= 4) ? 1 : std::min(num_processors, num_blocks/2);
+    size_t num_threads = (num_processors == 1 || num_blocks <= 4) ? 1 : std::min(num_processors, num_blocks/2);
+    // max_threads of -1 means n-1 threads, to avoid starving other processes
+    if (max_threads < 0) {
+        max_threads += num_processors;
+        // Don't hit zero or remain negative, because that would skip applying the limit
+        if (max_threads < 1) {
+            max_threads = 1;
+        }
+    }
+    // max_threads of 0 means to not limit the number of threads
+    if (max_threads > 0 && num_threads > max_threads) {
+        num_threads = max_threads;
+    }
+
     auto&& get_single_mol_key = [&task_mol_start,add_self_loop,explicit_H,&task_mol_indices,&smiles_strings,num_tasks](size_t mol_index) -> MolKey {
         // Find which task this mol is in.  If there could be many tasks,
         // this could be a binary search, but for small numbers of tasks,

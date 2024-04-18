@@ -52,7 +52,8 @@ std::tuple<
     const pybind11::dict& task_val_indices,
     const pybind11::dict& task_test_indices,
     bool add_self_loop = false,
-    bool explicit_H = false);
+    bool explicit_H = false,
+    int max_threads = 0);
 
 void load_labels_from_index(
     const std::string stage_directory,

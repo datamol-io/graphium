@@ -803,7 +803,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_batch_size = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph = None,
-        preprocessing_n_jobs: int = -1,
+        preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
         """
@@ -838,7 +838,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
             preprocessing_n_jobs: Number of threads to use during preprocessing.
-                Use -1 to use all available cores.
+                Use 0 to use all available cores, or -1 to use all but one core.
         """
         BaseDataModule.__init__(
             self,
@@ -1120,7 +1120,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.task_val_indices,
             self.task_test_indices,
             self.add_self_loop,
-            self.explicit_H)
+            self.explicit_H,
+            self.preprocessing_n_jobs)
 
         for task, stats in all_stats.items():
             if len(stats) < 4:
@@ -1755,7 +1756,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         featurization_backend = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph = None,
-        preprocessing_n_jobs: int = -1,
+        preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
         r"""
@@ -1790,7 +1791,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 - `None`: all elements are considered.
             prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
             preprocessing_n_jobs: Number of threads to use during preprocessing.
-                Use -1 to use all available cores.
+                Use 0 to use all available cores, or -1 to use all but one core.
         """
 
         warn_deprecated(dataloading_from, "dataloading_from", "GraphOGBDataModule::__init__")
@@ -2017,7 +2018,7 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         featurization_backend = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph = None,
-        preprocessing_n_jobs: int = -1,
+        preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
         warn_deprecated(dataloading_from, "dataloading_from", "ADMETBenchmarkDataModule::__init__")
