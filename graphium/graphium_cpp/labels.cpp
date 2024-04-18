@@ -835,8 +835,8 @@ std::tuple<
         }
     }
     // max_threads of 0 means to not limit the number of threads
-    if (max_threads > 0 && num_threads > max_threads) {
-        num_threads = max_threads;
+    if (max_threads > 0 && num_threads > size_t(max_threads)) {
+        num_threads = size_t(max_threads);
     }
 
     auto&& get_single_mol_key = [&task_mol_start,add_self_loop,explicit_H,&task_mol_indices,&smiles_strings,num_tasks](size_t mol_index) -> MolKey {
