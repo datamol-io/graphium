@@ -12,7 +12,7 @@
 #include <ATen/ops/linalg_eig.h>
 
 template<typename T>
-void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& data, bool symmetric) {
+void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& data, Normalization normalization) {
     T* matrix = data.matrix_temp.data();
     std::unique_ptr<T[]> matrix_alloc(new T[n * n]);
     std::copy(matrix, matrix + n * n, matrix_alloc.get());
@@ -20,50 +20,18 @@ void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& da
     int64_t dims[2] = { n, n };
     at::Tensor torch_matrix = torch_tensor_from_array<T>(std::move(matrix_alloc), dims, 2, c10::ScalarType::Double);
 
-    at::Tensor eigenvalue_tensor;
-    at::Tensor eigenvector_tensor;
-    if (symmetric) {
-        // Using linalg_eigh should ensure we get all real eigenvalues and eigenvectors.
-        // Arbitrarily choose lower-triangular portion (L)
-        auto tuple = at::linalg_eigh(torch_matrix, c10::string_view("L",1));
-        eigenvalue_tensor = std::move(std::get<0>(tuple));
-        eigenvector_tensor = std::move(std::get<1>(tuple));
-    }
-    else {
-        auto tuple = at::linalg_eig(torch_matrix);
-        eigenvalue_tensor = std::move(std::get<0>(tuple));
-        eigenvector_tensor = std::move(std::get<1>(tuple));
-    }
+    // Using linalg_eigh should ensure we get all real eigenvalues and eigenvectors.
+    // Arbitrarily choose lower-triangular portion (L)
+    auto tuple = at::linalg_eigh(torch_matrix, c10::string_view("L",1));
+    at::Tensor eigenvalue_tensor = std::move(std::get<0>(tuple));
+    at::Tensor eigenvector_tensor = std::move(std::get<1>(tuple));
     assert(eigenvalue_tensor.ndimension() == 1);
     assert(eigenvector_tensor.ndimension() == 2);
     assert(eigenvalue_tensor.size(0) == n);
     assert(eigenvector_tensor.size(0) == n);
     assert(eigenvector_tensor.size(1) == n);
 
-    // Copy eigenvalues
-    data.eigenvalues_temp.resize(n);
-    if (eigenvalue_tensor.scalar_type() == c10::ScalarType::Double) {
-        const double* const eigenvalue_data = eigenvalue_tensor.data_ptr<double>();
-        for (size_t i = 0; i < n; ++i) {
-            data.eigenvalues_temp[i] = T(eigenvalue_data[i]);
-        }
-    }
-    else if (eigenvalue_tensor.scalar_type() == c10::ScalarType::ComplexDouble) {
-        // TODO: Decide what to do about legitimately complex eigenvalues.
-        // This should only occur with Normalization::INVERSE, because real, symmetric
-        // matrices have real eigenvalues.
-        // For now, just assume that they're supposed to be real and were only complex
-        // due to roundoff.
-        const c10::complex<double>* const eigenvalue_data = eigenvalue_tensor.data_ptr<c10::complex<double>>();
-        for (size_t i = 0; i < n; ++i) {
-            data.eigenvalues_temp[i] = T(eigenvalue_data[i].real());
-        }
-    }
-    else {
-        assert(0);
-    }
-
-    // Copy eigenvectors
+    // Copy eigenvectors first, because normalization values are in eigenvalues_temp
     data.vectors.clear();
     data.vectors.resize(size_t(n) * n, 0);
     T* vectors = data.vectors.data();
@@ -72,16 +40,51 @@ void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& da
         for (size_t i = 0; i < size_t(n) * n; ++i) {
             vectors[i] = T(eigenvector_data[i]);
         }
+
+        if (normalization == Normalization::INVERSE) {
+            // Convert symmetric case eigenvectors to asymmetric case eigenvectors
+
+            // Scale each row by the factor in eigenvalues_temp
+            for (size_t row = 0, i = 0; row < n; ++row) {
+                cosnt T factor = data.eigenvalues_temp[row];
+                for (size_t col = 0; col < n; ++col, ++i) {
+                    vectors[i] *= factor;
+                }
+                
+                // Clear to zero for the summing below
+                data.eigenvalues_temp[row] = 0;
+            }
+            
+            // Find each column length
+            for (size_t row = 0, i = 0; row < n; ++row) {
+                for (size_t col = 0; col < n; ++col, ++i) {
+                    const T v = vectors[i];
+                    data.eigenvalues_temp[col] += v*v;
+                }
+            }
+            for (size_t col = 0; col < n; ++col) {
+                data.eigenvalues_temp[col] = T(1)/std::sqrt(data.eigenvalues_temp[col]);
+            }
+            
+            // Normalize each column
+            for (size_t row = 0, i = 0; row < n; ++row) {
+                for (size_t col = 0; col < n; ++col, ++i) {
+                    vectors[i] *= data.eigenvalues_temp[col];
+                }
+            }
+        }
     }
-    else if (eigenvector_tensor.scalar_type() == c10::ScalarType::ComplexDouble) {
-        // TODO: Decide what to do about legitimately complex eigenvectors.
-        // This should only occur with Normalization::INVERSE, because real, symmetric
-        // matrices have real eigenvectors.
-        // For now, just assume that they're supposed to be real and were only complex
-        // due to roundoff.
-        const c10::complex<double>* const eigenvector_data = eigenvector_tensor.data_ptr<c10::complex<double>>();
-        for (size_t i = 0; i < size_t(n) * n; ++i) {
-            vectors[i] = T(eigenvector_data[i].real());
+    else {
+        assert(0);
+    }
+
+    // Copy eigenvalues
+    data.eigenvalues_temp.resize(n);
+    if (eigenvalue_tensor.scalar_type() == c10::ScalarType::Double) {
+        const double* const eigenvalue_data = eigenvalue_tensor.data_ptr<double>();
+        for (size_t i = 0; i < n; ++i) {
+            // No adjustment needed to eigenvalues between symmetric and asymmetric
+            data.eigenvalues_temp[i] = T(eigenvalue_data[i]);
         }
     }
     else {
@@ -159,32 +162,32 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
         }
     }
     else {
+        // The diagonalization of the asymmetric normalization can be computed from the
+        // diagonalization of the symmetric normalization, which is faster, so always use symmetric.
+
+        // Find the normalization factor for each node (row or col)
+        // These values in eigenvalues_temp are also used inside compute_laplacian_eigendecomp_single
+        for (uint32_t node = 0; node < n; ++node) {
+            const uint32_t row_degree = row_starts[i + 1] - row_starts[i];
+            const T denominator = (weights == nullptr) ? T(row_degree) : data.eigenvalues_temp[i];
+            data.eigenvalues_temp[i] = T(1) / std::sqrt(denominator);
+        }
+
         for (uint32_t i = 0, outi = 0; i < n; ++i, outi += n) {
-            const uint32_t rowDegree = row_starts[i + 1] - row_starts[i];
-            if (rowDegree == 0) {
-                continue;
-            }
-            matrix[outi + i] = T(1);
-
-            const T rowDenominator = (weights == nullptr) ? T(rowDegree) : data.eigenvalues_temp[i];
-            const T inverseRowDegree = (normalization == Normalization::INVERSE) ? T(1) / rowDenominator : 0;
-
             const uint32_t* neighbor_begin = neighbors + row_starts[i];
             const uint32_t* neighbor_end = neighbors + row_starts[i + 1];
+            if (neighbor_begin == neighbor_end) {
+                continue;
+            }
+
+            // Diagonal is always exactly 1 when normalized (after skipping zero-degree nodes)
+            matrix[outi + i] = T(1);
+
+            const T row_factor = data.eigenvalues_temp[i];
             for (; neighbor_begin < neighbor_end; ++neighbor_begin) {
                 uint32_t neighbor = *neighbor_begin;
-                if (normalization == Normalization::SYMMETRIC) {
-                    const uint32_t colDegree = row_starts[neighbor + 1] - row_starts[neighbor];
-                    if (colDegree == 0) {
-                        continue;
-                    }
-                    const T colDenominator = (weights == nullptr) ? T(colDegree) : data.eigenvalues_temp[neighbor];
-                    matrix[outi + neighbor] = T(-1) / std::sqrt(rowDenominator * colDenominator);
-                }
-                else {
-                    assert(normalization == Normalization::INVERSE);
-                    matrix[outi + neighbor] = -inverseRowDegree;
-                }
+                const T col_factor = data.eigenvalues_temp[neighbor];
+                matrix[outi + neighbor] = -row_factor * col_factor;
             }
         }
     }
@@ -220,7 +223,7 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
         }
     }
     if (num_components == 1) {
-        compute_laplacian_eigendecomp_single(n, data, normalization != Normalization::INVERSE);
+        compute_laplacian_eigendecomp_single(n, data, normalization);
         return;
     }
 
