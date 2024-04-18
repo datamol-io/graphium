@@ -59,7 +59,6 @@ accelerator:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
@@ -76,10 +75,6 @@ datamodule:
         split_test: 0.1
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -115,7 +110,6 @@ datamodule:
     num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
 
 architecture:
