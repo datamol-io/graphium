@@ -22,7 +22,6 @@ from torch.utils.data.dataloader import default_collate
 from typing import Union, List, Optional, Dict, Type, Any, Iterable
 from torch_geometric.data import Data, Batch
 
-from graphium.features import to_dense_array
 from graphium.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
 from loguru import logger
 from graphium.data.utils import get_keys
@@ -92,17 +91,18 @@ def graphium_collate_fn(
 
     elem = elements[0]
     if isinstance(elem, Mapping):
+        if "features" in elem:
+            num_nodes = [d["features"].num_nodes for d in elements]
+            num_edges = [d["features"].num_edges for d in elements]
+        else:
+            num_nodes = [d["num_nodes"] for d in elements]
+            num_edges = [d["num_edges"] for d in elements]
+
         batch = {}
         for key in elem:
             # Multitask setting: We have to pad the missing labels
             if key == "labels":
                 labels = [d[key] for d in elements]
-                if "features" in elem:
-                    num_nodes = [d["features"].num_nodes for d in elements]
-                    num_edges = [d["features"].num_edges for d in elements]
-                else:
-                    num_nodes = [d["num_nodes"] for d in elements]
-                    num_edges = [d["num_edges"] for d in elements]
                 batch[key] = collate_labels(labels, labels_num_cols_dict, labels_dtype_dict, num_nodes, num_edges)
             elif key == "num_nodes" or key == "num_edges":
                 continue
@@ -110,7 +110,7 @@ def graphium_collate_fn(
             # If a PyG Graph is provided, use the PyG batching
             elif isinstance(elem[key], Data):
                 pyg_graphs = [d[key] for d in elements]
-                batch[key] = collage_pyg_graph(pyg_graphs, batch_size_per_pack=batch_size_per_pack)
+                batch[key] = collage_pyg_graph(pyg_graphs, num_nodes, batch_size_per_pack=batch_size_per_pack)
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
@@ -131,42 +131,29 @@ def graphium_collate_fn(
         return default_collate(elements)
 
 
-def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pack: Optional[int] = None):
+def collage_pyg_graph(pyg_graphs: List[Data], num_nodes: List[int], batch_size_per_pack: Optional[int] = None):
     """
     Function to collate pytorch geometric graphs.
     Convert all numpy types to torch
     Convert edge indices to int64
 
     Parameters:
-        pyg_graphs: Iterable of PyG graphs
+        pyg_graphs: List of PyG graphs
         batch_size_per_pack: The number of graphs to pack together.
             This is useful for using packing with the Transformer,
     """
 
     # Calculate maximum number of nodes per graph in current batch
-    num_nodes_list = []
-    for pyg_graph in pyg_graphs:
-        num_nodes_list.append(pyg_graph["num_nodes"])
-    max_num_nodes_per_graph = max(num_nodes_list)
+    max_num_nodes_per_graph = max(num_nodes)
 
-    pyg_batch = []
     for pyg_graph in pyg_graphs:
         for pyg_key in get_keys(pyg_graph):
-            tensor = pyg_graph[pyg_key]
-
-            # Convert numpy/scipy to Pytorch
-            if isinstance(tensor, (ndarray, spmatrix)):
-                tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
-
             # pad nodepair-level positional encodings
             if pyg_key.startswith("nodepair_"):
-                pyg_graph[pyg_key] = pad_nodepairs(tensor, pyg_graph["num_nodes"], max_num_nodes_per_graph)
-            else:
-                pyg_graph[pyg_key] = tensor
+                pyg_graph[pyg_key] = pad_nodepairs(pyg_graph[pyg_key], pyg_graph.num_nodes, max_num_nodes_per_graph)
 
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
-        pyg_batch.append(pyg_graph)
 
     # Apply the packing at the mini-batch level. This is useful for using packing with the Transformer,
     # especially in the case of the large graphs being much larger than the small graphs.
@@ -176,16 +163,15 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
         raise NotImplementedError(
             "Packing is not yet functional, as it changes the order of the graphs in the batch without changing the label order"
         )
-        num_nodes = [g.num_nodes for g in pyg_batch]
         packed_graph_idx = fast_packing(num_nodes, batch_size_per_pack)
 
         # Get the node to pack indices and the mask
         pack_from_node_idx, pack_attn_mask = node_to_pack_indices_mask(packed_graph_idx, num_nodes)
-        for pyg_graph in pyg_batch:
+        for pyg_graph in pyg_graphs:
             pyg_graph.pack_from_node_idx = pack_from_node_idx
             pyg_graph.pack_attn_mask = pack_attn_mask
 
-    return Batch.from_data_list(pyg_batch)
+    return Batch.from_data_list(pyg_graphs)
 
 
 def pad_to_expected_label_size(labels: torch.Tensor, label_rows: int, label_cols: int):
@@ -205,29 +191,6 @@ def pad_to_expected_label_size(labels: torch.Tensor, label_rows: int, label_cols
         logger.warning(f"More labels available than expected. Will remove data to fit expected size. cols: {labels.shape[1]}->{label_cols}, rows: {labels.shape[0]}->{label_rows}")
 
     return torch.nn.functional.pad(labels, pad_sizes, value=torch.nan)
-
-
-def collate_pyg_graph_labels(pyg_labels: List[Data]):
-    """
-    Function to collate pytorch geometric labels.
-    Convert all numpy types to torch
-
-    Parameters:
-        pyg_labels: Iterable of PyG label Data objects
-    """
-    pyg_batch = []
-    for pyg_label in pyg_labels:
-        for pyg_key in set(get_keys(pyg_label)) - set(["x", "edge_index"]):
-            tensor = pyg_label[pyg_key]
-            # Convert numpy/scipy to Pytorch
-            if isinstance(tensor, (ndarray, spmatrix)):
-                tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
-
-            pyg_label[pyg_key] = tensor
-
-        pyg_batch.append(pyg_label)
-
-    return Batch.from_data_list(pyg_batch)
 
 
 def get_expected_label_rows(
@@ -308,7 +271,7 @@ def collate_labels(
 
                 this_label[task] = pad_to_expected_label_size(this_label[task], label_rows, labels_num_cols_dict[task])
 
-    return collate_pyg_graph_labels(labels)
+    return Batch.from_data_list(labels)
 
 
 def pad_nodepairs(pe: torch.Tensor, num_nodes: int, max_num_nodes_per_graph: int):
