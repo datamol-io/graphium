@@ -28,97 +28,6 @@ import datamol as dm
 
 import graphium_cpp
 
-def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
-    r"""
-    Assign the node data
-    Parameters:
-        array: The array to convert to dense
-        dtype: The dtype of the array
-    Returns:
-        The dense array
-    """
-    if array is not None:
-        if issparse(array):
-            if array.dtype == np.float16:  # float16 doesn't support `todense`
-                array = array.astype(np.float32)
-            array = array.todense()
-
-        if dtype is not None:
-            array = array.astype(dtype)
-    return array
-
-
-def to_dense_tensor(tensor: Tensor, dtype: str = None) -> Tensor:
-    r"""
-    Assign the node data
-    Parameters:
-        array: The array to convert to dense
-        dtype: The dtype of the array
-    Returns:
-        The dense array
-    """
-    if tensor is not None:
-        if tensor.is_sparse:
-            tensor = tensor.todense()
-        if dtype is not None:
-            tensor = tensor.to(dtype)
-    return tensor
-
-
-def get_mol_conformer_features(
-    mol: dm.Mol,
-    property_list: Union[List[str], List[Callable]],
-    mask_nan: Optional[Union[float, str]] = None,
-) -> Dict[str, np.ndarray]:
-    r"""obtain the conformer features of a molecule
-    Parameters:
-
-        mol:
-            molecule from which to extract the properties
-
-        property_list:
-            A list of conformer property to get from the molecule
-            Accepted properties are:
-            - "positions_3d"
-
-    Returns:
-        prop_dict: a dictionary where the element of ``property_list`` are the keys
-    """
-    prop_dict = {}
-    has_conf = True
-
-    try:
-        mol.GetConformer()
-    except:
-        has_conf = False
-    # * currently only accepts "positions_3d", raise errors otherwise
-    for prop in property_list:
-        if isinstance(prop, str):
-            if prop in ["positions_3d"]:  # locating 3d conformer coordinates
-                if not has_conf:
-                    positions = np.full((mol.GetNumAtoms(), 3), float("nan"), dtype=np.float16)
-                else:
-                    positions = [[], [], []]
-                    for i in range(mol.GetNumAtoms()):
-                        pos = mol.GetConformer().GetAtomPosition(i)
-                        positions[0].append(pos.x)
-                        positions[1].append(pos.y)
-                        positions[2].append(pos.z)
-                    positions = np.asarray(positions, dtype=np.float16).T
-                prop_dict[prop] = positions
-            else:
-                raise ValueError(
-                    str(prop) + " is not currently supported as a conformer property in `property_list`"
-                )
-        else:
-            raise ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`")
-
-        prop_dict[prop] = _mask_nans_inf(mask_nan, prop_dict[prop], prop)
-
-    return prop_dict
-
-
-
 def get_simple_mol_conformer(mol: dm.Mol) -> Union[Chem.rdchem.Conformer, None]:
     r"""
     If the molecule has a conformer, then it will return the conformer at idx `0`.
@@ -161,14 +70,14 @@ NP_DTYPE_TO_TORCH_INT = {np.float16: 5, np.float32: 6, np.float64: 7}
 
 def mol_to_pyggraph(
     mol: str,
-    atom_property_list_onehot: Union[List[str],torch.Tensor] = [],
-    atom_property_list_float: Union[List[Union[str, Callable]],torch.Tensor] = [],
+    atom_property_list_onehot: torch.Tensor = None,
+    atom_property_list_float: torch.Tensor = None,
     conformer_property_list: List[str] = [],
-    edge_property_list: Union[List[str],torch.Tensor] = [],
+    edge_property_list: torch.Tensor = None,
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-    pos_encoding_as_features: Union[Dict[str, Any], Tuple[List[str],torch.Tensor]] = None,
+    pos_encoding_as_features: Tuple[List[str],torch.Tensor] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
