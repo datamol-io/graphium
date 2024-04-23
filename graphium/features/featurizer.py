@@ -23,47 +23,7 @@ from torch import Tensor
 
 from torch_geometric.data import Data
 
-from rdkit import Chem
-import datamol as dm
-
 import graphium_cpp
-
-def get_simple_mol_conformer(mol: dm.Mol) -> Union[Chem.rdchem.Conformer, None]:
-    r"""
-    If the molecule has a conformer, then it will return the conformer at idx `0`.
-    Otherwise, it generates a simple molecule conformer using `rdkit.Chem.rdDistGeom.EmbedMolecule`
-    and returns it. This is meant to be used in simple functions like `GetBondLength`,
-    not in functions requiring complex 3D structure.
-
-    Parameters:
-
-        mol: Rdkit Molecule
-
-    Returns:
-        conf: A conformer of the molecule, or `None` if it fails
-    """
-
-    val = 0
-    if mol.GetNumConformers() == 0:
-        val = Chem.rdDistGeom.EmbedMolecule(mol)
-    if val == -1:
-        val = Chem.rdDistGeom.EmbedMolecule(
-            mol,
-            enforceChirality=False,
-            ignoreSmoothingFailures=True,
-            useBasicKnowledge=True,
-            useExpTorsionAnglePrefs=True,
-            forceTol=0.1,
-        )
-
-    if val == -1:
-        conf = None
-        logger.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
-    else:
-        conf = mol.GetConformer(0)
-
-    return conf
-
 
 # These are the integers that correspond with the torch data types in C++
 NP_DTYPE_TO_TORCH_INT = {np.float16: 5, np.float32: 6, np.float64: 7}

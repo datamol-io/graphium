@@ -13,6 +13,9 @@
 #include "random_walk.h"
 #include "spectral.h"
 
+#include <GraphMol/MolOps.h> // For RDKit's addHs
+#include <GraphMol/DistGeomHelpers/Embedder.h> // For RDKit's EmbedMolecule
+
 #include <unordered_map>
 
 static GraphData read_graph(const std::string& smiles_string, bool explicit_H) {
@@ -234,31 +237,97 @@ static NeighbourData construct_neighbours(const GraphData& graph) {
 // This fills in 3 values for each atom
 template<typename T>
 at::Tensor get_conformer_features(
-    const RDKit::ROMol &mol,
+    RDKit::ROMol &mol,
+    bool already_has_Hs,
     c10::ScalarType dtype,
     MaskNaNStyle mask_nan_style,
     T mask_nan_value,
-    int64_t &num_nans) {
+    int64_t &num_nans,
+    const std::string& smiles_string) {
 
     const size_t n = mol.getNumAtoms();
     std::unique_ptr<T[]> conformer_data(new T[3 * n]);
     T* data = conformer_data.get();
 
+    std::unique_ptr<RDKit::RWMol> mol_with_Hs_added;
+    RDKit::ROMol* mol_with_Hs = &mol;
     if (mol.beginConformers() == mol.endConformers()) {
-        // No conformers: treat as NaN
+        // No conformers.
+        // Before generating conformers, it's recommended to add Hs explicitly.
+        if (!already_has_Hs) {
+            // Add Hs.  They're added at the end, so the original atoms
+            // will have the same indices as before.
+            mol_with_Hs_added.reset(new RDKit::RWMol(mol));
+            RDKit::MolOps::addHs(*mol_with_Hs_added);
+            mol_with_Hs = mol_with_Hs_added.get();
+        }
+        
+        // Default Python arguments to EmbedMolecule
+        int conformer_id = RDKit::DGeomHelpers::EmbedMolecule(
+            *mol_with_Hs,
+            0,      // maxIterations
+            -1,     // seed
+            true,   // clearConfs
+            false,  // useRandomCoords
+            2.0,    // boxSizeMult
+            true,   // randNedEig
+            1,      // numZeroFail
+            nullptr,// coordMap
+            1e-3,   // optimizerForceTol
+            false,  // ignoreSmoothingFailures
+            true,   // enforceChirality
+            true,   // useExpTorsionAnglePrefs (default in Python; non-default in C++)
+            true,   // useBasicKnowledge (default in Python; non-default in C++)
+            false,  // verbose
+            5.0,    // basinThresh
+            false,  // onlyHeavyAtomsForRMS
+            1,      // ETversion
+            false,  // useSmallRingTorsions
+            false,  // useMacrocycleTorsions
+            false   // useMacrocycle14config
+        );
+        
+        if (conformer_id == -1) {
+            // Custom arguments as fallback
+            RDKit::DGeomHelpers::EmbedMolecule(
+                *mol_with_Hs,
+                0,      // maxIterations
+                -1,     // seed
+                true,   // clearConfs
+                false,  // useRandomCoords (TODO: consider using true)
+                2.0,    // boxSizeMult
+                true,   // randNedEig
+                1,      // numZeroFail
+                nullptr,// coordMap
+                0.1,    // optimizerForceTol (changed)
+                true,   // ignoreSmoothingFailures (changed)
+                false,  // enforceChirality (changed)
+                true,   // useExpTorsionAnglePrefs (default in Python; non-default in C++)
+                true,   // useBasicKnowledge (default in Python; non-default in C++)
+                false,  // verbose
+                5.0,    // basinThresh
+                false,  // onlyHeavyAtomsForRMS
+                1,      // ETversion
+                false,  // useSmallRingTorsions
+                false,  // useMacrocycleTorsions
+                false   // useMacrocycle14config
+            );
+        }
+    }
+    if (mol_with_Hs->beginConformers() == mol_with_Hs->endConformers()) {
+        // Still no conformers: treat as NaN
+        for (size_t i = 0; i < 3 * n; ++i) {
+            data[i] = mask_nan_value;
+        }
         if (mask_nan_style == MaskNaNStyle::REPORT) {
             num_nans += 3*n;
         }
-        else {
-            for (size_t i = 0; i < 3 * n; ++i) {
-                data[i] = mask_nan_value;
-            }
-        }
+        printf("Warning: Couldn't compute conformer for molecule \"%s\"\n", smiles_string.c_str());
     }
     else {
-        const RDKit::Conformer& conformer = mol.getConformer();
+        const RDKit::Conformer& conformer = mol_with_Hs->getConformer();
         const auto& positions = conformer.getPositions();
-        assert(positions.size() == n);
+        assert(positions.size() >= n);
         for (size_t i = 0; i < n; ++i, data += 3) {
             const auto& position = positions[i];
             data[0] = FeatureValues<T>::convertToFeatureType(position.x);
@@ -1219,6 +1288,7 @@ void create_all_features(
     const at::Tensor& positional_property_list,
     bool duplicate_edges,
     bool add_self_loop,
+    bool already_has_Hs,
     bool use_bonds_weights,
     bool offset_carbon,
     c10::ScalarType dtype,
@@ -1226,6 +1296,7 @@ void create_all_features(
     T mask_nan_value,
     int64_t& num_nans,
     int64_t& nan_tensor_index,
+    const std::string& smiles_string,
     std::vector<at::Tensor>& tensors) {
 
     if (mask_nan_style == MaskNaNStyle::NONE) {
@@ -1270,10 +1341,12 @@ void create_all_features(
     if (create_conformer_feature) {
         at::Tensor conformer_features_tensor = get_conformer_features<T>(
             *graph.mol,
+            already_has_Hs,
             dtype,
             mask_nan_style,
             mask_nan_value,
-            num_nans);
+            num_nans,
+            smiles_string);
         if (num_nans != 0) {
             nan_tensor_index = tensors.size();
             return;
@@ -1343,6 +1416,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             positional_property_list,
             duplicate_edges,
             add_self_loop,
+            explicit_H,
             use_bonds_weights,
             offset_carbon,
             dtype,
@@ -1350,6 +1424,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             FeatureValues<int16_t>::convertToFeatureType(mask_nan_value),
             num_nans,
             nan_tensor_index,
+            smiles_string,
             tensors);
     }
     else if (dtype == c10::ScalarType::Float) {
@@ -1362,6 +1437,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             positional_property_list,
             duplicate_edges,
             add_self_loop,
+            explicit_H,
             use_bonds_weights,
             offset_carbon,
             dtype,
@@ -1369,6 +1445,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             FeatureValues<float>::convertToFeatureType(mask_nan_value),
             num_nans,
             nan_tensor_index,
+            smiles_string,
             tensors);
     }
     else if (dtype == c10::ScalarType::Double) {
@@ -1381,6 +1458,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             positional_property_list,
             duplicate_edges,
             add_self_loop,
+            explicit_H,
             use_bonds_weights,
             offset_carbon,
             dtype,
@@ -1388,6 +1466,7 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
             FeatureValues<double>::convertToFeatureType(mask_nan_value),
             num_nans,
             nan_tensor_index,
+            smiles_string,
             tensors);
     }
 
