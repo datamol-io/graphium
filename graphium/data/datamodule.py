@@ -1013,12 +1013,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 "val": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "val", self.data_hash),
                 "test": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "test", self.data_hash),
             }
-            for task in self.task_dataset_processing_params.keys():
-                stats = graphium_cpp.load_stats(self.processed_graph_data_path, self.data_hash, task)
-                if len(stats) < 4:
-                    raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
+            if len(self.label_num_cols) > 0:
+                for task in self.task_dataset_processing_params.keys():
+                    stats = graphium_cpp.load_stats(self.processed_graph_data_path, self.data_hash, task)
+                    if len(stats) < 4:
+                        raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
 
-                self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
+                    self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
             return
 
         task_dataset_args = {}
@@ -1082,12 +1083,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # Store the relevant information for each task's dataset
             task_dataset_args[task] = {
                 "smiles": smiles,
-                "labels": labels,
-                "label_offsets": label_offsets,
-                # sample_idx is not needed here anymore
-                #"sample_idx": sample_idx,
                 "extras": extras,
             }
+            if args.label_cols != 0:
+                task_dataset_args[task]["labels"] = labels
+                task_dataset_args[task]["label_offsets"] = label_offsets
 
             """We split the data up to create train, val and test datasets"""
 
