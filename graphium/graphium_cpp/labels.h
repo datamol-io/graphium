@@ -37,6 +37,8 @@ std::vector<at::Tensor> load_stats(
     const std::string data_hash,
     const std::string task_name);
 
+std::pair<at::Tensor, at::Tensor> concatenate_strings(pybind11::handle handle);
+
 std::tuple<
     std::unordered_map<std::string, std::vector<at::Tensor>>,
     std::unordered_map<std::string, std::vector<at::Tensor>>,

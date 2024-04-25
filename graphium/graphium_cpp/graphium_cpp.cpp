@@ -77,8 +77,9 @@ PYBIND11_MODULE(graphium_cpp, m) {
 
     // Functions in labels.cpp
     m.def("load_num_cols_and_dtypes", &load_num_cols_and_dtypes, "Loads from a cache file, a list of integers representing the number of columns in each task, and a list of integers representing the torch ScalarType of the task's data.");
-    m.def("load_metadata_tensors", &load_metadata_tensors, "Loads from cache files for a specific stage, a torch tensor representing the offsets of molecules in files, another containing all SMILES strings contatenated, another with the offsets of all SMILES strings, and two for the nubmer of nodes and edges in each molecule.");
+    m.def("load_metadata_tensors", &load_metadata_tensors, "Loads from cache files for a specific stage, a torch tensor containing all SMILES strings contatenated, another with the offsets of all SMILES strings, two for the nubmer of nodes and edges in each molecule, and optionally another representing the offsets of molecules in files.");
     m.def("load_stats", &load_stats, "Loads from a cache file of a specific task, the stats for each column, for use in denormalization.");
+    m.def("concatenate_strings", &concatenate_strings, "Accepts a Numpy array of strings or Python list of strings and returns a PyTorch tensor of all of the characters and another tensor containing indices into the other tensor indicating where each string begins.");
     m.def("prepare_and_save_data", &prepare_and_save_data, "Accepts a dict mapping dataset (task) names to dicts with \"smiles\", \"labels\", and \"label_offsets\" data, and returns the data that would be returned by load_metadata_tensors, load_stats, and load_num_cols_and_dtypes.");
     m.def("load_labels_from_index", &load_labels_from_index, "Loads label data from disk, for a specific stage and molecule.");
     m.def("extract_string", &extract_string, "Extracts a single string from a Tensor of contatenated strings.");

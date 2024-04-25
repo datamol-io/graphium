@@ -963,19 +963,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         return task_level_map
 
     @property
-    def data_offsets_tensor_index(self):
+    def concat_smiles_tensor_index(self):
         return 0
     @property
-    def concat_smiles_tensor_index(self):
+    def smiles_offsets_tensor_index(self):
         return 1
     @property
-    def smiles_offsets_tensor_index(self):
+    def num_nodes_tensor_index(self):
         return 2
     @property
-    def num_nodes_tensor_index(self):
+    def num_edges_tensor_index(self):
         return 3
     @property
-    def num_edges_tensor_index(self):
+    def data_offsets_tensor_index(self):
         return 4
 
     def prepare_data(self):
@@ -1207,6 +1207,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         processed_graph_data_path = self.processed_graph_data_path
 
+        stage_data = self.stage_data[stage]
+        data_offsets = None
+        if self.data_offsets_tensor_index < len(stage_data):
+            data_offsets = stage_data[self.data_offsets_tensor_index]
+
         multitask_dataset = Datasets.MultitaskDataset(
             about=about,
             data_path=self._path_to_load_from_file(stage) if processed_graph_data_path else None,
@@ -1214,11 +1219,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_names=self.task_names,
             label_num_cols=self.label_num_cols,
             label_dtypes=self.label_dtypes,
-            mol_file_data_offsets=self.stage_data[stage][self.data_offsets_tensor_index],
-            concat_smiles_tensor=self.stage_data[stage][self.concat_smiles_tensor_index],
-            smiles_offsets_tensor=self.stage_data[stage][self.smiles_offsets_tensor_index],
-            num_nodes_tensor=self.stage_data[stage][self.num_nodes_tensor_index],
-            num_edges_tensor=self.stage_data[stage][self.num_edges_tensor_index],
+            mol_file_data_offsets=data_offsets,
+            concat_smiles_tensor=stage_data[self.concat_smiles_tensor_index],
+            smiles_offsets_tensor=stage_data[self.smiles_offsets_tensor_index],
+            num_nodes_tensor=stage_data[self.num_nodes_tensor_index],
+            num_edges_tensor=stage_data[self.num_edges_tensor_index],
         )  # type: ignore
 
         return multitask_dataset
