@@ -26,7 +26,7 @@ from torch_geometric.data import Batch, Data
 
 from graphium.config.config_convert import recursive_config_reformating
 from graphium.data.datamodule import BaseDataModule
-from graphium.trainer.metrics import MetricWrapper
+from graphium.trainer.metrics import MetricWrapper, MetricToTorchMetrics
 from graphium.trainer.predictor_options import (
     EvalOptions,
     FlagOptions,
@@ -306,7 +306,7 @@ class PredictorModule(lightning.LightningModule):
 
         wrapped_loss_fun_dict = {
             task: MetricWrapper(
-                metric=loss,
+                metric=MetricToTorchMetrics(loss),
                 threshold_kwargs=None,
                 target_nan_mask=target_nan_mask,
                 multitask_handling=multitask_handling,
@@ -316,10 +316,12 @@ class PredictorModule(lightning.LightningModule):
 
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
+
         all_task_losses = {
-            task: wrapped(preds=preds[task], target=targets[task])
+            task: wrapped.update_and_compute(preds=preds[task], target=targets[task])
             for task, wrapped in wrapped_loss_fun_dict.items()
         }
+
         total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
         weighted_loss = total_loss / num_tasks
@@ -384,11 +386,7 @@ class PredictorModule(lightning.LightningModule):
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {"preds": preds, "targets": targets_dict, "weights": weights}
-        # step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()            original
-
-        # step_dict[f"weighted_loss/{step_name}"] = loss.detach().cpu()
-        # step_dict[f"loss/{step_name}"] = loss.detach().cpu()
+        step_dict = {}
         for task in self.tasks:
             step_dict[
                 self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
@@ -399,6 +397,44 @@ class PredictorModule(lightning.LightningModule):
         step_dict["task_losses"] = task_losses
         step_dict["gradient_norm"] = self.get_gradient_norm()
         return step_dict
+
+    def update_metrics(self,
+                       preds: Dict[str, Tensor],
+                        targets: Dict[str, Tensor],
+                        step_name: str,
+                        weights: Optional[Tensor]=None,) -> None:
+        r"""
+        Compute the loss using the specified loss function, and dealing with
+        the nans in the `targets`.
+
+        Parameters:
+            preds:
+                Predicted values
+
+            targets:
+                Target values
+
+            step_name:
+                The name of the step ("train", "val", "test")
+
+            weights:
+                No longer supported, will raise an error.
+
+        """
+
+        if weights is not None:
+            raise NotImplementedError("Weights are no longer supported in the metrics")
+
+
+        # TODO!!
+        # Lost of changes from the `predictor_summaries.py` file, with `Summary.get_metrics_logs` computing the metrics at the end of an epoch.
+
+        # See torchmetrics `MeanMetric` and `SumMetric`, and use them to compute STD as well
+
+        # DON'T FORGET TO RESET ALL METRICS!!
+
+
+
 
     def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""
@@ -463,7 +499,7 @@ class PredictorModule(lightning.LightningModule):
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {"preds": preds, "targets": targets, "weights": weights}
+        step_dict = {}
         step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses

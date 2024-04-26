@@ -21,6 +21,8 @@ from torch import Tensor
 import operator as op
 from copy import deepcopy
 
+from torch.nn.modules.loss import _Loss
+from torchmetrics import Metric
 from torchmetrics.utilities.distributed import reduce
 import torchmetrics.functional.regression.mae
 
@@ -138,7 +140,7 @@ class MetricWrapper:
 
     def __init__(
         self,
-        metric: Union[str, torchmetrics.Metric],
+        metric: Union[str, torchmetrics.Metric, torch.nn.modules.loss._Loss],
         threshold_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
@@ -367,11 +369,30 @@ class MetricWrapper:
         r"""
         Compute the metric with the method `self.compute`
         """
-        if (self.multitask_handling is None) or (self.multitask_handling == "flatten"):
-            return self.metric.compute()
-        elif self.multitask_handling == "mean-per-label":
+        if self.multitask_handling == "mean-per-label":
             metrics = [metric.compute() for metric in self.metric]
             return nan_mean(torch.stack(metrics))
+
+        return self.metric.compute()
+
+    def update_compute(self, preds: Tensor, target: Tensor) -> Tensor:
+        r"""
+        Update the parameters of the metric, apply the thresholder if provided, and manage the NaNs.
+        Then compute the metric with the method `self.compute`
+        """
+
+        self.update(preds, target)
+        return self.compute()
+
+    def reset(self):
+        r"""
+        Reset the metric with the method `self.metric.reset`
+        """
+        if self.multitask_handling == "mean-per-label":
+            for metric in self.metric:
+                metric.reset()
+        else:
+            self.metric.reset()
 
 
     def _filter_nans(self, preds: Tensor, target: Tensor):
@@ -446,3 +467,27 @@ class MetricWrapper:
         state["metric"], state["at_compute_kwargs"] = self._initialize_metric(state["metric"], state["kwargs"])
 
         self.__dict__.update(state)
+
+class MetricToTorchMetrics():
+    r"""
+    A simple wrapper to convert any metric or loss to an equivalent of `torchmetrics.Metric`
+    by adding the `update`, `compute`, and `reset` methods to make it compatible with `MetricWrapper`.
+    However, it is simply limited to computing the average of the metric over all the updates.
+    """
+
+    def __init__(self, metric):
+        self.metric = metric
+        self.scores = []
+
+    def update(self, preds: Tensor, target: Tensor):
+        self.scores.append(self.metric(preds, target))
+
+    def compute(self):
+        if len(self.scores) == 0:
+            raise ValueError("No scores to compute")
+        elif len(self.scores) == 1:
+            return self.scores[0]
+        return nan_mean(torch.stack(self.scores))
+
+    def reset(self):
+        self.scores = []
