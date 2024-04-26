@@ -19,6 +19,7 @@ import sys
 import torch
 from torch import Tensor
 import operator as op
+from copy import deepcopy
 
 from torchmetrics.utilities.distributed import reduce
 import torchmetrics.functional.regression.mae
@@ -137,7 +138,7 @@ class MetricWrapper:
 
     def __init__(
         self,
-        metric: Union[str, Callable],
+        metric: Union[str, torchmetrics.Metric],
         threshold_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
@@ -187,7 +188,7 @@ class MetricWrapper:
                 Other arguments to call with the metric
         """
 
-        self.metric, self.metric_name = self._get_metric(metric)
+        metric_class, self.metric_name = self._get_metric_class(metric)
         self.thresholder = None
         if threshold_kwargs is not None:
             self.thresholder = Thresholder(**threshold_kwargs)
@@ -197,6 +198,26 @@ class MetricWrapper:
         self.squeeze_targets = squeeze_targets
         self.target_to_int = target_to_int
         self.kwargs = kwargs
+
+        self.metric, self.kwargs = self._initialize_metric(metric_class, self.kwargs)
+
+    @staticmethod
+    def _initialize_metric(metric, kwargs):
+        r"""
+        Initialize the metric with the provided kwargs
+        """
+
+        if not isinstance(metric, type):
+            if not isinstance(metric, torchmetrics.Metric):
+                raise ValueError(f"metric must be a torchmetrics.Metric, provided: {type(metric)}"
+                                    f"Use `METRICS_DICT` to get the metric class")
+            else:
+                return metric, kwargs
+
+        metric = metric(**kwargs)
+
+        return metric, kwargs
+
 
     @staticmethod
     def _parse_target_nan_mask(target_nan_mask):
@@ -254,7 +275,7 @@ class MetricWrapper:
         return multitask_handling
 
     @staticmethod
-    def _get_metric(metric):
+    def _get_metric_class(metric):
         from graphium.utils.spaces import METRICS_DICT
 
         if isinstance(metric, str):
@@ -265,9 +286,10 @@ class MetricWrapper:
             metric = metric
         return metric, metric_name
 
-    def compute(self, preds: Tensor, target: Tensor) -> Tensor:
+    def update(self, preds: Tensor, target: Tensor) -> Tensor:
         r"""
-        Compute the metric, apply the thresholder if provided, and manage the NaNs
+        Update the parameters of the metric, apply the thresholder if provided, and manage the NaNs.
+        See `torchmetrics.Metric.update` for more details.
         """
         if preds.ndim == 1:
             preds = preds.unsqueeze(-1)
@@ -300,7 +322,8 @@ class MetricWrapper:
                 target = target.squeeze()
             if self.target_to_int:
                 target = target.to(int)
-            metric_val = self.metric(preds, target, **self.kwargs)
+            self.metric.update(preds, target)
+
         elif self.multitask_handling == "flatten":
             # Flatten the tensors, apply the nan filtering, then compute the metrics
             if classifigression:
@@ -313,7 +336,8 @@ class MetricWrapper:
                 target = target.squeeze()
             if self.target_to_int:
                 target = target.to(int)
-            metric_val = self.metric(preds, target, **self.kwargs)
+            self.metric.update(preds, target)
+
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
             target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
@@ -322,7 +346,9 @@ class MetricWrapper:
                 preds_list = [preds[..., i, :][~target_nans[..., i]] for i in range(preds.shape[1])]
             else:
                 preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
-            metric_val = []
+
+            if not isinstance(self.metric, list):
+                self.metric = [deepcopy(self.metric) for _ in range(len(target_list))]
             for ii in range(len(target_list)):
                 try:
                     this_preds, this_target = self._filter_nans(preds_list[ii], target_list[ii])
@@ -330,16 +356,23 @@ class MetricWrapper:
                         this_target = this_target.squeeze()
                     if self.target_to_int:
                         this_target = this_target.to(int)
-                    metric_val.append(self.metric(this_preds, this_target, **self.kwargs))
+                    self.metric[ii].update(this_preds, this_target)
                 except:
                     pass
-            # Average the metric
-            metric_val = nan_mean(torch.stack(metric_val))
         else:
             # Wrong option
             raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
 
-        return metric_val
+    def compute(self) -> Tensor:
+        r"""
+        Compute the metric with the method `self.compute`
+        """
+        if (self.multitask_handling is None) or (self.multitask_handling == "flatten"):
+            return self.metric.compute()
+        elif self.multitask_handling == "mean-per-label":
+            metrics = [metric.compute() for metric in self.metric]
+            return nan_mean(torch.stack(metrics))
+
 
     def _filter_nans(self, preds: Tensor, target: Tensor):
         """Handle the NaNs according to the chosen options"""
@@ -405,10 +438,11 @@ class MetricWrapper:
 
     def __setstate__(self, state: dict):
         """Reload the class from pickling."""
-        state["metric"], state["metric_name"] = self._get_metric(state["metric"])
+        state["metric"], state["metric_name"] = self._get_metric_class(state["metric"])
         thresholder = state.pop("threshold_kwargs", None)
         if thresholder is not None:
             thresholder = Thresholder(**thresholder)
         state["thresholder"] = thresholder
+        state["metric"], state["at_compute_kwargs"] = self._initialize_metric(state["metric"], state["kwargs"])
 
         self.__dict__.update(state)
