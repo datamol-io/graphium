@@ -395,7 +395,6 @@ class PredictorModule(lightning.LightningModule):
         step_dict["loss"] = loss
         # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
-        step_dict["gradient_norm"] = self.get_gradient_norm()
         return step_dict
 
     def update_metrics(self,
@@ -562,7 +561,6 @@ class PredictorModule(lightning.LightningModule):
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         aggregated_metrics_logs.update(metrics_logs)
 
         # Log the metrics
@@ -588,15 +586,6 @@ class PredictorModule(lightning.LightningModule):
             step_dict.pop("targets")
         return step_dict  # Returning the metrics_logs with the loss
 
-    def get_gradient_norm(self):
-        # compute the norm
-        total_norm = torch.tensor(0.0)
-        for p in self.parameters():
-            if p.grad is not None:
-                param_norm = p.grad.detach().data.norm(2)
-                total_norm += param_norm.detach().cpu() ** 2
-        total_norm = total_norm**0.5
-        return total_norm
 
     def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)

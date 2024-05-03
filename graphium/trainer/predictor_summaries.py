@@ -21,10 +21,9 @@ from copy import deepcopy
 import numpy as np
 import torch
 from torch import Tensor
-from torchmetrics import MeanMetric
+from torchmetrics import MeanMetric, Metric
 
 from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
-from graphium.trainer.metrics import STDMetric
 
 class SummaryInterface(object):
     r"""
@@ -39,14 +38,14 @@ class SummaryInterface(object):
 
 
 class SingleTaskSummary(SummaryInterface):
-    # TODO (Gabriela): Default argument cannot be []
     def __init__(
         self,
-        loss_fun: Union[str, Callable],
+        loss: Tensor,
         metrics: Dict[str, Callable],
         step_name: str,
-        metrics_on_training_set: List[str] = [],
-        metrics_on_progress_bar: List[str] = [],
+        n_epochs: int,
+        metrics_on_training_set: Optional[List[str]] = None,
+        metrics_on_progress_bar: Optional[List[str]] = None,
         task_name: Optional[str] = None,
     ):
         r"""
@@ -65,7 +64,8 @@ class SingleTaskSummary(SummaryInterface):
             If `None`, no metrics are computed.
 
             metrics_on_progress_bar:
-            The metrics names from `metrics` to display also on the progress bar of the training
+            The metrics names from `metrics` to display also on the progress bar of the training.
+            If `None`, no metrics are displayed.
 
             monitor:
             `str` metric to track (Default=`"loss/val"`)
@@ -74,13 +74,13 @@ class SingleTaskSummary(SummaryInterface):
             name of the task (Default=`None`)
 
         """
-        self.loss_fun = loss_fun
+        self.loss = loss.detach().cpu()
+        self.n_epochs = n_epochs
         self.step_name = step_name
         self.metrics = deepcopy(metrics)
 
         # Current predictor state
         # self.predictor_outputs = None
-        self.loss = None
         self.task_name = task_name
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
@@ -93,10 +93,18 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics["std_pred"] = STDMetric(nan_strategy="ignore")
         if "std_target" not in self.metrics:
             self.metrics["std_target"] = STDMetric(nan_strategy="ignore")
+        if ("grad_norm" not in self.metrics) and (step_name == "train"):
+            self.metrics["grad_norm"] = GradientNormMetric()
 
         # Parse the metrics filters
         metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
         metrics_on_progress_bar = self._parse_metrics_filter(metrics_on_progress_bar)
+
+        self._cached_metrics: Dict[str, Tensor] = {}
+
+    @property
+    def get_cached_metrics(self) -> Dict[str, Tensor]:
+        return deepcopy(self._cached_metrics)
 
     def _parse_metrics_filter(self, filter: Optional[Union[List[str], Dict[str, Any]]]) -> List[str]:
         if filter is None:
@@ -178,6 +186,10 @@ class SingleTaskSummary(SummaryInterface):
             the computed metrics
         """
         computed_metrics = self._compute(metrics_to_use=self.metrics_to_use)
+        self._cached_metrics = computed_metrics
+        self._cached_metrics[f"{self.step_name}/loss"] = self.loss
+        self._cached_metrics[f"{self.step_name}/n_epochs"] = self.n_epochs
+
         return computed_metrics
 
     def get_results_on_progress_bar(
@@ -189,9 +201,18 @@ class SingleTaskSummary(SummaryInterface):
         Returns:
             the results to be displayed on the progress bar for the given step
         """
-        computed_metrics = self._compute(metrics_to_use=self.metrics_on_progress_bar)
+        cached_metrics = self.get_cached_metrics
+        if cached_metrics is None:
+            results_prog = self._compute(metrics_to_use=self.metrics_on_progress_bar)
+        else:
+            results_prog = {}
+            for metric_key in self.metrics_on_progress_bar:
+                metric_name = self.metric_log_name(
+                    self.task_name, metric_key, self.step_name
+                )
+                results_prog[metric_name] = cached_metrics[metric_name]
 
-        return computed_metrics
+        return results_prog
 
     def metric_log_name(self, task_name, metric_name, step_name):
         if task_name is None:
@@ -203,35 +224,35 @@ class SingleTaskSummary(SummaryInterface):
 class MultiTaskSummary(SummaryInterface):
     def __init__(
         self,
-        task_loss_fun: Dict[str, Callable],
+        global_loss: Tensor,
+        task_loss: Dict[str, Tensor],
         task_metrics: Dict[str, Dict[str, Callable]],
         step_name: str,
-        task_metrics_on_training_set: Dict[str, List[str]],
-        task_metrics_on_progress_bar: Dict[str, List[str]],
+        n_epochs: int,
+        task_metrics_on_training_set: Optional[Dict[str, List[str]]],
+        task_metrics_on_progress_bar: Optional[Dict[str, List[str]]],
     ):
         r"""
         class to store the summaries of the tasks
         Parameters:
-            task_loss_fun: the loss function for each task
-            task_metrics: the metrics for each task
-            task_metrics_on_training_set: the metrics to use on the training set
-            task_metrics_on_progress_bar: the metrics to use on the progress bar
+
         """
-        self.task_loss_fun = task_loss_fun
+        self.global_loss = global_loss.detach().cpu()
         self.task_metrics = task_metrics
         self.task_metrics_on_progress_bar = task_metrics_on_progress_bar
         self.task_metrics_on_training_set = task_metrics_on_training_set
 
+        # Initialize all the single-task summaries
+        self.tasks = list(task_loss.keys())
         self.task_summaries: Dict[str, SingleTaskSummary] = {}
-        self.tasks = list(task_loss_fun.keys())
-
         for task in self.tasks:
             self.task_summaries[task] = SingleTaskSummary(
-                loss_fun = self.task_loss_fun[task],
+                loss_fun = self.task_loss[task],
                 metrics = self.task_metrics[task],
                 step_name = step_name,
-                metrics_on_training_set = self.task_metrics_on_training_set[task],
-                metrics_on_progress_bar = self.task_metrics_on_progress_bar[task],
+                n_epochs = n_epochs,
+                metrics_on_training_set = self.task_metrics_on_training_set[task] if task in self.task_metrics_on_training_set else None,
+                metrics_on_progress_bar = self.task_metrics_on_progress_bar[task] if task in self.task_metrics_on_progress_bar else None,
                 task_name = task,
             )
 
@@ -290,6 +311,63 @@ class MultiTaskSummary(SummaryInterface):
         """
         aggregated_metrics_logs = {}
         for task in list(self.tasks) + ["_global"]:
-            aggregated_metrics_logs.update(metrics_logs[task])
-        aggregated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+            if task in metrics_logs.keys():
+                aggregated_metrics_logs.update(metrics_logs[task])
+        aggregated_metrics_logs[f"loss/{self.step_name}"] = self.global_loss.detach().cpu()
         return aggregated_metrics_logs
+
+
+
+
+class STDMetric(Metric):
+    """
+    A metric to compute the standard deviation of the predictions or targets.
+    Based on `torchmetrics.Metric`, with a similar implementation to `torchmetric.MeanMetric`.
+    """
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.add_state("sum", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("sum_of_squares", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_weight", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
+        if not isinstance(value, Tensor):
+            value = torch.as_tensor(value, dtype=torch.float32)
+        if not isinstance(weight, Tensor):
+            weight = torch.as_tensor(weight, dtype=torch.float32)
+
+        weight = torch.broadcast_to(weight, value.shape)
+        value, weight = self._cast_and_nan_check_input(value, weight)
+
+        if value.numel() == 0:
+            return
+
+        self.sum += (value * weight).sum()
+        self.sum_of_squares += (value * value * weight).sum()
+        self.total_weight += weight.sum()
+
+    def compute(self) -> Tensor:
+        mean = self.sum / self.total_weight
+        mean_of_squares = self.sum_of_squares / self.total_weight
+        variance = mean_of_squares - mean ** 2
+        return torch.sqrt(variance)
+
+class GradientNormMetric(Metric):
+    """
+    A metric to compute the norm of the gradient.
+    Based on `torchmetrics.Metric`.
+    """
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.add_state("gradient_norm", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, model: torch.nn.Module) -> None:
+        grad_norm = torch.tensor(0.0)
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.detach().data.norm(2)
+                total_norm += param_norm.detach().cpu() ** 2
+        self.gradient_norm_sq += grad_norm
+
+    def compute(self) -> Tensor:
+        return self.gradient_norm_sq.sqrt()
