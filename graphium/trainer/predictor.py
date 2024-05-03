@@ -33,7 +33,7 @@ from graphium.trainer.predictor_options import (
     ModelOptions,
     OptimOptions,
 )
-from graphium.trainer.predictor_summaries import TaskSummaries
+from graphium.trainer.predictor_summaries import MultiTaskSummary
 from graphium.utils import fs
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
@@ -168,7 +168,7 @@ class PredictorModule(lightning.LightningModule):
         monitor = self.optim_options.scheduler_kwargs["monitor"].split("/")[0]
         mode = self.optim_options.scheduler_kwargs["mode"]
 
-        self.task_epoch_summary = TaskSummaries(
+        self.task_epoch_summary = MultiTaskSummary(
             task_loss_fun=self.loss_fun,
             task_metrics=self.metrics,
             task_metrics_on_training_set=self.metrics_on_training_set,
@@ -516,31 +516,31 @@ class PredictorModule(lightning.LightningModule):
         train_batch_time = time.time() - self.train_batch_start_time  # To be used for throughput calculation
 
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
-        concatenated_metrics_logs = {}
-        concatenated_metrics_logs["train/loss"] = outputs["loss"]
-        concatenated_metrics_logs["epoch_count"] = self.current_epoch
+        aggregated_metrics_logs = {}
+        aggregated_metrics_logs["train/loss"] = outputs["loss"]
+        aggregated_metrics_logs["epoch_count"] = self.current_epoch
         # Incriment by the batch size
         self.samples_seen += self.global_bs
-        concatenated_metrics_logs["samples_seen"] = self.samples_seen
+        aggregated_metrics_logs["samples_seen"] = self.samples_seen
 
         # report the training loss for each individual tasks
         for task in self.tasks:
-            concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
+            aggregated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
 
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         # filter zeros out for the individual losses
-        for key in concatenated_metrics_logs:
-            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
-                if concatenated_metrics_logs[key].numel() > 1:
-                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key][
-                        concatenated_metrics_logs[key] != 0
+        for key in aggregated_metrics_logs:
+            if isinstance(aggregated_metrics_logs[key], torch.Tensor):
+                if aggregated_metrics_logs[key].numel() > 1:
+                    aggregated_metrics_logs[key] = aggregated_metrics_logs[key][
+                        aggregated_metrics_logs[key] != 0
                     ].mean()
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
             if self.logger is not None:
                 self.logger.log_metrics(
-                    concatenated_metrics_logs, step=self.global_step
+                    aggregated_metrics_logs, step=self.global_step
                 )  # This is a pytorch lightning function call
             return
 
@@ -549,11 +549,11 @@ class PredictorModule(lightning.LightningModule):
         # Get the throughput of the batch
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
-        concatenated_metrics_logs["train/batch_time"] = train_batch_time
-        concatenated_metrics_logs["train/batch_tput"] = tput
+        aggregated_metrics_logs["train/batch_time"] = train_batch_time
+        aggregated_metrics_logs["train/batch_tput"] = tput
 
         # Compute all the metrics for the training set
-        self.task_epoch_summary.update_predictor_state(
+        self.task_epoch_summary.update(
             step_name="train",
             targets=outputs["targets"],
             preds=outputs["preds"],
@@ -563,12 +563,12 @@ class PredictorModule(lightning.LightningModule):
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        concatenated_metrics_logs.update(metrics_logs)
+        aggregated_metrics_logs.update(metrics_logs)
 
         # Log the metrics
         if self.logger is not None:
             self.logger.log_metrics(
-                concatenated_metrics_logs, step=self.global_step
+                aggregated_metrics_logs, step=self.global_step
             )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
@@ -628,7 +628,7 @@ class PredictorModule(lightning.LightningModule):
             loss_fun=self.loss_fun,
         )
 
-        self.task_epoch_summary.update_predictor_state(
+        self.task_epoch_summary.update(
             step_name=step_name,
             preds=preds,
             targets=targets,
@@ -637,7 +637,6 @@ class PredictorModule(lightning.LightningModule):
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()
-        self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 
         return metrics_logs  # Consider returning concatenated dict for logging
 
@@ -676,14 +675,11 @@ class PredictorModule(lightning.LightningModule):
             outputs=self.validation_step_outputs, step_name="val", device="cpu"
         )
         self.validation_step_outputs.clear()
-        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
-        concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        self.log_dict(concatenated_metrics_logs, sync_dist=True)
-
-        # Save yaml file with the per-task metrics summaries
-        full_dict = {}
-        full_dict.update(self.task_epoch_summary.get_dict_summary())
+        # TODO: Use the update and compute, rather than the old logic! Make sure to reset the metrics
+        aggregated_metrics_logs = self.task_epoch_summary.aggregate_metrics_logs(metrics_logs)
+        aggregated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
+        aggregated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
+        self.log_dict(aggregated_metrics_logs, sync_dist=True)
 
     def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.test_step_outputs.append(outputs)
@@ -691,13 +687,9 @@ class PredictorModule(lightning.LightningModule):
     def on_test_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test", device="cpu")
         self.test_step_outputs.clear()
-        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        aggregated_metrics_logs = self.task_epoch_summary.aggregate_metrics_logs(metrics_logs)
 
-        self.log_dict(concatenated_metrics_logs, sync_dist=True)
-
-        # Save yaml file with the per-task metrics summaries
-        full_dict = {}
-        full_dict.update(self.task_epoch_summary.get_dict_summary())
+        self.log_dict(aggregated_metrics_logs, sync_dist=True)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)

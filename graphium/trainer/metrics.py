@@ -491,3 +491,34 @@ class MetricToTorchMetrics():
 
     def reset(self):
         self.scores = []
+
+
+
+class STDMetric(Metric):
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.add_state("sum", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("sum_of_squares", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_weight", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
+        if not isinstance(value, Tensor):
+            value = torch.as_tensor(value, dtype=torch.float32)
+        if not isinstance(weight, Tensor):
+            weight = torch.as_tensor(weight, dtype=torch.float32)
+
+        weight = torch.broadcast_to(weight, value.shape)
+        value, weight = self._cast_and_nan_check_input(value, weight)
+
+        if value.numel() == 0:
+            return
+
+        self.sum += (value * weight).sum()
+        self.sum_of_squares += (value * value * weight).sum()
+        self.total_weight += weight.sum()
+
+    def compute(self) -> Tensor:
+        mean = self.sum / self.total_weight
+        mean_of_squares = self.sum_of_squares / self.total_weight
+        variance = mean_of_squares - mean ** 2
+        return torch.sqrt(variance)
