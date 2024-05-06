@@ -962,20 +962,20 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return task_level_map
 
-    @property
-    def concat_smiles_tensor_index(self):
+    @staticmethod
+    def concat_smiles_tensor_index():
         return 0
-    @property
-    def smiles_offsets_tensor_index(self):
+    @staticmethod
+    def smiles_offsets_tensor_index():
         return 1
-    @property
-    def num_nodes_tensor_index(self):
+    @staticmethod
+    def num_nodes_tensor_index():
         return 2
-    @property
-    def num_edges_tensor_index(self):
+    @staticmethod
+    def num_edges_tensor_index():
         return 3
-    @property
-    def data_offsets_tensor_index(self):
+    @staticmethod
+    def data_offsets_tensor_index():
         return 4
 
     def prepare_data(self):
@@ -1149,26 +1149,30 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if self.train_ds is None:
                 self.train_ds = self._make_multitask_dataset("train")
 
-            if self.val_ds is None:
+            if self.val_ds is None and len(self.stage_data["val"]) >= self.num_edges_tensor_index():
                 self.val_ds = self._make_multitask_dataset("val")
 
             logger.info(self.train_ds)
-            logger.info(self.val_ds)
             label_num_cols.update(
                 dict(zip(self.train_ds.task_names, self.train_ds.label_num_cols))
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
-            label_num_cols.update(dict(zip(self.val_ds.task_names, self.val_ds.label_num_cols)))
             label_dtypes.update(dict(zip(self.train_ds.task_names, self.train_ds.label_dtypes)))
-            label_dtypes.update(dict(zip(self.val_ds.task_names, self.val_ds.label_dtypes)))
+
+            if self.val_ds is not None:
+                logger.info(self.val_ds)
+                label_num_cols.update(dict(zip(self.val_ds.task_names, self.val_ds.label_num_cols)))
+                label_dtypes.update(dict(zip(self.val_ds.task_names, self.val_ds.label_dtypes)))
+                
 
         if stage == "test" or stage is None:
-            if self.test_ds is None:
+            if self.test_ds is None and len(self.stage_data["test"]) >= self.num_edges_tensor_index():
                 self.test_ds = self._make_multitask_dataset("test")
 
-            logger.info(self.test_ds)
+            if self.test_ds is not None:
+                logger.info(self.test_ds)
 
-            label_num_cols.update(dict(zip(self.test_ds.task_names, self.test_ds.label_num_cols)))
-            label_dtypes.update(dict(zip(self.test_ds.task_names, self.test_ds.label_dtypes)))
+                label_num_cols.update(dict(zip(self.test_ds.task_names, self.test_ds.label_num_cols)))
+                label_dtypes.update(dict(zip(self.test_ds.task_names, self.test_ds.label_dtypes)))
 
         default_labels_num_cols_dict = self.collate_fn.keywords.get("labels_num_cols_dict", None)
 
@@ -1209,8 +1213,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         stage_data = self.stage_data[stage]
         data_offsets = None
-        if self.data_offsets_tensor_index < len(stage_data):
-            data_offsets = stage_data[self.data_offsets_tensor_index]
+        if self.data_offsets_tensor_index() < len(stage_data):
+            data_offsets = stage_data[self.data_offsets_tensor_index()]
 
         multitask_dataset = Datasets.MultitaskDataset(
             about=about,
@@ -1220,10 +1224,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             label_num_cols=self.label_num_cols,
             label_dtypes=self.label_dtypes,
             mol_file_data_offsets=data_offsets,
-            concat_smiles_tensor=stage_data[self.concat_smiles_tensor_index],
-            smiles_offsets_tensor=stage_data[self.smiles_offsets_tensor_index],
-            num_nodes_tensor=stage_data[self.num_nodes_tensor_index],
-            num_edges_tensor=stage_data[self.num_edges_tensor_index],
+            concat_smiles_tensor=stage_data[self.concat_smiles_tensor_index()],
+            smiles_offsets_tensor=stage_data[self.smiles_offsets_tensor_index()],
+            num_nodes_tensor=stage_data[self.num_nodes_tensor_index()],
+            num_edges_tensor=stage_data[self.num_edges_tensor_index()],
         )  # type: ignore
 
         return multitask_dataset
@@ -1455,8 +1459,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     ########################## Private methods ######################################
 
+    @staticmethod
     def _extract_smiles_labels(
-        self,
         df: pd.DataFrame,
         task_level: str,
         smiles_col: Optional[str] = None,
@@ -1554,8 +1558,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         extras = {"weights": weights, "mol_ids": mol_ids}
         return smiles, labels, label_offsets, sample_idx, extras
 
+    @staticmethod
     def _get_split_indices(
-        self,
         dataset_size: int,
         split_val: float,
         split_test: float,
@@ -1611,7 +1615,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 splits = splits_path
             else:
                 # Split from an indices file
-                file_type = self._get_data_file_type(splits_path)
+                file_type = BaseDataModule._get_data_file_type(splits_path)
 
                 train, val, test = split_names
 
@@ -1619,7 +1623,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     splits = torch.load(splits_path)
                 elif file_type in ["csv", "tsv"]:
                     with fsspec.open(str(splits_path)) as f:
-                        splits = self._read_csv(splits_path)
+                        splits = BaseDataModule._read_csv(splits_path)
                 else:
                     raise ValueError(
                         f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
@@ -1641,8 +1645,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return train_indices, val_indices, test_indices
 
+    @staticmethod
     def _sub_sample_df(
-        self, df: pd.DataFrame, sample_size: Union[int, float, None], seed: Optional[int] = None
+        df: pd.DataFrame, sample_size: Union[int, float, None], seed: Optional[int] = None
     ) -> pd.DataFrame:
         r"""
         subsample from a pandas dataframe

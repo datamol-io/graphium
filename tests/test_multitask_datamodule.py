@@ -22,6 +22,7 @@ import pandas as pd
 import numpy as np
 import graphium
 
+TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 class Test_Multitask_DataModule(ut.TestCase):
     def setUp(self):
@@ -111,7 +112,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["featurization"] = featurization_args
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["processed_graph_data_path"] = None
+        dm_args["processed_graph_data_path"] = TEMP_CACHE_DATA_PATH
         dm_args["batch_size_training"] = 16
         dm_args["batch_size_inference"] = 16
 
@@ -172,6 +173,8 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["task_specific_args"]["logp"]["df_path"] = None
         dm_args["task_specific_args"]["score"]["df_path"] = None
 
+        dm_args["processed_graph_data_path"] = TEMP_CACHE_DATA_PATH
+
         dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         # assert dm.num_node_feats == 50
@@ -202,6 +205,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         config = graphium.load_config(name="zinc_default_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm_args["processed_graph_data_path"] = TEMP_CACHE_DATA_PATH
         dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
@@ -229,6 +233,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         config = graphium.load_config(name="fake_multilevel_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm_args["processed_graph_data_path"] = TEMP_CACHE_DATA_PATH
         dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
@@ -257,6 +262,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         config = graphium.load_config(name="fake_and_missing_multilevel_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm_args["processed_graph_data_path"] = TEMP_CACHE_DATA_PATH
         dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
@@ -285,23 +291,25 @@ class Test_Multitask_DataModule(ut.TestCase):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)
         label_cols = ["graph_label"]
-        output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
+        output, output_offsets = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
         assert isinstance(output, np.ndarray)
         assert len(output.shape) == 2
         assert output.shape[0] == num_graphs
         assert output.shape[1] == 1
+        assert output_offsets is None
 
     def test_extract_graph_level_multitask(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)
         label_cols = ["graph_label", "graph_label"]
-        output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
+        output, output_offsets = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
         assert isinstance(output, np.ndarray)
         assert len(output.shape) == 2
         assert output.shape[0] == num_graphs
         assert output.shape[1] == len(label_cols)
+        assert output_offsets is None
 
     def test_extract_graph_level_multitask_missing_cols(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
@@ -313,7 +321,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             for missing_col in label_cols[:replace]:
                 df[missing_col].iloc[drop_index] = None
 
-            output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
+            output, output_offsets = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
             assert isinstance(output, np.ndarray)
             assert len(output.shape) == 2
@@ -322,17 +330,24 @@ class Test_Multitask_DataModule(ut.TestCase):
 
     def test_non_graph_level_extract_labels(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        num_graphs = len(df)
 
         for level in ["node", "edge", "nodepair"]:
             label_cols = [f"{level}_label_{suffix}" for suffix in ["list", "np"]]
-            output = graphium.data.datamodule.extract_labels(df, level, label_cols)
+            output, output_offsets = graphium.data.datamodule.extract_labels(df, level, label_cols)
 
-            assert isinstance(output, list)
-            assert len(output[0].shape) == 2
-            assert output[0].shape[1] == len(label_cols)
+            assert isinstance(output, np.ndarray)
+            assert len(output.shape) == 2
+            assert output.shape[1] == len(label_cols)
+            assert output_offsets is not None
+            assert isinstance(output_offsets, np.ndarray)
+            assert len(output_offsets.shape) == 1
+            assert output_offsets.shape[0] == (num_graphs+1)
+            assert output.shape[0] == output_offsets[-1]
 
     def test_non_graph_level_extract_labels_missing_cols(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        num_graphs = len(df)
 
         for level in ["node", "edge", "nodepair"]:
             label_cols = [f"{level}_label_{suffix}" for suffix in ["list", "np"]]
@@ -341,16 +356,28 @@ class Test_Multitask_DataModule(ut.TestCase):
                 for missing_col in label_cols[:replace]:
                     df.loc[drop_index, missing_col] = None
 
-                output = graphium.data.datamodule.extract_labels(df, level, label_cols)
+                output, output_offsets = graphium.data.datamodule.extract_labels(df, level, label_cols)
+
+                assert isinstance(output, np.ndarray)
+                assert len(output.shape) == 2
+                assert output.shape[1] == len(label_cols)
+                assert output_offsets is not None
+                assert isinstance(output_offsets, np.ndarray)
+                assert len(output_offsets.shape) == 1
+                assert output_offsets.shape[0] == (num_graphs+1)
+                assert output.shape[0] == output_offsets[-1]
 
                 for idx in drop_index:
-                    assert len(output[idx].shape) == 2
-                    assert output[idx].shape[1] == len(label_cols)
-
-                    # Check that number of labels is adjusted correctly
-                    if replace == 1:
-                        non_missing_col = label_cols[1]
-                        assert output[idx].shape[0] == len(df[non_missing_col][idx])
+                    begin_idx = output_offsets[idx]
+                    end_idx = output_offsets[idx+1]
+                    values = output[begin_idx:end_idx]
+                    assert len(values.shape) == 2
+                    assert values.shape[1] == len(label_cols)
+                    
+                    # All removed entries must be nan
+                    assert np.all(np.isnan(values[:,:replace]))
+                    # All kept entries should be non-nan in this case
+                    assert not np.any(np.isnan(values[:,replace:]))
 
     def test_tdc_admet_benchmark_data_module(self):
         """

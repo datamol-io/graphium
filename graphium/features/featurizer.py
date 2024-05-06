@@ -30,14 +30,14 @@ NP_DTYPE_TO_TORCH_INT = {np.float16: 5, np.float32: 6, np.float64: 7}
 
 def mol_to_pyggraph(
     mol: str,
-    atom_property_list_onehot: torch.Tensor = None,
-    atom_property_list_float: torch.Tensor = None,
+    atom_property_list_onehot: torch.Tensor = torch.tensor(data=[], dtype=torch.int64),
+    atom_property_list_float: torch.Tensor = torch.tensor(data=[], dtype=torch.int64),
     conformer_property_list: List[str] = [],
-    edge_property_list: torch.Tensor = None,
+    edge_property_list: torch.Tensor = torch.tensor(data=[], dtype=torch.int64),
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-    pos_encoding_as_features: Tuple[List[str],torch.Tensor] = None,
+    pos_encoding_as_features: Tuple[List[str],torch.Tensor] = ([], torch.tensor(data=[], dtype=torch.int64)),
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -146,7 +146,7 @@ def mol_to_pyggraph(
             mol,
             atom_property_list_onehot,
             atom_property_list_float,
-            'positions_3d' in conformer_property_list,
+            has_conformer,
             edge_property_list,
             pos_encoding_as_features[1],
             True, # duplicate_edges, so that we don't have to duplicate below
