@@ -22,14 +22,9 @@ from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
 
-from graphium.features.featurizer import (
-    get_mol_atomic_features_onehot,
-    get_mol_atomic_features_float,
-    get_mol_edge_features,
-    mol_to_adj_and_features,
-    mol_to_pyggraph,
-)
+from graphium.features.featurizer import mol_to_pyggraph
 
+import graphium_cpp
 
 class test_featurizer(ut.TestCase):
     smiles = [
@@ -99,155 +94,112 @@ class test_featurizer(ut.TestCase):
 
     def test_get_mol_atomic_features_onehot(self):
         props = deepcopy(self.atomic_onehot_props)
-        bad_props = ["bob"]
+        #bad_props = ["bob"]
 
         all_smiles = self.smiles + self.smiles_noble
 
-        for s in all_smiles:
-            err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = dm.to_mol(s)
+        for mol in all_smiles:
+            err_msg = f"\n\tError for params:\n\t\tSMILES: {mol}"
+            
+            rdmol = dm.to_mol(mol)
 
             for ii in range(len(props)):
                 this_props = props[:ii]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
-                prop_dict = get_mol_atomic_features_onehot(mol, property_list=this_props)
-                self.assertListEqual(list(prop_dict.keys()), this_props, msg=err_msg)
-                for key, val in prop_dict.items():
-                    err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
-                    self.assertEqual(val.shape[0], mol.GetNumAtoms(), msg=err_msg3)
-                    self.assertGreater(val.shape[1], 1, msg=err_msg3)
-                    self.assertTrue(np.all((val == 0) | (val == 1)), msg=err_msg3)
+                this_props_encoded = graphium_cpp.atom_onehot_feature_names_to_tensor(this_props)
+                features = mol_to_pyggraph(mol, atom_property_list_onehot=this_props_encoded, mask_nan=None)
+                val = features["feat"]
+                self.assertEqual(val.size(0), rdmol.GetNumAtoms(), msg=err_msg2)
+                self.assertGreaterEqual(val.size(1), 2*len(this_props), msg=err_msg2)
+                self.assertTrue(((val == 0) | (val == 1)).numpy().all(), msg=err_msg2)
 
-            with self.assertRaises(ValueError, msg=err_msg):
-                get_mol_atomic_features_onehot(mol, property_list=bad_props)
+            #with self.assertRaises(ValueError, msg=err_msg):
+            #    get_mol_atomic_features_onehot(mol, property_list=bad_props)
 
     def test_get_mol_atomic_features_float(self):
         props = deepcopy(self.atomic_float_props)
 
-        bad_props = ["bob"]
+        #bad_props = ["bob"]
 
         all_smiles = self.smiles + self.smiles_noble
-        for s in all_smiles:
-            err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = dm.to_mol(s)
+        for mol in all_smiles:
+            err_msg = f"\n\tError for params:\n\t\tSMILES: {mol}"
+            rdmol = dm.to_mol(mol)
 
             for ii in range(len(props)):
                 this_props = props[:ii]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
-                prop_dict = get_mol_atomic_features_float(mol, property_list=this_props, mask_nan=None)
-                self.assertListEqual(list(prop_dict.keys()), this_props, msg=err_msg)
-                for key, val in prop_dict.items():
-                    err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
-                    self.assertListEqual(list(val.shape), [mol.GetNumAtoms()], msg=err_msg3)
+                this_props_encoded = graphium_cpp.atom_float_feature_names_to_tensor(this_props)
+                features = mol_to_pyggraph(mol, atom_property_list_float=this_props_encoded, mask_nan=None)
+                val = features["feat"]
+                self.assertEqual(val.size(0), rdmol.GetNumAtoms(), msg=err_msg2)
+                self.assertEqual(val.size(1), len(this_props), msg=err_msg2)
 
-            with self.assertRaises(ValueError, msg=err_msg):
-                get_mol_atomic_features_float(mol, property_list=bad_props)
+            #with self.assertRaises(ValueError, msg=err_msg):
+            #    get_mol_atomic_features_float(mol, property_list=bad_props)
 
     def test_get_mol_atomic_features_float_nan_mask(self):
-        for s in self.smiles_noble:
-            mol = dm.to_mol(s)
-
+        props_encoded = graphium_cpp.atom_float_feature_names_to_tensor(self.atomic_float_props)
+        for mol in self.smiles_noble:
             # Nothing happens when `mask_nan = None`, nans are still in the property array
-            prop_dict = get_mol_atomic_features_float(
-                mol, property_list=self.atomic_float_props, mask_nan=None
-            )
-            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
+            features = mol_to_pyggraph(mol, atom_property_list_float=props_encoded, mask_nan=None, on_error="raise")
+            prop_array = features["feat"]
             nans = np.isnan(prop_array)
 
             # Capture a raised error when `mask_nan = "raise"`
             with self.assertRaises(ValueError):
-                prop_dict = get_mol_atomic_features_float(
-                    mol, property_list=self.atomic_float_props, mask_nan="raise"
-                )
+                features = mol_to_pyggraph(mol, atom_property_list_float=props_encoded, mask_nan="raise", on_error="raise")
+                print(f"Failed to raise error for nans on {mol}")
 
             # Not sure how to Capture a logged warning when `mask_nan = "warn"`
             # Here, I'm testing a behaviour similar to `mask_nan = None`
-            prop_dict = get_mol_atomic_features_float(
-                mol, property_list=self.atomic_float_props, mask_nan="warn"
-            )
-            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
-            self.assertEqual(len(self.atomic_float_props), len(prop_dict))
-            self.assertTrue(any(np.isnan(prop_array)))
+            features = mol_to_pyggraph(mol, atom_property_list_float=props_encoded, mask_nan="warn", on_error="raise")
+            prop_array = features["feat"]
+            self.assertEqual(len(self.atomic_float_props), prop_array.size(1))
+            self.assertTrue(np.isnan(prop_array.numpy()).any())
 
             # NaNs are replaced by `42` when `mask_nan=42`
-            prop_dict = get_mol_atomic_features_float(mol, property_list=self.atomic_float_props, mask_nan=42)
-            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
-            self.assertEqual(len(self.atomic_float_props), len(prop_dict))
-            self.assertFalse(any(np.isnan(prop_array)))
-            self.assertTrue(all(prop_array[nans] == 42))
+            features = mol_to_pyggraph(mol, atom_property_list_float=props_encoded, mask_nan=42, on_error="raise")
+            prop_array = features["feat"]
+            self.assertEqual(len(self.atomic_float_props), prop_array.size(1))
+            self.assertFalse(np.isnan(prop_array.numpy()).any())
+            self.assertTrue((prop_array[nans] == 42).all())
 
     def test_get_mol_edge_features(self):
         props = deepcopy(self.edge_props)
-        bad_props = ["bob"]
+        #bad_props = ["bob"]
 
         all_smiles = self.smiles + self.smiles_noble
-        for s in all_smiles:
-            err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = dm.to_mol(s)
+        for mol in all_smiles:
+            err_msg = f"\n\tError for params:\n\t\tSMILES: {mol}"
+            rdmol = dm.to_mol(mol)
             for ii in range(len(props)):
                 this_props = props[: ii + 1]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
-                prop_dict = get_mol_edge_features(mol, property_list=this_props)
-                self.assertListEqual(list(prop_dict.keys()), this_props, msg=err_msg)
-                for key, val in prop_dict.items():
-                    err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
-                    self.assertEqual(val.shape[0], mol.GetNumBonds(), msg=err_msg3)
+                this_props_encoded = graphium_cpp.bond_feature_names_to_tensor(this_props)
+                features = mol_to_pyggraph(mol, edge_property_list=this_props_encoded, mask_nan=None)
+                val = features["edge_feat"]
+                self.assertEqual(val.shape[0], 2 * rdmol.GetNumBonds(), msg=err_msg2)
+                if rdmol.GetNumBonds() > 0:
+                    self.assertGreaterEqual(val.shape[1], len(this_props), msg=err_msg2)
 
-            if mol.GetNumBonds() > 0:
-                with self.assertRaises(ValueError, msg=err_msg):
-                    get_mol_edge_features(mol, property_list=bad_props)
-
-    def test_mol_to_adj_and_features(self):
-        np.random.seed(42)
-
-        for s in self.smiles:
-            err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = dm.to_mol(s)
-            mol_Hs = Chem.AddHs(mol)  # type: ignore
-            mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
-
-            for explicit_H in [True, False]:
-                this_mol = mol_Hs if explicit_H else mol_No_Hs
-                for ii in np.arange(0, 5, 0.2):
-                    num_props = int(round(ii))
-                    err_msg2 = err_msg + f"\n\t\texplicit_H: {explicit_H}\n\t\tii: {ii}"
-
-                    adj, ndata, edata, _, _ = mol_to_adj_and_features(
-                        mol=mol,
-                        atom_property_list_onehot=np.random.choice(
-                            self.atomic_onehot_props, size=num_props, replace=False
-                        ),
-                        atom_property_list_float=np.random.choice(
-                            self.atomic_float_props, size=num_props, replace=False
-                        ),
-                        edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
-                        add_self_loop=False,
-                        explicit_H=explicit_H,
-                        use_bonds_weights=False,
-                    )
-
-                    self.assertEqual(adj.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
-                    if num_props > 0:
-                        self.assertEqual(ndata.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
-                        if this_mol.GetNumBonds() > 0:
-                            self.assertEqual(edata.shape[0], this_mol.GetNumBonds(), msg=err_msg2)
-                            self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
-                        self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
+            #if mol.GetNumBonds() > 0:
+            #    with self.assertRaises(ValueError, msg=err_msg):
+            #        get_mol_edge_features(mol, property_list=bad_props)
 
     def test_mol_to_pyggraph(self):
         np.random.seed(42)
+        single_atom_prop_encoded = graphium_cpp.atom_float_feature_names_to_tensor(["atomic-number"])
+        single_bond_prop_encoded = graphium_cpp.bond_feature_names_to_tensor(["bond-type-float"])
 
-        for s in self.smiles:
-            err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = dm.to_mol(s)
-            mol_Hs = Chem.AddHs(mol)  # type: ignore
-            mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
+        for mol in self.smiles:
+            err_msg = f"\n\tError for params:\n\t\tSMILES: {mol}"
+            rdmol = dm.to_mol(mol)
 
             graph = mol_to_pyggraph(
                 mol=mol,
-                atom_property_list_onehot=[],
-                atom_property_list_float=["atomic-number"],
-                edge_property_list=["bond-type-float"],
+                atom_property_list_float=single_atom_prop_encoded,
+                edge_property_list=single_bond_prop_encoded,
                 add_self_loop=False,
                 explicit_H=False,
                 use_bonds_weights=False,
@@ -255,29 +207,32 @@ class test_featurizer(ut.TestCase):
             )
 
             # Check the number of nodes and edges
-            self.assertListEqual(list(graph["feat"].shape), [mol.GetNumAtoms(), 1], msg=err_msg)
-            self.assertListEqual(list(graph["edge_feat"].shape), [2 * mol.GetNumBonds(), 1], msg=err_msg)
+            self.assertListEqual(list(graph["feat"].shape), [rdmol.GetNumAtoms(), 1], msg=err_msg)
+            self.assertListEqual(list(graph["edge_feat"].shape), [2 * rdmol.GetNumBonds(), 1], msg=err_msg)
 
             # Check the node features
             feat = graph["feat"].to_dense().numpy() * 5 + 6  # Undo the scaling
-            atom_nums = np.asarray([atom.GetAtomicNum() for atom in mol.GetAtoms()])
+            atom_nums = np.asarray([atom.GetAtomicNum() for atom in rdmol.GetAtoms()])
             np.testing.assert_array_almost_equal(feat[:, 0], atom_nums, decimal=5, err_msg=err_msg)
 
             # Check the edge features
             edge_feat = graph["edge_feat"].to_dense().numpy()
-            bond_types = np.asarray([bond.GetBondTypeAsDouble() for bond in mol.GetBonds()]).repeat(2)
+            bond_types = np.asarray([bond.GetBondTypeAsDouble() for bond in rdmol.GetBonds()]).repeat(2)
             np.testing.assert_array_almost_equal(edge_feat[:, 0], bond_types, decimal=5, err_msg=err_msg)
 
             # Check the edge indices
-            if mol.GetNumBonds() > 0:
+            if rdmol.GetNumBonds() > 0:
                 edge_index = graph["edge_index"].to_dense().numpy()
                 true_edge_index = []
-                for bond in mol.GetBonds():
+                for bond in rdmol.GetBonds():
                     true_edge_index.append([bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()])
                     true_edge_index.append([bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()])
                 true_edge_index = np.asarray(true_edge_index).T
                 np.testing.assert_array_equal(edge_index, true_edge_index, err_msg=err_msg)
 
+            mol_Hs = Chem.AddHs(rdmol)  # type: ignore
+            mol_No_Hs = Chem.RemoveHs(rdmol)  # type: ignore
+            
             # Loop over many possible combinations of properties
             for explicit_H in [True, False]:
                 this_mol = mol_Hs if explicit_H else mol_No_Hs
@@ -287,13 +242,18 @@ class test_featurizer(ut.TestCase):
 
                     graph = mol_to_pyggraph(
                         mol=mol,
-                        atom_property_list_onehot=np.random.choice(
-                            self.atomic_onehot_props, size=num_props, replace=False
+                        atom_property_list_onehot=graphium_cpp.atom_onehot_feature_names_to_tensor(
+                            np.random.choice(
+                                self.atomic_onehot_props, size=num_props, replace=False
+                            )
                         ),
-                        atom_property_list_float=np.random.choice(
-                            self.atomic_float_props, size=num_props, replace=False
+                        atom_property_list_float=graphium_cpp.atom_float_feature_names_to_tensor(
+                            np.random.choice(
+                                self.atomic_float_props, size=num_props, replace=False
+                            )
                         ),
-                        edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
+                        edge_property_list=graphium_cpp.bond_feature_names_to_tensor(
+                            np.random.choice(self.edge_props, size=num_props, replace=False)),
                         add_self_loop=False,
                         explicit_H=explicit_H,
                         use_bonds_weights=False,

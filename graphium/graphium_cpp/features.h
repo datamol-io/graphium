@@ -69,7 +69,8 @@ enum class AtomOneHotFeature {
     PHASE,
     TYPE,
     GROUP,
-    PERIOD
+    PERIOD,
+    UNKNOWN
 };
 
 enum class BondFeature {
@@ -79,7 +80,8 @@ enum class BondFeature {
     CONJUGATED,
     STEREO_ONE_HOT,
     CONFORMER_BOND_LENGTH,
-    ESTIMATED_BOND_LENGTH
+    ESTIMATED_BOND_LENGTH,
+    UNKNOWN
 };
 
 enum class PositionalFeature {
@@ -177,7 +179,7 @@ constexpr int64_t mask_nans(T* data, size_t n, MaskNaNStyle style, T value) {
     if (style == MaskNaNStyle::NONE) {
         return 0;
     }
-    if (style != MaskNaNStyle::REPLACE) {
+    if (style == MaskNaNStyle::REPLACE) {
         for (size_t i = 0; i < n; ++i) {
             if (!FeatureValues<T>::is_finite(data[i])) {
                 data[i] = value;
@@ -272,4 +274,4 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
 std::unique_ptr<RDKit::RWMol> parse_mol(
     const std::string& smiles_string,
     bool explicit_H,
-    bool ordered = true);
+    bool ordered = false);

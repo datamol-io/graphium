@@ -415,7 +415,7 @@ at::Tensor atom_onehot_feature_names_to_tensor(const std::vector<std::string>& f
             feature_enum_values[i] = it->second;
         }
         else {
-            feature_enum_values[i] = int64_t(AtomFloatFeature::UNKNOWN);
+            feature_enum_values[i] = int64_t(AtomOneHotFeature::UNKNOWN);
         }
     }
     const int64_t dims[1] = { int64_t(num_features) };
@@ -441,7 +441,7 @@ at::Tensor bond_feature_names_to_tensor(const std::vector<std::string>& features
             feature_enum_values[i] = it->second;
         }
         else {
-            feature_enum_values[i] = int64_t(AtomFloatFeature::UNKNOWN);
+            feature_enum_values[i] = int64_t(BondFeature::UNKNOWN);
         }
     }
     const int64_t dims[1] = { int64_t(num_features) };
@@ -1309,6 +1309,7 @@ void create_all_features(
         add_self_loop,
         use_bonds_weights,
         dtype);
+    tensors.push_back(std::move(edge_weights_tensor));
     at::Tensor atom_features_tensor = create_atom_features<T>(
         graph,
         atom_property_list_onehot,
@@ -1318,9 +1319,9 @@ void create_all_features(
         mask_nan_style,
         mask_nan_value,
         num_nans);
+    tensors.push_back(std::move(atom_features_tensor));
     if (num_nans != 0) {
-        nan_tensor_index = tensors.size()+1;
-        return;
+        nan_tensor_index = tensors.size()-1;
     }
     at::Tensor bond_features_tensor = create_bond_features<T>(
         graph,
@@ -1331,13 +1332,10 @@ void create_all_features(
         mask_nan_style,
         mask_nan_value,
         num_nans);
-    if (num_nans != 0) {
-        nan_tensor_index = tensors.size()+2;
-        return;
-    }
-    tensors.push_back(std::move(edge_weights_tensor));
-    tensors.push_back(std::move(atom_features_tensor));
     tensors.push_back(std::move(bond_features_tensor));
+    if (nan_tensor_index < 0 && num_nans != 0) {
+        nan_tensor_index = tensors.size()-1;
+    }
     if (create_conformer_feature) {
         at::Tensor conformer_features_tensor = get_conformer_features<T>(
             *graph.mol,
@@ -1347,11 +1345,10 @@ void create_all_features(
             mask_nan_value,
             num_nans,
             smiles_string);
-        if (num_nans != 0) {
-            nan_tensor_index = tensors.size();
-            return;
-        }
         tensors.push_back(std::move(conformer_features_tensor));
+        if (nan_tensor_index < 0 && num_nans != 0) {
+            nan_tensor_index = tensors.size();
+        }
     }
     create_positional_features<T>(
         graph,
