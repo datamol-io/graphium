@@ -7,8 +7,7 @@ At time of writing, this has only been tested with GCC 10.5.0.
 To build, git clone pybind11 into this directory, then run:
 rm -r build/*
 export PYTHONPATH=$PYTHONPATH:./pybind11
-python ./setup.py build
-cp build/lib.linux-x86_64-cpython-311/graphium_cpp.cpython-311-x86_64-linux-gnu.so ~/mambaforge/envs/graphium/bin
+pip install .
 """
 
 from distutils.core import setup
