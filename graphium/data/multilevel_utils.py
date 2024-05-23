@@ -71,7 +71,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
             if isinstance(v, np.ndarray):
                 if len(v.shape) == 1:
                     length = v.shape[0]
-                else if len(v.shape) == 0:
+                elif len(v.shape) == 0:
                     length = 0
                 else:
                     raise ValueError(
