@@ -69,7 +69,14 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                 v = pd.to_numeric(v, errors="coerce")
             length = 0
             if isinstance(v, np.ndarray):
-                length = v.shape[0] if len(v.shape) == 1 else 0
+                if len(v.shape) == 1:
+                    length = v.shape[0]
+                else if len(v.shape) == 0:
+                    length = 0
+                else:
+                    raise ValueError(
+                        f"Graph data should be 1D np.ndarray, got ndarray with {len(v.shape)} dimensions"
+                    )
                 dtype = v.dtype
                 if dtype == np.float64:
                     max_type = np.float64
@@ -97,6 +104,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     for col_index, col in enumerate(label_cols):
         for i, v in enumerate(df[col]):
             full_row = begin_offsets[i]
+            end_row = begin_offsets[i+1]
 
             if not isinstance(v, np.ndarray):
                 v = pd.to_numeric(v, errors="coerce")
@@ -105,29 +113,24 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                 length = v.shape[0] if len(v.shape) == 1 else 0
                 for j in range(length):
                     output[full_row + j, col_index] = v[j]
-                if full_row + length != begin_offsets[i+1]:
-                    for j in range(full_row, begin_offsets[i+1]):
-                        output[j, col_index] = np.nan
 
             elif isinstance(v, (int, float)):
+                length = 1
                 output[full_row, col_index] = v
-                # Fill the rest of the rows in the column with nan
-                end_row = begin_offsets[i+1]
-                if end_row != full_row+1:
-                    for row in range(full_row+1, end_row):
-                        output[row, col_index] = np.nan
 
             elif isinstance(v, list):
                 length = len(v)
                 for j in range(length):
                     output[full_row + j, col_index] = v[j]
-                if full_row + length != begin_offsets[i+1]:
-                    for j in range(full_row, begin_offsets[i+1]):
-                        output[j, col_index] = np.nan
 
             else:
                 raise ValueError(
                     f"Graph data should be one of float, int, list, np.ndarray, got {type(v)}"
                 )
+
+            # Fill the rest of the rows in the column with nan
+            if full_row + length != end_row:
+                for row in range(full_row + length, end_row):
+                    output[row, col_index] = np.nan
 
     return output, begin_offsets
