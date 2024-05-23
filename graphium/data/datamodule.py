@@ -96,10 +96,6 @@ PCQM4Mv2_meta.update(
     }
 )
 
-def warn_deprecated(value, name, function_name):
-    if value is not None:
-        logger.warn("In "+function_name+", "+name+" is deprecated")
-
 class BaseDataModule(lightning.LightningDataModule):
     def __init__(
         self,
@@ -788,7 +784,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Union[Dict[str, DatasetProcessingParams], Dict[str, Any]],
         processed_graph_data_path: Union[str, os.PathLike],
-        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -797,12 +792,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs = None,
-        featurization_progress = None,
-        featurization_backend = None,
-        featurization_batch_size = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph = None,
         preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
@@ -819,7 +809,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - `df_path`
                 - `smiles_col`
                 - `label_cols`
-            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
@@ -831,14 +820,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
 
+            collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
+            preprocessing_n_jobs: Number of threads to use during preprocessing.
+                Use 0 to use all available cores, or -1 to use all but one core.
+
+            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
             featurization_n_jobs: Deprecated.
             featurization_progress: Deprecated.
             featurization_backend: Deprecated.
             featurization_batch_size: Deprecated.
-            collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
-            preprocessing_n_jobs: Number of threads to use during preprocessing.
-                Use 0 to use all available cores, or -1 to use all but one core.
         """
         BaseDataModule.__init__(
             self,
@@ -852,13 +843,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             collate_fn=collate_fn,
         )
         IPUDataModuleModifier.__init__(self, **kwargs)
-
-        warn_deprecated(dataloading_from, "dataloading_from", "MultitaskFromSmilesDataModule::__init__")
-        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "MultitaskFromSmilesDataModule::__init__")
-        warn_deprecated(featurization_progress, "featurization_progress", "MultitaskFromSmilesDataModule::__init__")
-        warn_deprecated(featurization_backend, "featurization_backend", "MultitaskFromSmilesDataModule::__init__")
-        warn_deprecated(featurization_batch_size, "featurization_batch_size", "MultitaskFromSmilesDataModule::__init__")
-        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "MultitaskFromSmilesDataModule::__init__")
 
         self.task_specific_args = task_specific_args
 
@@ -1752,7 +1736,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         self,
         task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
-        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -1761,11 +1744,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs = None,
-        featurization_progress = None,
-        featurization_backend = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph = None,
         preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
@@ -1783,32 +1762,27 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 meaning that all molecules will be considered.
             processed_graph_data_path: Path to the processed graph data. If None, the data will be
               downloaded from the OGB website.
-            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
             featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_training: batch size for training and val dataset.
             batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
-            featurization_n_jobs: Deprecated.
-            featurization_progress: Deprecated.
-            featurization_backend: Deprecated.
             collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
                 - `None`: all elements are considered.
-            prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
             preprocessing_n_jobs: Number of threads to use during preprocessing.
                 Use 0 to use all available cores, or -1 to use all but one core.
-        """
 
-        warn_deprecated(dataloading_from, "dataloading_from", "GraphOGBDataModule::__init__")
-        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "GraphOGBDataModule::__init__")
-        warn_deprecated(featurization_progress, "featurization_progress", "GraphOGBDataModule::__init__")
-        warn_deprecated(featurization_backend, "featurization_backend", "GraphOGBDataModule::__init__")
-        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "GraphOGBDataModule::__init__")
+            dataloading_from: Deprecated. Behaviour now always matches previous "disk" option.
+            featurization_n_jobs: Deprecated.
+            featurization_progress: Deprecated.
+            featurization_backend: Deprecated.
+            prepare_dict_or_graph: Deprecated. Behaviour now always matches previous "pyg:graph" option.
+        """
 
         new_task_specific_args = {}
         self.metadata = {}
@@ -2014,7 +1988,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         tdc_train_val_seed: int = 0,
         # Inherited arguments from superclass
         processed_graph_data_path: Optional[Union[str, Path]] = None,
-        dataloading_from = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -2023,20 +1996,10 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         multiprocessing_context: Optional[str] = None,
-        featurization_n_jobs = None,
-        featurization_progress = None,
-        featurization_backend = None,
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph = None,
         preprocessing_n_jobs: int = 0,
         **kwargs,
     ):
-        warn_deprecated(dataloading_from, "dataloading_from", "ADMETBenchmarkDataModule::__init__")
-        warn_deprecated(featurization_n_jobs, "featurization_n_jobs", "ADMETBenchmarkDataModule::__init__")
-        warn_deprecated(featurization_progress, "featurization_progress", "ADMETBenchmarkDataModule::__init__")
-        warn_deprecated(featurization_backend, "featurization_backend", "ADMETBenchmarkDataModule::__init__")
-        warn_deprecated(prepare_dict_or_graph, "prepare_dict_or_graph", "ADMETBenchmarkDataModule::__init__")
-
         try:
             from tdc.benchmark_group import admet_group
             from tdc.utils import retrieve_benchmark_names
