@@ -1,53 +1,69 @@
 """
 --------------------------------------------------------------------------------
-Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals and Graphcore Limited.
+Copyright (c) 2023 Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates.
 
 Use of this software is subject to the terms and conditions outlined in the LICENSE file.
 Unauthorized modification, distribution, or use is prohibited. Provided 'as is' without
 warranties of any kind.
 
-Valence Labs, Recursion Pharmaceuticals and Graphcore Limited are not liable for any damages arising from its use.
+Valence Labs, Recursion Pharmaceuticals, Graphcore Limited, and NVIDIA Corporation & Affiliates are not liable for any damages arising from its use.
 Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
 
 """
-Unit tests for the positional encodings in graphium/features/*
+Unit tests for the positional encodings in graphium/features/random_walk.cpp
 """
 
 import numpy as np
-import networkx as nx
+import torch
 import unittest as ut
 
-from graphium.features.rw import compute_rwse
-
+import graphium
+import graphium_cpp
 
 class test_pe_spectral(ut.TestCase):
-    def test_caching_and_outputs(self):
+    def test_outputs(self):
         # 4-barbell
-        G = nx.barbell_graph(4, 0)
-        adj = nx.to_numpy_array(G)
-        num_nodes = adj.shape[0]
-        cache = {}
+        smiles = "C12C3C1C23C12C3C1C23"
+        num_nodes = 8
 
         ksteps1 = [4, 6]
         ksteps2 = [2]
         ksteps3 = [6, 7]
 
-        pe1, _, cache = compute_rwse(
-            adj.astype(np.float32), ksteps1, num_nodes, cache, pos_type="rw_transition_probs"
+        # The feature names only depend on pos_type and pos_level, so the two
+        # rw_return_probs features can't have the same pos_level.
+        features = {
+            "rw_transition_probs": {"pos_level": "nodepair", "pos_type": "rw_transition_probs", "normalization": "none", "ksteps": ksteps1},
+            "rw_return_probs_0": {"pos_level": "node", "pos_type": "rw_return_probs", "normalization": "none", "ksteps": ksteps2},
+            "rw_return_probs_1": {"pos_level": "nodepair", "pos_type": "rw_return_probs", "normalization": "none", "ksteps": ksteps3},
+            }
+        (pos_encoding_names, pos_encoding_tensor) = \
+                    graphium_cpp.positional_feature_options_to_tensor(features)
+
+        tensors, _, _ = graphium_cpp.featurize_smiles(
+            smiles,
+            torch.tensor(data=[], dtype=torch.int64), # atom_property_list_onehot
+            torch.tensor(data=[], dtype=torch.int64), # atom_property_list_float
+            False, # has_conformer
+            torch.tensor(data=[], dtype=torch.int64), # edge_property_list
+            pos_encoding_tensor,
+            True, # duplicate_edges
+            False, # add_self_loop
+            False, # explicit_H=False
+            False, # use_bonds_weights
+            True, #offset_carbon
+            7, # torch float64
+            0, # mask_nan_style_int
+            0  # mask_nan_value
         )
 
-        pe2, _, cache = compute_rwse(
-            adj.astype(np.float32), ksteps2, num_nodes, cache, pos_type="rw_return_probs"
-        )
+        pe1 = tensors[4]
+        pe2 = tensors[5]
+        pe3 = tensors[6]
 
-        pe3, _, cache = compute_rwse(
-            adj.astype(np.float32), ksteps3, num_nodes, cache, pos_type="rw_return_probs"
-        )
-
-        self.assertTrue(all([k in cache["ksteps"] for k in ksteps1 + ksteps2 + ksteps3]))
         self.assertTrue(pe1.shape, np.zeros((num_nodes, num_nodes, len(ksteps1))))
         self.assertTrue(pe2.shape, np.zeros((num_nodes, len(ksteps2))))
         self.assertTrue(pe3.shape, np.zeros((num_nodes, len(ksteps3))))

@@ -13,7 +13,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 
 """
-Unit tests for the positional encodings in graphium/features/*
+Unit tests for the positional encodings in graphium/graphium_cpp/*.cpp
 """
 
 import numpy as np
