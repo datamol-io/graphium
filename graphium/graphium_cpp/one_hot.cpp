@@ -177,8 +177,11 @@ size_t get_one_hot_atom_feature_size(AtomOneHotFeature feature) {
     case AtomOneHotFeature::TYPE:             return typeCount + 1;
     case AtomOneHotFeature::GROUP:            return groupCount + 1;
     case AtomOneHotFeature::PERIOD:           return periodCount + 1;
+    default:
+        // Missing implementation
+        assert(0);
+        return 0;
     }
-    return 0;
 }
 
 template<typename T>
@@ -290,11 +293,11 @@ size_t get_one_hot_atom_feature(const GraphData& graph, T* data, AtomOneHotFeatu
             data[dataIndex] = FeatureValues<T>::one;
         }
         return feature_size;
+    default:
+        // Missing implementation
+        assert(0);
+        return feature_size;
     }
-
-    // Missing implementation
-    assert(0);
-    return feature_size;
 }
 
 // Explicit instantiations, so that the function can be templated
