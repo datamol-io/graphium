@@ -21,7 +21,7 @@ void compute_laplacian_pseudoinverse(
     // If we've already computed the eigendecomposition with the correct normalization,
     // skip recomputing it.
     if (data.eigenvalues.size() != n || data.normalization != Normalization::NONE) {
-        compute_laplacian_eigendecomp(n, row_starts, neighbors, Normalization::NONE, data, false, weights);
+        compute_laplacian_eigendecomp(n, row_starts, neighbors, Normalization::NONE, data, 1, nullptr, weights);
     }
 
     matrix.clear();

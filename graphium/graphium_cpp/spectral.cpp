@@ -11,6 +11,44 @@
 #include "features.h"
 #include <ATen/ops/linalg_eig.h>
 
+size_t find_components(
+    const uint32_t n,
+    const uint32_t* row_starts,
+    const uint32_t* neighbors,
+    std::vector<int32_t>& components) {
+
+    int32_t num_components = (n <= 1) ? 1 : 0;
+    std::vector<uint32_t> queue;
+    if (n > 1) {
+        // First, find which nodes are in which component.
+        components.resize(n, -1);
+        queue.reserve(n);
+        for (uint32_t starti = 0; starti < n; ++starti) {
+            if (components[starti] >= 0) {
+                continue;
+            }
+            const int32_t component = num_components;
+            ++num_components;
+            queue.push_back(starti);
+            components[starti] = component;
+            while (queue.size() != 0) {
+                uint32_t current = queue[queue.size()-1];
+                queue.resize(queue.size()-1);
+                const uint32_t* neighbor_begin = neighbors + row_starts[current];
+                const uint32_t* neighbor_end = neighbors + row_starts[current+1];
+                for ( ; neighbor_begin != neighbor_end; ++neighbor_begin) {
+                    uint32_t neighbor = *neighbor_begin;
+                    if (neighbor > starti && components[neighbor] < 0) {
+                        components[neighbor] = component;
+                        queue.push_back(neighbor);
+                    }
+                }
+            }
+        }
+    }
+    return size_t(num_components);
+}
+
 template<typename T>
 void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& data, Normalization normalization) {
     T* matrix = data.matrix_temp.data();
@@ -118,7 +156,16 @@ void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& da
 }
 
 template<typename T>
-void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<T>& data, bool disconnected_comp, const T* weights) {
+void compute_laplacian_eigendecomp(
+    const uint32_t n,
+    const uint32_t* row_starts,
+    const uint32_t* neighbors,
+    Normalization normalization,
+    LaplacianData<T>& data,
+    size_t num_components,
+    const std::vector<int32_t>* components,
+    const T* weights) {
+
     // Compute the weight row sums, if applicable, for the diagonal of the laplacian
     if (weights != nullptr) {
         data.eigenvalues_temp.clear();
@@ -192,36 +239,6 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
         }
     }
 
-    std::vector<int32_t> components;
-    int32_t num_components = 0;
-    std::vector<uint32_t> queue;
-    if (disconnected_comp && n > 1) {
-        // First, find which nodes are in which component.
-        components.resize(n, -1);
-        queue.reserve(n);
-        for (uint32_t starti = 0; starti < n; ++starti) {
-            if (components[starti] >= 0) {
-                continue;
-            }
-            const int32_t component = num_components;
-            ++num_components;
-            queue.push_back(starti);
-            components[starti] = component;
-            while (queue.size() != 0) {
-                uint32_t current = queue[queue.size()-1];
-                queue.resize(queue.size()-1);
-                const uint32_t* neighbor_begin = neighbors + row_starts[current];
-                const uint32_t* neighbor_end = neighbors + row_starts[current+1];
-                for ( ; neighbor_begin != neighbor_end; ++neighbor_begin) {
-                    uint32_t neighbor = *neighbor_begin;
-                    if (neighbor > starti && components[neighbor] < 0) {
-                        components[neighbor] = component;
-                        queue.push_back(neighbor);
-                    }
-                }
-            }
-        }
-    }
     if (num_components == 1) {
         compute_laplacian_eigendecomp_single(n, data, normalization);
         return;
@@ -239,11 +256,12 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
     data.vectors.resize(size_t(n) * n, 0);
     
     LaplacianData<T> sub_data;
+    std::vector<uint32_t> queue;
     for (int32_t component = 0; component < num_components; ++component) {
         // Reuse queue for the indices
         queue.resize(0);
         for (uint32_t i = 0; i < n; ++i) {
-            if (components[i] == component) {
+            if ((*components)[i] == component) {
                 queue.push_back(i);
             }
         }
@@ -295,5 +313,5 @@ void compute_laplacian_eigendecomp(const uint32_t n, const uint32_t* row_starts,
     }
 }
 
-template void compute_laplacian_eigendecomp<float>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<float>& data, bool disconnected_comp, const float* weights);
-template void compute_laplacian_eigendecomp<double>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<double>& data, bool disconnected_comp, const double* weights);
+template void compute_laplacian_eigendecomp<float>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<float>& data, size_t num_components, const std::vector<int32_t>* components, const float* weights);
+template void compute_laplacian_eigendecomp<double>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<double>& data, size_t num_components, const std::vector<int32_t>* components, const double* weights);

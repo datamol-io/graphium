@@ -1071,6 +1071,8 @@ void create_positional_features(
 
     LaplacianData<double> laplacian_data;
     LaplacianData<double> laplacian_data_comp;
+    size_t num_components = 0; // 0 indicates that the components haven't been computed yet
+    std::vector<int32_t> components;
     std::vector<double> laplacian_pseudoinverse;
     std::vector<double> matrix;
     size_t i = 0;
@@ -1091,9 +1093,24 @@ void create_positional_features(
             Normalization normalization = Normalization(property_list[i + 1]);
             bool disconnected_comp = (property_list[i + 2] != 0);
             i += 3;
-            LaplacianData<double>& current_data = disconnected_comp ? laplacian_data : laplacian_data_comp;
+
+            // The common case is that there's only 1 component, even if disconnected_comp is true,
+            // so find the number of components, first.
+            if (disconnected_comp && num_components == 0) {
+                num_components = find_components(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, components);
+            }
+            const bool multiple_components = disconnected_comp && (num_components > 1);
+
+            LaplacianData<double>& current_data = multiple_components ? laplacian_data_comp : laplacian_data;
             if (current_data.eigenvalues.size() == 0 || current_data.normalization != normalization) {
-                compute_laplacian_eigendecomp(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, normalization, laplacian_data, disconnected_comp);
+                compute_laplacian_eigendecomp(
+                    graph.num_atoms,
+                    neighbours.neighbour_starts,
+                    neighbours.neighbours,
+                    normalization,
+                    current_data,
+                    multiple_components ? num_components : 1,
+                    &components);
             }
 
             const bool isVec = (property == int64_t(PositionalFeature::LAPLACIAN_EIGENVEC));
