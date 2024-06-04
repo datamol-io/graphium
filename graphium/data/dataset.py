@@ -35,15 +35,15 @@ class MultitaskDataset(Dataset):
 
     def __init__(
         self,
-        featurize_smiles: Callable[[str],dict],
+        featurize_smiles: Callable[[str], dict],
         task_names: List[str] = None,
         label_num_cols: List[int] = None,
         label_dtypes: List[int] = None,
-        mol_file_data_offsets = None,
-        concat_smiles_tensor = None,
-        smiles_offsets_tensor = None,
-        num_nodes_tensor = None,
-        num_edges_tensor = None,
+        mol_file_data_offsets=None,
+        concat_smiles_tensor=None,
+        smiles_offsets_tensor=None,
+        num_nodes_tensor=None,
+        num_edges_tensor=None,
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
     ):
@@ -193,7 +193,7 @@ class MultitaskDataset(Dataset):
         smiles_str = graphium_cpp.extract_string(self.smiles_tensor, self.smiles_offsets_tensor, idx)
 
         if self.mol_file_data_offsets is None:
-            datum = { "features": self.featurize_smiles(smiles_str) }
+            datum = {"features": self.featurize_smiles(smiles_str)}
         else:
             datum = {
                 "labels": self.load_graph_from_index(idx),
@@ -217,7 +217,15 @@ class MultitaskDataset(Dataset):
             A Data object containing the data for the specified index with keys corresponding to the tasks.
         """
         labels = {}
-        graphium_cpp.load_labels_from_index(self.data_path, data_idx, self.mol_file_data_offsets, self.task_names, self.label_num_cols, self.label_dtypes, labels)
+        graphium_cpp.load_labels_from_index(
+            self.data_path,
+            data_idx,
+            self.mol_file_data_offsets,
+            self.task_names,
+            self.label_num_cols,
+            self.label_dtypes,
+            labels,
+        )
         data_dict = Data()
         for task, values in labels.items():
             data_dict[task] = values
@@ -280,9 +288,10 @@ def torch_enum_to_dtype(v: Union[int, torch.dtype]):
         torch.quint8,
         torch.qint32,
         torch.bfloat16,
-        torch.quint4x2
+        torch.quint4x2,
     ]
     return mapping[v] if (v >= 0 and v < len(mapping)) else None
+
 
 def get_num_nodes_per_graph(graphs):
     r"""

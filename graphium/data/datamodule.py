@@ -96,6 +96,7 @@ PCQM4Mv2_meta.update(
     }
 )
 
+
 class BaseDataModule(lightning.LightningDataModule):
     def __init__(
         self,
@@ -882,21 +883,33 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Copy featurization for the representation used by graphium_cpp
         encoded_featurization = deepcopy(featurization)
         self.encoded_featurization = encoded_featurization
-        
+
         def encode_feature_options(options, name, encoding_function):
             if name not in options or options[name] is None:
                 options[name] = torch.tensor(data=[], dtype=torch.int64)
             else:
                 options[name] = encoding_function(options[name])
-        encode_feature_options(encoded_featurization, "atom_property_list_onehot", graphium_cpp.atom_onehot_feature_names_to_tensor)
-        encode_feature_options(encoded_featurization, "atom_property_list_float", graphium_cpp.atom_float_feature_names_to_tensor)
-        encode_feature_options(encoded_featurization, "edge_property_list", graphium_cpp.bond_feature_names_to_tensor)
 
-        if ("pos_encoding_as_features" in featurization and
-                featurization["pos_encoding_as_features"] is not None and
-                featurization["pos_encoding_as_features"]["pos_types"] is not None):
-            (pos_encoding_names, pos_encoding_tensor) = \
-                graphium_cpp.positional_feature_options_to_tensor(featurization["pos_encoding_as_features"]["pos_types"])
+        encode_feature_options(
+            encoded_featurization,
+            "atom_property_list_onehot",
+            graphium_cpp.atom_onehot_feature_names_to_tensor,
+        )
+        encode_feature_options(
+            encoded_featurization, "atom_property_list_float", graphium_cpp.atom_float_feature_names_to_tensor
+        )
+        encode_feature_options(
+            encoded_featurization, "edge_property_list", graphium_cpp.bond_feature_names_to_tensor
+        )
+
+        if (
+            "pos_encoding_as_features" in featurization
+            and featurization["pos_encoding_as_features"] is not None
+            and featurization["pos_encoding_as_features"]["pos_types"] is not None
+        ):
+            (pos_encoding_names, pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(
+                featurization["pos_encoding_as_features"]["pos_types"]
+            )
         else:
             pos_encoding_names = []
             pos_encoding_tensor = torch.tensor(data=[], dtype=torch.int64)
@@ -924,9 +937,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # If loading from disk, the path to the cached data must be provided
         if processed_graph_data_path is None:
-            raise ValueError(
-                "`processed_graph_data_path` must be provided."
-            )
+            raise ValueError("`processed_graph_data_path` must be provided.")
 
         self.processed_graph_data_path = processed_graph_data_path
 
@@ -949,15 +960,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     @staticmethod
     def concat_smiles_tensor_index():
         return 0
+
     @staticmethod
     def smiles_offsets_tensor_index():
         return 1
+
     @staticmethod
     def num_nodes_tensor_index():
         return 2
+
     @staticmethod
     def num_edges_tensor_index():
         return 3
+
     @staticmethod
     def data_offsets_tensor_index():
         return 4
@@ -981,7 +996,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # WARNING: not removing hydrogen atom without neighbors
         # SMILES Parse Error: syntax error while parsing: restricted
         # SMILES Parse Error: Failed parsing SMILES 'restricted' for input: 'restricted'
-        RDLogger.DisableLog('rdApp.*')
+        RDLogger.DisableLog("rdApp.*")
 
         for task, args in self.task_dataset_processing_params.items():
             if args.label_normalization is None:
@@ -991,17 +1006,25 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if self._data_is_prepared:
             logger.info("Data is already prepared.")
-            self.label_num_cols, self.label_dtypes = graphium_cpp.load_num_cols_and_dtypes(self.processed_graph_data_path, self.data_hash)
+            self.label_num_cols, self.label_dtypes = graphium_cpp.load_num_cols_and_dtypes(
+                self.processed_graph_data_path, self.data_hash
+            )
             self.stage_data = {
-                "train": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "train", self.data_hash),
-                "val": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "val", self.data_hash),
-                "test": graphium_cpp.load_metadata_tensors(self.processed_graph_data_path, "test", self.data_hash),
+                "train": graphium_cpp.load_metadata_tensors(
+                    self.processed_graph_data_path, "train", self.data_hash
+                ),
+                "val": graphium_cpp.load_metadata_tensors(
+                    self.processed_graph_data_path, "val", self.data_hash
+                ),
+                "test": graphium_cpp.load_metadata_tensors(
+                    self.processed_graph_data_path, "test", self.data_hash
+                ),
             }
             if len(self.label_num_cols) > 0:
                 for task in self.task_dataset_processing_params.keys():
                     stats = graphium_cpp.load_stats(self.processed_graph_data_path, self.data_hash, task)
                     if len(stats) < 4:
-                        raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
+                        raise RuntimeError(f'Error loading cached stats for task "{task}"')
 
                     self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
             return
@@ -1058,9 +1081,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 weights_col=args.weights_col,
                 weights_type=args.weights_type,
             )
-            
+
             num_molecules = len(smiles)
-            
+
             # Clear the reference to the DataFrame, so that Python can free up the memory.
             df = None
 
@@ -1084,7 +1107,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 split_names=self.task_dataset_processing_params[task].split_names,
                 # smiles and labels are already sub-sampled, so the split indices need to be
                 # relative to the sample, not the original.
-                #sample_idx=task_dataset_args[task]["sample_idx"],
+                # sample_idx=task_dataset_args[task]["sample_idx"],
             )
             self.task_train_indices[task] = train_indices
             self.task_val_indices[task] = val_indices
@@ -1093,8 +1116,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         logger.info("Done reading datasets")
 
         # The rest of the data preparation and caching is done in graphium_cpp.prepare_and_save_data
-        normalizations = {task: self.task_dataset_processing_params[task].label_normalization for task in self.task_dataset_processing_params.keys()}
-        self.stage_data, all_stats, self.label_num_cols, self.label_dtypes = graphium_cpp.prepare_and_save_data(
+        normalizations = {
+            task: self.task_dataset_processing_params[task].label_normalization
+            for task in self.task_dataset_processing_params.keys()
+        }
+        (
+            self.stage_data,
+            all_stats,
+            self.label_num_cols,
+            self.label_dtypes,
+        ) = graphium_cpp.prepare_and_save_data(
             self.task_names,
             task_dataset_args,
             normalizations,
@@ -1105,11 +1136,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.task_test_indices,
             self.add_self_loop,
             self.explicit_H,
-            self.preprocessing_n_jobs)
+            self.preprocessing_n_jobs,
+        )
 
         for task, stats in all_stats.items():
             if len(stats) < 4:
-                raise RuntimeError(f"Error loading cached stats for task \"{task}\"")
+                raise RuntimeError(f'Error loading cached stats for task "{task}"')
 
             self.task_norms[task].set_statistics(stats[0], stats[1], stats[2], stats[3])
 
@@ -1146,7 +1178,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 logger.info(self.val_ds)
                 label_num_cols.update(dict(zip(self.val_ds.task_names, self.val_ds.label_num_cols)))
                 label_dtypes.update(dict(zip(self.val_ds.task_names, self.val_ds.label_dtypes)))
-                
 
         if stage == "test" or stage is None:
             if self.test_ds is None and len(self.stage_data["test"]) >= self.num_edges_tensor_index():
@@ -1454,7 +1485,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         weights_col: Optional[str] = None,
         weights_type: Optional[str] = None,
     ) -> Tuple[
-        np.ndarray, np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        Union[Type[None], np.ndarray],
+        Dict[str, Union[Type[None], np.ndarray]],
     ]:
         """
         For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list

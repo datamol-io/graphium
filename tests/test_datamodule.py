@@ -265,9 +265,10 @@ class Test_DataModule(ut.TestCase):
         # Convert the smilies from the train_ds to a list, and check the content
         train_smiles = [
             graphium_cpp.extract_string(
-                datamodule.train_ds.smiles_tensor,
-                datamodule.train_ds.smiles_offsets_tensor,
-                idx) for idx in range(len(datamodule.train_ds))]
+                datamodule.train_ds.smiles_tensor, datamodule.train_ds.smiles_offsets_tensor, idx
+            )
+            for idx in range(len(datamodule.train_ds))
+        ]
 
         # Check that the set of smiles are the same
         train_smiles_flat = list(set(train_smiles))
@@ -444,7 +445,9 @@ class Test_DataModule(ut.TestCase):
             if exists(TEMP_CACHE_DATA_PATH):
                 rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
-            ds2 = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
+            ds2 = MultitaskFromSmilesDataModule(
+                task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH
+            )
             ds2.prepare_data()
             ds2.setup()
 
@@ -453,11 +456,13 @@ class Test_DataModule(ut.TestCase):
             self.assertEqual(len(ds2.test_ds), len(split_test))
 
             # Check that the splits are the same
-            self.assertEqual(len(ds.train_ds.smiles_offsets_tensor), len(split_train)+1)
+            self.assertEqual(len(ds.train_ds.smiles_offsets_tensor), len(split_train) + 1)
             np.testing.assert_array_equal(ds.train_ds.smiles_tensor, ds2.train_ds.smiles_tensor)
             np.testing.assert_array_equal(ds.val_ds.smiles_tensor, ds2.val_ds.smiles_tensor)
             np.testing.assert_array_equal(ds.test_ds.smiles_tensor, ds2.test_ds.smiles_tensor)
-            np.testing.assert_array_equal(ds.train_ds.smiles_offsets_tensor, ds2.train_ds.smiles_offsets_tensor)
+            np.testing.assert_array_equal(
+                ds.train_ds.smiles_offsets_tensor, ds2.train_ds.smiles_offsets_tensor
+            )
             np.testing.assert_array_equal(ds.val_ds.smiles_offsets_tensor, ds2.val_ds.smiles_offsets_tensor)
             np.testing.assert_array_equal(ds.test_ds.smiles_offsets_tensor, ds2.test_ds.smiles_offsets_tensor)
 

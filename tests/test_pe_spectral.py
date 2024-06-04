@@ -23,24 +23,26 @@ import unittest as ut
 import graphium
 import graphium_cpp
 
+
 def get_pe_tensors(smiles, pos_encoding_tensor):
     tensors, _, _ = graphium_cpp.featurize_smiles(
         smiles,
-        torch.tensor(data=[], dtype=torch.int64), # atom_property_list_onehot
-        torch.tensor(data=[], dtype=torch.int64), # atom_property_list_float
-        False, # has_conformer
-        torch.tensor(data=[], dtype=torch.int64), # edge_property_list
+        torch.tensor(data=[], dtype=torch.int64),  # atom_property_list_onehot
+        torch.tensor(data=[], dtype=torch.int64),  # atom_property_list_float
+        False,  # has_conformer
+        torch.tensor(data=[], dtype=torch.int64),  # edge_property_list
         pos_encoding_tensor,
-        True, # duplicate_edges
-        False, # add_self_loop
-        False, # explicit_H=False
-        False, # use_bonds_weights
-        True, #offset_carbon
-        7, # torch float64
-        0, # mask_nan_style_int
-        0  # mask_nan_value
+        True,  # duplicate_edges
+        False,  # add_self_loop
+        False,  # explicit_H=False
+        False,  # use_bonds_weights
+        True,  # offset_carbon
+        7,  # torch float64
+        0,  # mask_nan_style_int
+        0,  # mask_nan_value
     )
     return tensors
+
 
 class test_pe_spectral(ut.TestCase):
     def test_for_connected_vs_disconnected_graph(self):
@@ -54,11 +56,24 @@ class test_pe_spectral(ut.TestCase):
         num_pos = 3
 
         features = {
-            "laplacian_eigval": {"pos_level": "node", "pos_type": "laplacian_eigval", "normalization": "none", "num_pos": num_pos, "disconnected_comp": True},
-            "laplacian_eigvec": {"pos_level": "node", "pos_type": "laplacian_eigvec", "normalization": "none", "num_pos": num_pos, "disconnected_comp": True},
-            }
-        (pos_encoding_names, pos_encoding_tensor) = \
-                    graphium_cpp.positional_feature_options_to_tensor(features)
+            "laplacian_eigval": {
+                "pos_level": "node",
+                "pos_type": "laplacian_eigval",
+                "normalization": "none",
+                "num_pos": num_pos,
+                "disconnected_comp": True,
+            },
+            "laplacian_eigvec": {
+                "pos_level": "node",
+                "pos_type": "laplacian_eigvec",
+                "normalization": "none",
+                "num_pos": num_pos,
+                "disconnected_comp": True,
+            },
+        }
+        (pos_encoding_names, pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(
+            features
+        )
 
         # test if pe works identically on connected vs disconnected graphs
         tensors1 = get_pe_tensors(smiles1, pos_encoding_tensor)

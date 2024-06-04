@@ -23,6 +23,7 @@ import unittest as ut
 import graphium
 import graphium_cpp
 
+
 class test_pe_spectral(ut.TestCase):
     def test_outputs(self):
         # 4-barbell
@@ -36,28 +37,44 @@ class test_pe_spectral(ut.TestCase):
         # The feature names only depend on pos_type and pos_level, so the two
         # rw_return_probs features can't have the same pos_level.
         features = {
-            "rw_transition_probs": {"pos_level": "nodepair", "pos_type": "rw_transition_probs", "normalization": "none", "ksteps": ksteps1},
-            "rw_return_probs_0": {"pos_level": "node", "pos_type": "rw_return_probs", "normalization": "none", "ksteps": ksteps2},
-            "rw_return_probs_1": {"pos_level": "nodepair", "pos_type": "rw_return_probs", "normalization": "none", "ksteps": ksteps3},
-            }
-        (pos_encoding_names, pos_encoding_tensor) = \
-                    graphium_cpp.positional_feature_options_to_tensor(features)
+            "rw_transition_probs": {
+                "pos_level": "nodepair",
+                "pos_type": "rw_transition_probs",
+                "normalization": "none",
+                "ksteps": ksteps1,
+            },
+            "rw_return_probs_0": {
+                "pos_level": "node",
+                "pos_type": "rw_return_probs",
+                "normalization": "none",
+                "ksteps": ksteps2,
+            },
+            "rw_return_probs_1": {
+                "pos_level": "nodepair",
+                "pos_type": "rw_return_probs",
+                "normalization": "none",
+                "ksteps": ksteps3,
+            },
+        }
+        (pos_encoding_names, pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(
+            features
+        )
 
         tensors, _, _ = graphium_cpp.featurize_smiles(
             smiles,
-            torch.tensor(data=[], dtype=torch.int64), # atom_property_list_onehot
-            torch.tensor(data=[], dtype=torch.int64), # atom_property_list_float
-            False, # has_conformer
-            torch.tensor(data=[], dtype=torch.int64), # edge_property_list
+            torch.tensor(data=[], dtype=torch.int64),  # atom_property_list_onehot
+            torch.tensor(data=[], dtype=torch.int64),  # atom_property_list_float
+            False,  # has_conformer
+            torch.tensor(data=[], dtype=torch.int64),  # edge_property_list
             pos_encoding_tensor,
-            True, # duplicate_edges
-            False, # add_self_loop
-            False, # explicit_H=False
-            False, # use_bonds_weights
-            True, #offset_carbon
-            7, # torch float64
-            0, # mask_nan_style_int
-            0  # mask_nan_value
+            True,  # duplicate_edges
+            False,  # add_self_loop
+            False,  # explicit_H=False
+            False,  # use_bonds_weights
+            True,  # offset_carbon
+            7,  # torch float64
+            0,  # mask_nan_style_int
+            0,  # mask_nan_value
         )
 
         pe1 = tensors[4]

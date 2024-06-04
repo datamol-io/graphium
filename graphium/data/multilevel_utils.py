@@ -39,7 +39,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     num_cols = len(label_cols)
 
     if task_level == "graph":
-        output = np.empty((num_rows,num_cols), dtype=np.float64)
+        output = np.empty((num_rows, num_cols), dtype=np.float64)
 
         for col_index, col in enumerate(label_cols):
             for i, v in enumerate(df[col]):
@@ -53,15 +53,13 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                     output[i, col_index] = v
 
                 else:
-                    raise ValueError(
-                        f"Graph data should be one of float or int, got {type(v)}"
-                    )
+                    raise ValueError(f"Graph data should be one of float or int, got {type(v)}")
 
         return output, None
 
     # First, find the max length of each row (likely the number of nodes or edges)
     # +1 is for the cumulative sum below
-    begin_offsets = np.zeros((num_rows+1,), dtype=np.int64)
+    begin_offsets = np.zeros((num_rows + 1,), dtype=np.int64)
     max_type = np.float16
     for col in label_cols:
         for i, v in enumerate(df[col]):
@@ -89,26 +87,24 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                 length = len(v)
                 max_type = np.float64
             else:
-                raise ValueError(
-                    f"Graph data should be one of float, int, list, np.ndarray, got {type(v)}"
-                )
+                raise ValueError(f"Graph data should be one of float, int, list, np.ndarray, got {type(v)}")
             # The +1 is so that the cumulative sum below gives the beginning offsets
-            begin_offsets[i+1] = max(begin_offsets[i+1], length)
+            begin_offsets[i + 1] = max(begin_offsets[i + 1], length)
 
     begin_offsets = np.cumsum(begin_offsets)
     full_num_rows = begin_offsets[-1]
 
-    output = np.empty((full_num_rows,num_cols), dtype=max_type)
+    output = np.empty((full_num_rows, num_cols), dtype=max_type)
 
     # Now, fill in the values
     for col_index, col in enumerate(label_cols):
         for i, v in enumerate(df[col]):
             full_row = begin_offsets[i]
-            end_row = begin_offsets[i+1]
+            end_row = begin_offsets[i + 1]
 
             if not isinstance(v, np.ndarray):
                 v = pd.to_numeric(v, errors="coerce")
-            
+
             if isinstance(v, np.ndarray):
                 length = v.shape[0] if len(v.shape) == 1 else 0
                 for j in range(length):
@@ -124,9 +120,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
                     output[full_row + j, col_index] = v[j]
 
             else:
-                raise ValueError(
-                    f"Graph data should be one of float, int, list, np.ndarray, got {type(v)}"
-                )
+                raise ValueError(f"Graph data should be one of float, int, list, np.ndarray, got {type(v)}")
 
             # Fill the rest of the rows in the column with nan
             if full_row + length != end_row:

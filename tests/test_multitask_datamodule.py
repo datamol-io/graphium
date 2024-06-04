@@ -24,6 +24,7 @@ import graphium
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
+
 class Test_Multitask_DataModule(ut.TestCase):
     def setUp(self):
         # Create a temporary directory
@@ -342,7 +343,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert output_offsets is not None
             assert isinstance(output_offsets, np.ndarray)
             assert len(output_offsets.shape) == 1
-            assert output_offsets.shape[0] == (num_graphs+1)
+            assert output_offsets.shape[0] == (num_graphs + 1)
             assert output.shape[0] == output_offsets[-1]
 
     def test_non_graph_level_extract_labels_missing_cols(self):
@@ -364,20 +365,20 @@ class Test_Multitask_DataModule(ut.TestCase):
                 assert output_offsets is not None
                 assert isinstance(output_offsets, np.ndarray)
                 assert len(output_offsets.shape) == 1
-                assert output_offsets.shape[0] == (num_graphs+1)
+                assert output_offsets.shape[0] == (num_graphs + 1)
                 assert output.shape[0] == output_offsets[-1]
 
                 for idx in drop_index:
                     begin_idx = output_offsets[idx]
-                    end_idx = output_offsets[idx+1]
+                    end_idx = output_offsets[idx + 1]
                     values = output[begin_idx:end_idx]
                     assert len(values.shape) == 2
                     assert values.shape[1] == len(label_cols)
-                    
+
                     # All removed entries must be nan
-                    assert np.all(np.isnan(values[:,:replace]))
+                    assert np.all(np.isnan(values[:, :replace]))
                     # All kept entries should be non-nan in this case
-                    assert not np.any(np.isnan(values[:,replace:]))
+                    assert not np.any(np.isnan(values[:, replace:]))
 
     def test_tdc_admet_benchmark_data_module(self):
         """

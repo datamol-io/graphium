@@ -27,6 +27,7 @@ from loguru import logger
 from graphium.data.utils import get_keys
 from graphium.data.dataset import torch_enum_to_dtype
 
+
 def graphium_collate_fn(
     elements: Union[List[Any], Dict[str, List[Any]]],
     labels_num_cols_dict: Optional[Dict[str, Any]] = None,
@@ -103,7 +104,9 @@ def graphium_collate_fn(
             # Multitask setting: We have to pad the missing labels
             if key == "labels":
                 labels = [d[key] for d in elements]
-                batch[key] = collate_labels(labels, labels_num_cols_dict, labels_dtype_dict, num_nodes, num_edges)
+                batch[key] = collate_labels(
+                    labels, labels_num_cols_dict, labels_dtype_dict, num_nodes, num_edges
+                )
             elif key == "num_nodes" or key == "num_edges":
                 continue
 
@@ -131,7 +134,9 @@ def graphium_collate_fn(
         return default_collate(elements)
 
 
-def collage_pyg_graph(pyg_graphs: List[Data], num_nodes: List[int], batch_size_per_pack: Optional[int] = None):
+def collage_pyg_graph(
+    pyg_graphs: List[Data], num_nodes: List[int], batch_size_per_pack: Optional[int] = None
+):
     """
     Function to collate pytorch geometric graphs.
     Convert all numpy types to torch
@@ -150,7 +155,9 @@ def collage_pyg_graph(pyg_graphs: List[Data], num_nodes: List[int], batch_size_p
         for pyg_key in get_keys(pyg_graph):
             # pad nodepair-level positional encodings
             if pyg_key.startswith("nodepair_"):
-                pyg_graph[pyg_key] = pad_nodepairs(pyg_graph[pyg_key], pyg_graph.num_nodes, max_num_nodes_per_graph)
+                pyg_graph[pyg_key] = pad_nodepairs(
+                    pyg_graph[pyg_key], pyg_graph.num_nodes, max_num_nodes_per_graph
+                )
 
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
@@ -188,17 +195,14 @@ def pad_to_expected_label_size(labels: torch.Tensor, label_rows: int, label_cols
     pad_sizes = [label_cols - labels.shape[1], 0, label_rows - labels.shape[0], 0]
 
     if any([s < 0 for s in pad_sizes]):
-        logger.warning(f"More labels available than expected. Will remove data to fit expected size. cols: {labels.shape[1]}->{label_cols}, rows: {labels.shape[0]}->{label_rows}")
+        logger.warning(
+            f"More labels available than expected. Will remove data to fit expected size. cols: {labels.shape[1]}->{label_cols}, rows: {labels.shape[0]}->{label_rows}"
+        )
 
     return torch.nn.functional.pad(labels, pad_sizes, value=torch.nan)
 
 
-def get_expected_label_rows(
-    label_data: Data,
-    task: str,
-    num_nodes: int,
-    num_edges: int
-):
+def get_expected_label_rows(label_data: Data, task: str, num_nodes: int, num_edges: int):
     """Determines expected label size based on the specfic graph properties
     and the number of targets in the task-dataset.
     """
@@ -211,7 +215,7 @@ def get_expected_label_rows(
     elif task.startswith("nodepair_"):
         raise NotImplementedError()
     else:
-        print("Task name "+task+" in get_expected_label_rows")
+        print("Task name " + task + " in get_expected_label_rows")
         raise NotImplementedError()
     return num_labels
 
@@ -221,7 +225,7 @@ def collate_labels(
     labels_num_cols_dict: Optional[Dict[str, Any]] = None,
     labels_dtype_dict: Optional[Dict[str, Any]] = None,
     num_nodes: List[int] = None,
-    num_edges: List[int] = None
+    num_edges: List[int] = None,
 ):
     """Collate labels for multitask learning.
 
@@ -246,7 +250,9 @@ def collate_labels(
             for task in empty_task_labels:
                 label_rows = get_expected_label_rows(this_label, task, num_nodes[index], num_edges[index])
                 dtype = torch_enum_to_dtype(labels_dtype_dict[task])
-                this_label[task] = torch.full((label_rows, labels_num_cols_dict[task]), fill_value=torch.nan, dtype=dtype)
+                this_label[task] = torch.full(
+                    (label_rows, labels_num_cols_dict[task]), fill_value=torch.nan, dtype=dtype
+                )
 
             for task in label_keys_set - set(["x", "edge_index"]) - empty_task_labels:
                 label_rows = get_expected_label_rows(this_label, task, num_nodes[index], num_edges[index])
@@ -269,7 +275,9 @@ def collate_labels(
                                 f"Labels for {label_rows} nodes/edges/nodepairs expected, got 1."
                             )
 
-                this_label[task] = pad_to_expected_label_size(this_label[task], label_rows, labels_num_cols_dict[task])
+                this_label[task] = pad_to_expected_label_size(
+                    this_label[task], label_rows, labels_num_cols_dict[task]
+                )
 
     return Batch.from_data_list(labels)
 

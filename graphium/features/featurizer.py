@@ -28,6 +28,7 @@ import graphium_cpp
 # These are the integers that correspond with the torch data types in C++
 NP_DTYPE_TO_TORCH_INT = {np.float16: 5, np.float32: 6, np.float64: 7}
 
+
 def mol_to_pyggraph(
     mol: str,
     atom_property_list_onehot: torch.Tensor = torch.tensor(data=[], dtype=torch.int64),
@@ -37,7 +38,7 @@ def mol_to_pyggraph(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-    pos_encoding_as_features: Tuple[List[str],torch.Tensor] = ([], torch.tensor(data=[], dtype=torch.int64)),
+    pos_encoding_as_features: Tuple[List[str], torch.Tensor] = ([], torch.tensor(data=[], dtype=torch.int64)),
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -127,13 +128,15 @@ def mol_to_pyggraph(
     """
 
     if not isinstance(mol, str):
-        raise ValueError(f"mol_to_pyggraph requires that molecule be received as a string, not type "+str(type(mol)))
+        raise ValueError(
+            f"mol_to_pyggraph requires that molecule be received as a string, not type " + str(type(mol))
+        )
 
     try:
-        has_conformer = ('positions_3d' in conformer_property_list)
+        has_conformer = "positions_3d" in conformer_property_list
         pe_index = 4
         if has_conformer:
-            pe_index = 5;
+            pe_index = 5
         mask_nan_value = 0.0
         if mask_nan is None:
             mask_nan_style_int = 0
@@ -149,14 +152,14 @@ def mol_to_pyggraph(
             has_conformer,
             edge_property_list,
             pos_encoding_as_features[1],
-            True, # duplicate_edges, so that we don't have to duplicate below
+            True,  # duplicate_edges, so that we don't have to duplicate below
             add_self_loop,
             explicit_H,
             use_bonds_weights,
-            True, #offset_carbon
+            True,  # offset_carbon
             NP_DTYPE_TO_TORCH_INT[dtype],
             mask_nan_style_int,
-            mask_nan_value
+            mask_nan_value,
         )
 
         if num_nans > 0:
@@ -165,7 +168,7 @@ def mol_to_pyggraph(
             elif nan_tensor_index == 3:
                 array_name = "edge property"
             elif nan_tensor_index == 4 and has_conformer:
-                array_name = 'positions_3d'
+                array_name = "positions_3d"
             else:
                 array_name = pos_encoding_as_features[0][nan_tensor_index - pe_index]
             msg = f"There are {num_nans} NaNs in `{array_name}`"
@@ -175,14 +178,11 @@ def mol_to_pyggraph(
                 logger.warning(msg)
 
         num_atoms = tensors[2].size(0)
-        data_dict = {
-            "feat": tensors[2],
-            "edge_feat": tensors[3]
-            }
+        data_dict = {"feat": tensors[2], "edge_feat": tensors[3]}
         if has_conformer:
-            data_dict['positions_3d'] = tensors[4]
-        for i in range(len(tensors)-pe_index):
-            data_dict[pos_encoding_as_features[0][i]] = tensors[i+pe_index]
+            data_dict["positions_3d"] = tensors[4]
+        for i in range(len(tensors) - pe_index):
+            data_dict[pos_encoding_as_features[0][i]] = tensors[i + pe_index]
         # Create the PyG graph object `Data`
         data = Data(edge_index=tensors[0], edge_weight=tensors[1], num_nodes=num_atoms, **data_dict)
         return data

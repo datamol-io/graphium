@@ -28,6 +28,7 @@ import os.path as osp
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
+
 def dataframes_to_dataset(dataframes_dict, case_num):
     task_names = [key for key in dataframes_dict.keys()]
 
@@ -36,7 +37,13 @@ def dataframes_to_dataset(dataframes_dict, case_num):
     task_val_indices = {}
     task_test_indices = {}
     for task in task_names:
-        smiles, labels, label_offsets, sample_idx, extras = MultitaskFromSmilesDataModule._extract_smiles_labels(
+        (
+            smiles,
+            labels,
+            label_offsets,
+            sample_idx,
+            extras,
+        ) = MultitaskFromSmilesDataModule._extract_smiles_labels(
             df=dataframes_dict[task],
             task_level="graph",
             smiles_col="SMILES",
@@ -57,10 +64,10 @@ def dataframes_to_dataset(dataframes_dict, case_num):
         task_val_indices[task] = []
         task_test_indices[task] = []
 
-    fake_data_hash = "a1b2c3testdataset"+str(case_num)
+    fake_data_hash = "a1b2c3testdataset" + str(case_num)
 
     # The rest of the data preparation and caching is done in graphium_cpp.prepare_and_save_data
-    normalizations = {task: {} for task in task_names} # No normalization
+    normalizations = {task: {} for task in task_names}  # No normalization
     stage_data, all_stats, label_num_cols, label_dtypes = graphium_cpp.prepare_and_save_data(
         task_names,
         task_dataset_args,
@@ -70,9 +77,10 @@ def dataframes_to_dataset(dataframes_dict, case_num):
         task_train_indices,
         task_val_indices,
         task_test_indices,
-        False, #add_self_loop
-        False, #explicit_H
-        0) #preprocessing_n_jobs
+        False,  # add_self_loop
+        False,  # explicit_H
+        0,  # preprocessing_n_jobs
+    )
 
     stage_data = stage_data["train"]
 
@@ -81,8 +89,8 @@ def dataframes_to_dataset(dataframes_dict, case_num):
         data_offsets = stage_data[MultitaskFromSmilesDataModule.data_offsets_tensor_index()]
 
     multitask_dataset = MultitaskDataset(
-        about="test_dataset case"+str(case_num),
-        data_path=osp.join(TEMP_CACHE_DATA_PATH, "train_"+fake_data_hash),
+        about="test_dataset case" + str(case_num),
+        data_path=osp.join(TEMP_CACHE_DATA_PATH, "train_" + fake_data_hash),
         featurize_smiles=mol_to_pyggraph,
         task_names=task_names,
         label_num_cols=label_num_cols,
@@ -95,6 +103,7 @@ def dataframes_to_dataset(dataframes_dict, case_num):
     )
 
     return multitask_dataset
+
 
 class Test_Multitask_Dataset(ut.TestCase):
     # Then we can choose different rows and columns for the tests as we see fit.
@@ -117,7 +126,7 @@ class Test_Multitask_Dataset(ut.TestCase):
         df_micro_zinc_SA = df[["SMILES", "SA"]]
         df_micro_zinc_logp = df[["SMILES", "logp"]]
         df_micro_zinc_score = df[["SMILES", "score"]]
-        
+
         # We need to prepare the data for these dataframes.
         # We don't need to do featurization yet.
         dataframes = {
@@ -141,12 +150,17 @@ class Test_Multitask_Dataset(ut.TestCase):
             # Search for the smiles string in the multitask dataset
             found_idx = -1
             for i in range(multitask_dataset.__len__()):
-                if graphium_cpp.extract_string(multitask_dataset.smiles_tensor, multitask_dataset.smiles_offsets_tensor, i) == smiles:
+                if (
+                    graphium_cpp.extract_string(
+                        multitask_dataset.smiles_tensor, multitask_dataset.smiles_offsets_tensor, i
+                    )
+                    == smiles
+                ):
                     found_idx = i
                     break
 
             item = multitask_dataset[found_idx]["labels"]
-            
+
             # Compare labels
             self.assertEqual(label_SA, item["SA"])
             self.assertEqual(label_logp, item["logp"])
@@ -193,7 +207,12 @@ class Test_Multitask_Dataset(ut.TestCase):
             # Search for the smiles string in the multitask dataset
             found_idx = -1
             for i in range(multitask_microzinc.__len__()):
-                if graphium_cpp.extract_string(multitask_microzinc.smiles_tensor, multitask_microzinc.smiles_offsets_tensor, i) == smiles:
+                if (
+                    graphium_cpp.extract_string(
+                        multitask_microzinc.smiles_tensor, multitask_microzinc.smiles_offsets_tensor, i
+                    )
+                    == smiles
+                ):
                     found_idx = i
                     break
 
