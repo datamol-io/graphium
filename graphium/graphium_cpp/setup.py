@@ -19,9 +19,6 @@ torch_dir = torch.__path__[0]
 rdkit_lib_index = rdkit.__path__[0].split('/').index('lib')
 rdkit_prefix = '/'.join(rdkit.__path__[0].split('/')[:rdkit_lib_index])
 
-#print(rdkit_lib_index)
-#print(rdkit_prefix)
-
 ext_modules = [
         Pybind11Extension(
             'graphium_cpp',
@@ -42,7 +39,6 @@ ext_modules = [
             include_dirs = [os.path.join(torch_dir,"include"),
                 os.path.join(torch_dir,"include/torch/csrc/api/include"),
                 os.path.join(rdkit_prefix, "include/rdkit"),
-                #"/opt/nvidia/nsight-systems/2023.2.3/target-linux-x64/nvtx/include",
                 numpy.get_include()],
             libraries = [
                 "RDKitAlignment",
