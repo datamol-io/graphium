@@ -40,6 +40,7 @@ ext_modules = [
             os.path.join(torch_dir, "include"),
             os.path.join(torch_dir, "include/torch/csrc/api/include"),
             os.path.join(rdkit_prefix, "include/rdkit"),
+            os.path.join(rdkit_prefix, "include/boost"),
             numpy.get_include(),
         ],
         libraries=[
