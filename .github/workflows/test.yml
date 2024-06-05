@@ -48,6 +48,7 @@ jobs:
 
       - name: Install library
         run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
+        run: cd graphium/graphium_cpp; python pip install .; cd ../..
 
       - name: Run tests
         run: pytest -m 'not ipu'
