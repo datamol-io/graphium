@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the positional encodings in graphium/features/*
 """
@@ -44,11 +43,11 @@ def get_tensors(smiles, pos_encoding_tensor):
     )
     return tensors
 
+
 class test_pos_transfer_funcs(ut.TestCase):
 
     def test_different_transfers(self):
         smiles = "CCCC"
-        num_nodes = 4
 
         ksteps = [2, 4]
         features = {
@@ -75,7 +74,9 @@ class test_pos_transfer_funcs(ut.TestCase):
             "d": {"pos_level": "nodepair", "pos_type": "graphormer", "normalization": "none"},
         }
 
-        (pos_encoding_names, pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(features)
+        (pos_encoding_names, pos_encoding_tensor) = graphium_cpp.positional_feature_options_to_tensor(
+            features
+        )
 
         tensors = get_tensors(smiles, pos_encoding_tensor)
         node_probs = tensors[4]
@@ -121,7 +122,6 @@ class test_pos_transfer_funcs(ut.TestCase):
                 [1.5000, 1.3750, 0.0000, 0.0000],
                 [1.2500, 1.0625, 0.2500, 0.3125],
             ],
-
             [
                 [1.2500, 1.0625, 0.2500, 0.3125],
                 [1.5000, 1.3750, 0.0000, 0.0000],
@@ -150,8 +150,8 @@ class test_pos_transfer_funcs(ut.TestCase):
         # Minimum of column, minimum of row, mean of column, mean of row,
         # stdev of column, stdev of row, for each node
         # stdev here uses n for normalization instead of n-1
-        stdev_a = math.sqrt((1.5*1.5 + 0.5*0.5 + 0.5*0.5 + 1.5*1.5)/4)
-        stdev_b = math.sqrt((1.0*1.0 + 1.0*1.0)/4)
+        stdev_a = math.sqrt((1.5 * 1.5 + 0.5 * 0.5 + 0.5 * 0.5 + 1.5 * 1.5) / 4)
+        stdev_b = math.sqrt((1.0 * 1.0 + 1.0 * 1.0) / 4)
         expected_node_dists = [
             [0.0, 0.0, 1.5, 1.5, stdev_a, stdev_a],
             [0.0, 0.0, 1.0, 1.0, stdev_b, stdev_b],
@@ -161,6 +161,7 @@ class test_pos_transfer_funcs(ut.TestCase):
         np.testing.assert_array_almost_equal(node_dists.tolist(), expected_node_dists)
         self.assertEqual(edge_dists.tolist(), expected_edge_dists)
         self.assertEqual(nodepair_dists.tolist(), expected_nodepair_dists)
+
 
 if __name__ == "__main__":
     ut.main()
