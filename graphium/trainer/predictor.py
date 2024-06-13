@@ -168,14 +168,7 @@ class PredictorModule(lightning.LightningModule):
         monitor = self.optim_options.scheduler_kwargs["monitor"].split("/")[0]
         mode = self.optim_options.scheduler_kwargs["mode"]
 
-        self.task_epoch_summary = MultiTaskSummary(
-            task_loss_fun=self.loss_fun,
-            task_metrics=self.metrics,
-            task_metrics_on_training_set=self.metrics_on_training_set,
-            task_metrics_on_progress_bar=self.metrics_on_progress_bar,
-            monitor=monitor,
-            mode=mode,
-        )
+        self.task_epoch_summary = {}
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
@@ -386,14 +379,10 @@ class PredictorModule(lightning.LightningModule):
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {}
-        for task in self.tasks:
-            step_dict[
-                self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
-            ] = loss.detach()
+        self.task_epoch_summary.update(targets_dict, preds)
 
+        step_dict = {}
         step_dict["loss"] = loss
-        # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         return step_dict
 
@@ -427,8 +416,6 @@ class PredictorModule(lightning.LightningModule):
 
         # TODO!!
         # Lost of changes from the `predictor_summaries.py` file, with `Summary.get_metrics_logs` computing the metrics at the end of an epoch.
-
-        # See torchmetrics `MeanMetric` and `SumMetric`, and use them to compute STD as well
 
         # DON'T FORGET TO RESET ALL METRICS!!
 
@@ -505,6 +492,8 @@ class PredictorModule(lightning.LightningModule):
         return step_dict
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
+
+        # TODO: Initialize the `task_epoch_summary` for training
         self.train_batch_start_time = time.time()
         self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
             (batch_idx % self.metrics_every_n_train_steps) != 0
@@ -515,31 +504,30 @@ class PredictorModule(lightning.LightningModule):
         train_batch_time = time.time() - self.train_batch_start_time  # To be used for throughput calculation
 
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
-        aggregated_metrics_logs = {}
-        aggregated_metrics_logs["train/loss"] = outputs["loss"]
-        aggregated_metrics_logs["epoch_count"] = self.current_epoch
+        metrics_logs = {}
         # Incriment by the batch size
         self.samples_seen += self.global_bs
-        aggregated_metrics_logs["samples_seen"] = self.samples_seen
+        metrics_logs["samples_seen"] = self.samples_seen
 
         # report the training loss for each individual tasks
-        for task in self.tasks:
-            aggregated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
-
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         # filter zeros out for the individual losses
-        for key in aggregated_metrics_logs:
-            if isinstance(aggregated_metrics_logs[key], torch.Tensor):
-                if aggregated_metrics_logs[key].numel() > 1:
-                    aggregated_metrics_logs[key] = aggregated_metrics_logs[key][
-                        aggregated_metrics_logs[key] != 0
-                    ].mean()
+        losses = {}
+        for task in self.tasks:
+            this_losses = outputs["task_losses"][task]
+            if isinstance(this_losses, torch.Tensor):
+                if this_losses.numel() > 1:
+                    this_losses = this_losses[this_losses != 0].mean()
+            
+            losses[f"train/loss/{task}"] = this_losses
+
+        metrics_logs.update(losses)
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
             if self.logger is not None:
                 self.logger.log_metrics(
-                    aggregated_metrics_logs, step=self.global_step
+                    metrics_logs, step=self.global_step
                 )  # This is a pytorch lightning function call
             return
 
@@ -548,25 +536,15 @@ class PredictorModule(lightning.LightningModule):
         # Get the throughput of the batch
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
-        aggregated_metrics_logs["train/batch_time"] = train_batch_time
-        aggregated_metrics_logs["train/batch_tput"] = tput
+        metrics_logs["train/batch_time"] = train_batch_time
+        metrics_logs["train/batch_tput"] = tput
 
-        # Compute all the metrics for the training set
-        self.task_epoch_summary.update(
-            step_name="train",
-            targets=outputs["targets"],
-            preds=outputs["preds"],
-            loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
-            task_losses=outputs["task_losses"],
-            n_epochs=self.current_epoch,
-        )
-        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-        aggregated_metrics_logs.update(metrics_logs)
+        metrics_logs.update(self.task_epoch_summary["train"].compute())
 
         # Log the metrics
         if self.logger is not None:
             self.logger.log_metrics(
-                aggregated_metrics_logs, step=self.global_step
+                metrics_logs, step=self.global_step
             )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
@@ -601,21 +579,6 @@ class PredictorModule(lightning.LightningModule):
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task].to(device) for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task].to(device) for out in outputs], dim=0)
-        if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
-            weights = torch.cat([out["weights"].to(device) for out in outputs], dim=0)
-        else:
-            weights = None
-
-        # NOTE: Computing the loss over the entire split may cause
-        # overflow issues when using fp16
-        loss, task_losses = self.compute_loss(
-            preds=dict_tensor_fp16_to_fp32(preds),
-            targets=dict_tensor_fp16_to_fp32(targets),
-            weights=weights,
-            target_nan_mask=self.target_nan_mask,
-            multitask_handling=self.multitask_handling,
-            loss_fun=self.loss_fun,
-        )
 
         self.task_epoch_summary.update(
             step_name=step_name,
@@ -688,6 +651,7 @@ class PredictorModule(lightning.LightningModule):
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}
+
         prog_dict["loss"] = self.task_epoch_summary.weighted_loss.detach().cpu()
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:

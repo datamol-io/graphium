@@ -164,14 +164,12 @@ class SingleTaskSummary(SummaryInterface):
         # Compute the metrics
         computed_metrics = {}
         for metric_key, metric_obj in metrics_to_use:
-            metric_name = self.metric_log_name(
-                self.task_name, metric_key, self.step_name
-            )
+            metric_name = self.metric_log_name(metric_key)
             try:
-                computed_metrics[metric_name] = metric_obj.compute()
+                computed_metrics[f"{self.step_name}/{metric_name}"] = metric_obj.compute()
             except Exception as e:
                 # If the metric computation fails, return NaN and log a warning only once
-                computed_metrics[metric_name] = torch.as_tensor(float("nan"))
+                computed_metrics[f"{self.step_name}/{metric_name}"] = torch.as_tensor(float("nan"))
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)
@@ -187,8 +185,8 @@ class SingleTaskSummary(SummaryInterface):
         """
         computed_metrics = self._compute(metrics_to_use=self.metrics_to_use)
         self._cached_metrics = computed_metrics
-        self._cached_metrics[f"{self.step_name}/loss"] = self.loss
-        self._cached_metrics[f"{self.step_name}/n_epochs"] = self.n_epochs
+        self._cached_metrics[self.metric_log_name("loss")] = self.loss
+        self._cached_metrics[self.metric_log_name("n_epochs")] = self.n_epochs
 
         return computed_metrics
 
@@ -207,24 +205,21 @@ class SingleTaskSummary(SummaryInterface):
         else:
             results_prog = {}
             for metric_key in self.metrics_on_progress_bar:
-                metric_name = self.metric_log_name(
-                    self.task_name, metric_key, self.step_name
-                )
+                metric_name = self.metric_log_name(metric_key)
                 results_prog[metric_name] = cached_metrics[metric_name]
 
         return results_prog
 
-    def metric_log_name(self, task_name, metric_name, step_name):
-        if task_name is None:
-            return f"{metric_name}/{step_name}"
+    def metric_log_name(self, metric_name):
+        if self.task_name is None:
+            return f"{metric_name}/{self.step_name}"
         else:
-            return f"{task_name}/{metric_name}/{step_name}"
+            return f"{self.task_name}/{metric_name}/{self.step_name}"
 
 
 class MultiTaskSummary(SummaryInterface):
     def __init__(
         self,
-        global_loss: Tensor,
         task_loss: Dict[str, Tensor],
         task_metrics: Dict[str, Dict[str, Callable]],
         step_name: str,
@@ -237,7 +232,7 @@ class MultiTaskSummary(SummaryInterface):
         Parameters:
 
         """
-        self.global_loss = global_loss.detach().cpu()
+        self.global_loss = None
         self.task_metrics = task_metrics
         self.task_metrics_on_progress_bar = task_metrics_on_progress_bar
         self.task_metrics_on_training_set = task_metrics_on_training_set
@@ -256,7 +251,7 @@ class MultiTaskSummary(SummaryInterface):
                 task_name = task,
             )
 
-    def update(self, targets: Tensor, preds: Tensor) -> None:
+    def update(self, targets: Dict[str, Tensor], preds: Dict[str, Tensor]) -> None:
 
         r"""
         update the state for all predictors
@@ -286,6 +281,14 @@ class MultiTaskSummary(SummaryInterface):
         for task in self.tasks:
             task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
+    
+    def add_global_loss(self, loss: Tensor) -> None:
+        r"""
+        Add the global loss to be logged with the metrics
+        Parameters:
+            loss: the global loss
+        """
+        self.global_loss = loss.detach().cpu()
 
     def compute(self) -> Dict[str, Tensor]:
         r"""
@@ -296,27 +299,9 @@ class MultiTaskSummary(SummaryInterface):
         computed_metrics = {}
         for task in self.tasks:
             computed_metrics.update(self.task_summaries[task].compute())
+        if self.global_loss is not None:
+            computed_metrics[f"{self.step_name}/loss"] = self.global_loss
         return computed_metrics
-
-    def aggregate_metrics_logs(
-        self,
-        metrics_logs: Dict[str, Dict[str, Tensor]],
-    ) -> Dict[str, Tensor]:
-        r"""
-        concatenate the metrics logs
-        Parameters:
-            metrics_logs: the metrics logs
-        Returns:
-            the concatenated metrics logs
-        """
-        aggregated_metrics_logs = {}
-        for task in list(self.tasks) + ["_global"]:
-            if task in metrics_logs.keys():
-                aggregated_metrics_logs.update(metrics_logs[task])
-        aggregated_metrics_logs[f"loss/{self.step_name}"] = self.global_loss.detach().cpu()
-        return aggregated_metrics_logs
-
-
 
 
 class STDMetric(Metric):
