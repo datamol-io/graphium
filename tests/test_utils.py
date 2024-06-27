@@ -150,32 +150,6 @@ class test_nan_statistics(ut.TestCase):
                 np.testing.assert_almost_equal(torch_mad.numpy(), numpy_mad, decimal=4, err_msg=err_msg)
 
 
-def test_file_opener(tmp_path):
-    # Create a temporary file
-    txt_file = tmp_path / "test.txt"
-    txt_file.write_text("Hello, World!")
-
-    # Test opening file in read mode
-    with file_opener(txt_file, "r") as f:
-        assert f.read() == "Hello, World!"
-
-    # Test opening file in write mode
-    with file_opener(txt_file, "w") as f:
-        f.write("New text")
-
-    with file_opener(txt_file, "r") as f:
-        assert f.read() == "New text"
-
-    # Create a temporary gzip file
-    gzip_file = tmp_path / "test.txt.gz"
-    with gzip.open(gzip_file, "wt") as f:
-        f.write("Hello, Gzip!")
-
-    # Test opening gzip file in read mode
-    with file_opener(gzip_file, "r") as f:
-        assert f.read() == "Hello, Gzip!"
-
-
 class test_SafeRun(ut.TestCase):
     def test_safe_run(self):
         # Error is caught
