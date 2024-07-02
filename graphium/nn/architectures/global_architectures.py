@@ -331,7 +331,7 @@ class FeedForwardNN(nn.Module, MupMixin):
 
         self.layers.extend(layers)
 
-    def forward(self, h: torch.Tensor) -> torch.Tensor:
+    def forward(self, h: Batch) -> torch.Tensor:
         r"""
         Apply the neural network on the input features.
 
@@ -1650,7 +1650,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                         self._module_map[module_name] = module.layers
         return self._module_map
 
-    def forward(self, g: Batch) -> Tensor:
+    def forward(self, g: Batch, extra_return_names: List[str] = None) -> Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
         and the post-processing neural network on the graph features.
@@ -1707,6 +1707,24 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         # Run the graph neural network
         g = self.gnn.forward(g)
+
+        # If intermediate embeddings are returned
+        if extra_return_names:
+            extras_to_return = {}
+
+            if "pre_task_heads" in extra_return_names:
+                extras_to_return.update({"pre_task_heads": g})
+
+            if self.task_heads is None:
+                return g, extras_to_return
+
+            final_output, task_head_extras_to_return = self.task_heads.forward(
+                g, extra_return_names=extra_return_names
+            )
+            extras_to_return.update(task_head_extras_to_return)
+
+            return final_output, extras_to_return
+
 
         if self.task_heads is not None:
             return self.task_heads.forward(g)
@@ -2215,7 +2233,7 @@ class TaskHeads(nn.Module, MupMixin):
             filtered_kwargs["in_dim"] = self.graph_output_nn_kwargs[task_level]["out_dim"]
             self.task_heads[task_name] = FeedForwardNN(**filtered_kwargs)
 
-    def forward(self, g: Batch) -> Dict[str, torch.Tensor]:
+    def forward(self, g: Batch, extra_return_names: List[str] = []) -> Dict[str, torch.Tensor]:
         r"""
         forward function of the task head
         Parameters:
@@ -2232,6 +2250,13 @@ class TaskHeads(nn.Module, MupMixin):
             )  # Get task_level without modifying head_kwargs
             task_head_outputs[task_name] = head.forward(features[task_level])
 
+        extras_to_return = {}
+        if "task_level_features" in extra_return_names:
+            extras_to_return["task_level_features"] = features
+        
+        if extra_return_names:
+            return task_head_outputs, extras_to_return
+        
         return task_head_outputs
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
