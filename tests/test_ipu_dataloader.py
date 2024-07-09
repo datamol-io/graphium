@@ -26,7 +26,6 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import torch
 from torch.utils.data.dataloader import default_collate
-from lightning_graphcore import IPUStrategy
 
 
 def random_packing(num_nodes, batch_size):
@@ -119,6 +118,8 @@ class test_DataLoading(ut.TestCase):
         Test a simple version of the device-iterations and gradient accumulation
         to make sure that the dataloader and models handle them correcly.
         """
+        from lightning_graphcore import IPUStrategy
+
 
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):

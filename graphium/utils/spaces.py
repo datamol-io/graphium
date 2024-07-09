@@ -145,7 +145,6 @@ DATAMODULE_DICT = {
     "GraphOGBDataModule": Datamodules.GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": Datamodules.MultitaskFromSmilesDataModule,
     "ADMETBenchmarkDataModule": Datamodules.ADMETBenchmarkDataModule,
-    "FakeDataModule": Datamodules.FakeDataModule,
 }
 
 GRAPHIUM_PRETRAINED_MODELS_DICT = {

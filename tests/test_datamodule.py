@@ -22,6 +22,8 @@ import graphium
 from graphium.utils.fs import rm, exists, get_size
 from graphium.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
 
+import graphium_cpp
+
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 
@@ -45,23 +47,22 @@ class Test_DataModule(ut.TestCase):
         task_specific_args = {}
         task_specific_args["task_1"] = {"task_level": "graph", "dataset_name": dataset_name}
         dm_args = {}
-        dm_args["processed_graph_data_path"] = None
         dm_args["featurization"] = featurization_args
         dm_args["batch_size_training"] = 16
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 0
-        dm_args["featurization_progress"] = True
-        dm_args["featurization_backend"] = "loky"
-        dm_args["featurization_batch_size"] = 50
 
-        ds = GraphOGBDataModule(task_specific_args, **dm_args)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
-        ds.prepare_data(save_smiles_and_ids=False)
+        ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+
+        ds.prepare_data()
 
         # Check the keys in the dataset
-        ds.setup(save_smiles_and_ids=False)
+        ds.setup()
         assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
         # Delete the cache if already exist
@@ -69,13 +70,13 @@ class Test_DataModule(ut.TestCase):
             rm(TEMP_CACHE_DATA_PATH, recursive=True)
 
         # Reset the datamodule
-        ds = GraphOGBDataModule(task_specific_args, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
 
-        ds.prepare_data(save_smiles_and_ids=True)
+        ds.prepare_data()
 
         # Check the keys in the dataset
-        ds.setup(save_smiles_and_ids=True)
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+        ds.setup()
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
         # test module
         assert ds.num_edge_feats == 5
@@ -84,100 +85,7 @@ class Test_DataModule(ut.TestCase):
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
-        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["graph_task_1"]) == 16
-        assert len(batch["mol_ids"]) == 16
-
-    def test_none_filtering(self):
-        # Create the objects to filter
-        list_of_num = [ii for ii in range(100)]
-        list_of_str = [str(ii) for ii in list_of_num]
-        tuple_of_num = tuple(list_of_num)
-        array_of_num = np.asarray(list_of_num)
-        array_of_str = np.asarray(list_of_str)
-        tensor_of_num = torch.as_tensor(array_of_num)
-        arrays_of_num = np.stack([list_of_num, list_of_num, list_of_num], axis=1)
-        arrays_of_str = np.stack([list_of_str, list_of_str, list_of_str], axis=1)
-        tensors_of_num = torch.as_tensor(arrays_of_num)
-        dic = {"str": list_of_str, "num": list_of_num}
-        df = pd.DataFrame(dic)
-        df_shuffled = df.sample(frac=1)
-        series_num = df["num"]
-        series_num_shuffled = df_shuffled["num"]
-
-        # Create different indexes to use for filtering
-        all_idx_none = [[3, 17, 88], [22, 33, 44, 55, 66, 77, 88], [], np.arange(len(list_of_num))]
-
-        # Loop all the indexes and filter the objects.
-        for ii, idx_none in enumerate(all_idx_none):
-            msg = f"Failed for ii={ii}"
-
-            # Create the true filtered sequences
-            filtered_num = [ii for ii in range(100) if ii not in idx_none]
-            filtered_str = [str(ii) for ii in filtered_num]
-            assert len(filtered_num) == len(list_of_num) - len(idx_none)
-            assert len(filtered_str) == len(list_of_str) - len(idx_none)
-
-            # Filter the sequences from the Datamodule function
-            (
-                list_of_num_2,
-                list_of_str_2,
-                tuple_of_num_2,
-                array_of_num_2,
-                array_of_str_2,
-                tensor_of_num_2,
-                df_2,
-                df_shuffled_2,
-                dic_2,
-                arrays_of_num_2,
-                arrays_of_str_2,
-                tensors_of_num_2,
-                series_num_2,
-                series_num_shuffled_2,
-            ) = graphium.data.MultitaskFromSmilesDataModule._filter_none_molecules(
-                idx_none,
-                list_of_num,
-                list_of_str,
-                tuple_of_num,
-                array_of_num,
-                array_of_str,
-                tensor_of_num,
-                df,
-                df_shuffled,
-                dic,
-                arrays_of_num,
-                arrays_of_str,
-                tensors_of_num,
-                series_num,
-                series_num_shuffled,
-            )
-
-            df_shuffled_2 = df_shuffled_2.sort_values(by="num", axis=0)
-            series_num_shuffled_2 = series_num_shuffled_2.sort_values(axis=0)
-
-            # Assert the filtering is done correctly
-            self.assertListEqual(list_of_num_2, filtered_num, msg=msg)
-            self.assertListEqual(list_of_str_2, filtered_str, msg=msg)
-            self.assertListEqual(list(tuple_of_num_2), filtered_num, msg=msg)
-            self.assertListEqual(array_of_num_2.tolist(), filtered_num, msg=msg)
-            self.assertListEqual(array_of_str_2.tolist(), filtered_str, msg=msg)
-            self.assertListEqual(tensor_of_num_2.tolist(), filtered_num, msg=msg)
-            for jj in range(arrays_of_num.shape[1]):
-                self.assertListEqual(arrays_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
-                self.assertListEqual(arrays_of_str_2[:, jj].tolist(), filtered_str, msg=msg)
-                self.assertListEqual(tensors_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
-            self.assertListEqual(dic_2["num"], filtered_num, msg=msg)
-            self.assertListEqual(dic_2["str"], filtered_str, msg=msg)
-            self.assertListEqual(df_2["num"].tolist(), filtered_num, msg=msg)
-            self.assertListEqual(df_2["str"].tolist(), filtered_str, msg=msg)
-            self.assertListEqual(series_num_2.tolist(), filtered_num, msg=msg)
-
-            # When the dataframe is shuffled, the lists are different because the filtering
-            # is done on the row indexes, not the dataframe indexes.
-            bool_to_check = (len(idx_none) == 0) or (len(idx_none) == len(df_shuffled))
-            self.assertIs(df_shuffled_2["num"].tolist() == filtered_num, bool_to_check, msg=msg)
-            self.assertIs(df_shuffled_2["str"].tolist() == filtered_str, bool_to_check, msg=msg)
-            self.assertIs(series_num_shuffled_2.tolist() == filtered_num, bool_to_check, msg=msg)
 
     def test_caching(self):
         # other datasets are too large to be tested
@@ -201,10 +109,6 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 0
-        dm_args["featurization_progress"] = True
-        dm_args["featurization_backend"] = "loky"
-        dm_args["featurization_batch_size"] = 50
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -214,10 +118,10 @@ class Test_DataModule(ut.TestCase):
         assert not exists(TEMP_CACHE_DATA_PATH)
         ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
         # assert not ds.load_data_from_cache(verbose=False)
-        ds.prepare_data(save_smiles_and_ids=False)
+        ds.prepare_data()
 
         # Check the keys in the dataset
-        ds.setup(save_smiles_and_ids=False)
+        ds.setup()
         assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
         # ds_batch = next(iter(ds.train_dataloader()))
@@ -227,23 +131,9 @@ class Test_DataModule(ut.TestCase):
         # Test loading cached data
         assert exists(TEMP_CACHE_DATA_PATH)
 
-        cached_ds_from_ram = GraphOGBDataModule(
-            task_specific_args,
-            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
-            dataloading_from="ram",
-            **dm_args,
-        )
-        cached_ds_from_ram.prepare_data()
-        cached_ds_from_ram.setup()
-        cached_train_loader_from_ram = cached_ds_from_ram.get_dataloader(
-            cached_ds_from_ram.train_ds, shuffle=False, stage="train"
-        )
-        batch_from_ram = next(iter(cached_train_loader_from_ram))
-
         cached_ds_from_disk = GraphOGBDataModule(
             task_specific_args,
             processed_graph_data_path=TEMP_CACHE_DATA_PATH,
-            dataloading_from="disk",
             **dm_args,
         )
         cached_ds_from_disk.prepare_data()
@@ -255,57 +145,29 @@ class Test_DataModule(ut.TestCase):
 
         # Features are the same
         np.testing.assert_array_almost_equal(
-            batch["features"].edge_index, batch_from_ram["features"].edge_index
-        )
-        np.testing.assert_array_almost_equal(
             batch["features"].edge_index, batch_from_disk["features"].edge_index
         )
 
-        assert batch["features"].num_nodes == batch_from_ram["features"].num_nodes
         assert batch["features"].num_nodes == batch_from_disk["features"].num_nodes
 
-        np.testing.assert_array_almost_equal(
-            batch["features"].edge_weight, batch_from_ram["features"].edge_weight
-        )
         np.testing.assert_array_almost_equal(
             batch["features"].edge_weight, batch_from_disk["features"].edge_weight
         )
 
-        np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_ram["features"].feat)
         np.testing.assert_array_almost_equal(batch["features"].feat, batch_from_disk["features"].feat)
 
-        np.testing.assert_array_almost_equal(
-            batch["features"].edge_feat, batch_from_ram["features"].edge_feat
-        )
         np.testing.assert_array_almost_equal(
             batch["features"].edge_feat, batch_from_disk["features"].edge_feat
         )
 
-        np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_ram["features"].batch)
         np.testing.assert_array_almost_equal(batch["features"].batch, batch_from_disk["features"].batch)
 
-        np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_ram["features"].ptr)
         np.testing.assert_array_almost_equal(batch["features"].ptr, batch_from_disk["features"].ptr)
 
         # Labels are the same
         np.testing.assert_array_almost_equal(
-            batch["labels"].graph_task_1, batch_from_ram["labels"].graph_task_1
-        )
-        np.testing.assert_array_almost_equal(
             batch["labels"].graph_task_1, batch_from_disk["labels"].graph_task_1
         )
-
-        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_ram["labels"].x)
-        np.testing.assert_array_almost_equal(batch["labels"].x, batch_from_disk["labels"].x)
-
-        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_ram["labels"].edge_index)
-        np.testing.assert_array_almost_equal(batch["labels"].edge_index, batch_from_disk["labels"].edge_index)
-
-        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_ram["labels"].batch)
-        np.testing.assert_array_almost_equal(batch["labels"].batch, batch_from_disk["labels"].batch)
-
-        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_ram["labels"].ptr)
-        np.testing.assert_array_almost_equal(batch["labels"].ptr, batch_from_disk["labels"].ptr)
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -314,10 +176,10 @@ class Test_DataModule(ut.TestCase):
         # Reset the datamodule
         ds = GraphOGBDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
 
-        ds.prepare_data(save_smiles_and_ids=True)
+        ds.prepare_data()
 
-        ds.setup(save_smiles_and_ids=True)
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+        ds.setup()
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
 
         # test module
         assert ds.num_edge_feats == 5
@@ -326,9 +188,7 @@ class Test_DataModule(ut.TestCase):
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
-        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["graph_task_1"]) == 16
-        assert len(batch["mol_ids"]) == 16
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -369,15 +229,18 @@ class Test_DataModule(ut.TestCase):
         bad_smiles = (df["SMILES1"] == "XXX") & (df["SMILES2"] == "XXX") & (df["SMILES3"] == "XXX")
         num_bad_smiles = sum(bad_smiles)
 
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
         # Test the datamodule
         datamodule = MultitaskFromSmilesDataModule(
             task_specific_args=task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
             featurization_args=featurization_args,
-            featurization_n_jobs=0,
-            featurization_batch_size=1,
         )
         datamodule.prepare_data()
-        datamodule.setup(save_smiles_and_ids=True)
+        datamodule.setup()
 
         # Check that the number of molecules is correct
         smiles = df["SMILES1"].tolist() + df["SMILES2"].tolist() + df["SMILES3"].tolist()
@@ -400,33 +263,36 @@ class Test_DataModule(ut.TestCase):
         df = df.set_index("idx_smiles")
 
         # Convert the smilies from the train_ds to a list, and check the content
-        train_smiles = [d["smiles"] for d in datamodule.train_ds]
+        train_smiles = [
+            graphium_cpp.extract_string(
+                datamodule.train_ds.smiles_tensor, datamodule.train_ds.smiles_offsets_tensor, idx
+            )
+            for idx in range(len(datamodule.train_ds))
+        ]
 
         # Check that the set of smiles are the same
-        train_smiles_flat = list(set([item for sublist in train_smiles for item in sublist]))
+        train_smiles_flat = list(set(train_smiles))
         train_smiles_flat.sort()
         index_smiles_filt = list(set([smiles for smiles in index_smiles if smiles != "XXX"]))
         index_smiles_filt.sort()
         self.assertListEqual(train_smiles_flat, index_smiles_filt)
 
-        # Check that the smiles are correct for each datapoint in the dataset
+        # Check that the smiles is correct for each datapoint in the dataset
         for smiles in train_smiles:
-            self.assertEqual(len(set(smiles)), 1)  # Check that all smiles are the same
-            this_smiles = smiles[0]
-            true_smiles = df.loc[this_smiles][["SMILES1", "SMILES2", "SMILES3"]]
-            num_true_smiles = sum(true_smiles != "XXX")
-            self.assertEqual(len(smiles), num_true_smiles)  # Check that the number of smiles is correct
+            assert isinstance(smiles, str)
+            true_smiles = df.loc[smiles][["SMILES1", "SMILES2", "SMILES3"]]
             self.assertEqual(
-                this_smiles, true_smiles[true_smiles != "XXX"].values[0]
-            )  # Check that the smiles are correct
+                smiles, true_smiles[true_smiles != "XXX"].values[0]
+            )  # Check that the smiles is correct
 
         # Convert the labels from the train_ds to a dataframe
-        train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
+        train_labels = [datamodule.train_ds[idx]["labels"] for idx in range(len(datamodule.train_ds))]
+        train_labels = [{k: v[0].item() for k, v in label} for label in train_labels]
         train_labels_df = pd.DataFrame(train_labels)
         train_labels_df = train_labels_df.rename(
             columns={"graph_task_1": "graph_SA", "graph_task_2": "graph_logp", "graph_task_3": "graph_score"}
         )
-        train_labels_df["smiles"] = [s[0] for s in datamodule.train_ds.smiles]
+        train_labels_df["smiles"] = train_smiles
         train_labels_df = train_labels_df.set_index("smiles")
         train_labels_df = train_labels_df.sort_index()
 
@@ -450,7 +316,11 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
         ds.prepare_data()
         ds.setup()
 
@@ -463,7 +333,11 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
         ds.prepare_data()
         ds.setup()
 
@@ -476,7 +350,11 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
         ds.prepare_data()
         ds.setup()
 
@@ -489,7 +367,11 @@ class Test_DataModule(ut.TestCase):
             "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
         ds.prepare_data()
         ds.setup()
 
@@ -526,9 +408,13 @@ class Test_DataModule(ut.TestCase):
             }
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
-        ds.prepare_data(save_smiles_and_ids=True)
-        ds.setup(save_smiles_and_ids=True)
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
+        ds.prepare_data()
+        ds.setup()
 
         self.assertEqual(len(ds.train_ds), len(split_train))
         self.assertEqual(len(ds.val_ds), len(split_val))
@@ -555,19 +441,30 @@ class Test_DataModule(ut.TestCase):
                 }
             }
 
-            ds2 = MultitaskFromSmilesDataModule(task_specific_args, featurization_n_jobs=0)
-            ds2.prepare_data(save_smiles_and_ids=True)
-            ds2.setup(save_smiles_and_ids=True)
+            # Delete the cache if already exist
+            if exists(TEMP_CACHE_DATA_PATH):
+                rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+            ds2 = MultitaskFromSmilesDataModule(
+                task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH
+            )
+            ds2.prepare_data()
+            ds2.setup()
 
             self.assertEqual(len(ds2.train_ds), len(split_train))
             self.assertEqual(len(ds2.val_ds), len(split_val))
             self.assertEqual(len(ds2.test_ds), len(split_test))
 
             # Check that the splits are the same
-            self.assertEqual(len(ds.train_ds.smiles), len(split_train))
-            np.testing.assert_array_equal(ds.train_ds.smiles, ds2.train_ds.smiles)
-            np.testing.assert_array_equal(ds.val_ds.smiles, ds2.val_ds.smiles)
-            np.testing.assert_array_equal(ds.test_ds.smiles, ds2.test_ds.smiles)
+            self.assertEqual(len(ds.train_ds.smiles_offsets_tensor), len(split_train) + 1)
+            np.testing.assert_array_equal(ds.train_ds.smiles_tensor, ds2.train_ds.smiles_tensor)
+            np.testing.assert_array_equal(ds.val_ds.smiles_tensor, ds2.val_ds.smiles_tensor)
+            np.testing.assert_array_equal(ds.test_ds.smiles_tensor, ds2.test_ds.smiles_tensor)
+            np.testing.assert_array_equal(
+                ds.train_ds.smiles_offsets_tensor, ds2.train_ds.smiles_offsets_tensor
+            )
+            np.testing.assert_array_equal(ds.val_ds.smiles_offsets_tensor, ds2.val_ds.smiles_offsets_tensor)
+            np.testing.assert_array_equal(ds.test_ds.smiles_offsets_tensor, ds2.test_ds.smiles_offsets_tensor)
 
 
 if __name__ == "__main__":

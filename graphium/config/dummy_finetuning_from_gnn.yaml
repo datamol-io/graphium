@@ -128,10 +128,6 @@ datamodule:
     
     batch_size_training: 200
     batch_size_inference: 200
-    featurization_n_jobs: 0
     num_workers: 0
 
-    prepare_dict_or_graph: pyg:graph
-    featurization_progress: True
-    featurization_backend: "loky"
     persistent_workers: False

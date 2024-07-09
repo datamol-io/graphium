@@ -16,21 +16,8 @@ import pytest
 import torch
 from torch_geometric.data import Data, Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
-from warnings import warn
-
-
-# General imports
-import yaml
-import unittest as ut
-import numpy as np
-from copy import deepcopy
-from warnings import warn
-from lightning import Trainer, LightningModule
-from lightning_graphcore import IPUStrategy
-from functools import partial
 
 import torch
-from torch.utils.data.dataloader import default_collate
 
 # Current library imports
 from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator

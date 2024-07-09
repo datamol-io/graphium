@@ -46,10 +46,6 @@ module for utility functions
 ::: graphium.utils.mup
 
 
-## Read File
-----------------
-::: graphium.utils.read_file
-
 ## Safe Run
 ----------------
 ::: graphium.utils.safe_run
