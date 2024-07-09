@@ -190,7 +190,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         # key_padding_mask: [batch, 1, 1, nodes]
         if key_padding_mask is not None:
             masked_attn_weights = attn_weights.masked_fill(
-                key_padding_mask.unsqueeze(1).unsqueeze(2),
+                key_padding_mask.unsqueeze(1).unsqueeze(2).bool(), # The mask is cast to float somewhere in TransformerEncoder
                 key_padding_mask_value,
             )
         else:

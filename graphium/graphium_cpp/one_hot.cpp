@@ -28,7 +28,7 @@ public:
     }
 };
 
-// This list of elements matches ATOM_LIST in graphium/features/nmp.py
+// This list of elements matches ATOM_LIST in older file graphium/features/nmp.py
 constexpr size_t atomicNumList[] = {
     6 -1, // C
     7 -1, // N
@@ -81,7 +81,7 @@ constexpr size_t degreeCount = 5;
 constexpr size_t valenceCount = 7;
 
 // Reverse alphabetical order, excluding "OTHER",
-// matching HYBRIDIZATION_LIST in graphium/features/nmp.py
+// matching HYBRIDIZATION_LIST in older file graphium/features/nmp.py
 constexpr size_t hybridizationList[] = {
     RDKit::Atom::HybridizationType::UNSPECIFIED,
     RDKit::Atom::HybridizationType::SP3D2,
@@ -142,7 +142,7 @@ constexpr ElementType atomicNumToType[] = {
 };
 constexpr size_t typeCount = ElementType::NUM_ELEMENT_TYPES;
 
-// This matches BOND_TYPES in graphium/features/nmp.py
+// This matches BOND_TYPES in older file graphium/features/nmp.py
 constexpr size_t bondTypeList[] = {
     RDKit::Bond::BondType::SINGLE,
     RDKit::Bond::BondType::DOUBLE,
@@ -152,7 +152,7 @@ constexpr size_t bondTypeList[] = {
 constexpr size_t bondTypeCount = std::extent<decltype(bondTypeList)>::value;
 constexpr OneHotLookup<22, bondTypeCount> bondTypeLookup(bondTypeList);
 
-// This matches BOND_STEREO in graphium/features/nmp.py
+// This matches BOND_STEREO in older file graphium/features/nmp.py
 constexpr size_t bondStereoList[] = {
     RDKit::Bond::BondStereo::STEREONONE,
     RDKit::Bond::BondStereo::STEREOANY,

@@ -187,8 +187,8 @@ class test_positional_encoder(ut.TestCase):
                         data_dict = {
                             # "feat": tensors[2],
                             # "edge_feat": tensors[3],
-                            "laplacian_eigval": tensors[4],
-                            "laplacian_eigvec": tensors[5],
+                            "laplacian_eigval": tensors[4].float(),
+                            "laplacian_eigvec": tensors[5].float(),
                         }
                         # Create the PyG graph object `Data`
                         data = Data(
