@@ -16,11 +16,6 @@ Feature extraction and manipulation
 ::: graphium.features.featurizer
 
 
-## Positional Encoding
-------------
-::: graphium.features.positional_encoding
-
-
 ## Properties
 ------------
 ::: graphium.features.properties
