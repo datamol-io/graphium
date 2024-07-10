@@ -36,7 +36,6 @@ from graphium.trainer.predictor_options import (
 from graphium.trainer.predictor_summaries import MultiTaskSummary
 from graphium.utils import fs
 from graphium.utils.moving_average_tracker import MovingAverageTracker
-from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 from graphium.utils.tensor import dict_tensor_fp16_to_fp32
 
 
@@ -673,7 +672,9 @@ class PredictorModule(lightning.LightningModule):
     @staticmethod
     def list_pretrained_models():
         """List available pretrained models."""
-        return GRAPHIUM_PRETRAINED_MODELS_DICT
+        from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
+
+        return GRAPHIUM_PRETRAINED_MODELS_DICT # Avoiding circular imports with `space.py`
 
     @staticmethod
     def load_pretrained_model(name_or_path: str, device: str = None):
@@ -683,6 +684,8 @@ class PredictorModule(lightning.LightningModule):
             name: Name of the model to load or a valid checkpoint path. List available
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
+
+        from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT # Avoiding circular imports with `space.py`
 
         name = GRAPHIUM_PRETRAINED_MODELS_DICT.get(name_or_path)
 

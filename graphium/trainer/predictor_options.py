@@ -30,10 +30,6 @@ from inspect import signature, isclass
 
 from torch import nn
 
-from graphium.utils.spaces import LOSS_DICT
-from graphium.utils.spaces import SCHEDULER_DICT
-
-
 @dataclass
 class ModelOptions:
     r"""
@@ -117,6 +113,7 @@ class OptimOptions:
         scheduler_class = torch_scheduler_kwargs.pop("module_type")
         if self.scheduler_class is None:
             if isinstance(scheduler_class, str):
+                from graphium.utils.spaces import SCHEDULER_DICT
                 self.scheduler_class = SCHEDULER_DICT[scheduler_class]
             elif isclass(scheduler_class):
                 self.scheduler_class = scheduler_class
@@ -195,6 +192,8 @@ class EvalOptions:
             Callable:
                 Function or callable to compute the loss, takes `preds` and `targets` as inputs.
         """
+
+        from graphium.utils.spaces import LOSS_DICT # Avoiding circular imports with `spaces.py`
 
         if isinstance(loss_fun, str):
             if loss_fun not in LOSS_DICT.keys():

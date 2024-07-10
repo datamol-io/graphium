@@ -23,7 +23,6 @@ import graphium.nn.architectures as Architectures
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
 import graphium.ipu.ipu_losses as IPULosses
-import graphium.ipu.ipu_metrics as Metrics
 import graphium.nn.pyg_layers as PygLayers
 import graphium.nn.residual_connections as Residuals
 import graphium.nn.encoders as Encoders

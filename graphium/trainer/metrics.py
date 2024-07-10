@@ -414,7 +414,7 @@ class MetricWrapper:
         r"""
         Compute the metric with the method `self.compute`
         """
-        return self.compute(preds, target)
+        return self.update_compute(preds, target)
 
     def __repr__(self):
         r"""

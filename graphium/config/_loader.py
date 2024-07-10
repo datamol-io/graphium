@@ -43,7 +43,6 @@ from graphium.utils.command_line_utils import get_anchors_and_aliases, update_co
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
-from graphium.utils.spaces import DATAMODULE_DICT, GRAPHIUM_PRETRAINED_MODELS_DICT
 from graphium.utils import fs
 
 
@@ -110,6 +109,8 @@ def load_datamodule(
     Returns:
         datamodule: The datamodule used to process and load the data
     """
+
+    from graphium.utils.spaces import DATAMODULE_DICT # Avoid circular imports with `spaces.py`
 
     cfg_data = config["datamodule"]["args"]
 
@@ -630,6 +631,8 @@ def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> 
     If the path is a valid name or a valid path, return it.
     Otherwise, assume it refers to a file in the checkpointing dir.
     """
+
+    from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT # Avoid circular imports with `spaces.py`
 
     cfg_trainer = config["trainer"]
 
