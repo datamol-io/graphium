@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, Literal
 from loguru import logger
 from copy import deepcopy
 
@@ -22,6 +22,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torchmetrics import MeanMetric, Metric
+from torchmetrics.aggregation import BaseAggregator
 
 from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
 
@@ -294,13 +295,27 @@ class MultiTaskSummary(SummaryInterface):
             self.task_summaries[task].reset()
 
 
-class STDMetric(Metric):
+class STDMetric(BaseAggregator):
     """
     A metric to compute the standard deviation of the predictions or targets.
     Based on `torchmetrics.Metric`, with a similar implementation to `torchmetric.MeanMetric`.
+
+    Parameters:
+        nan_strategy: options:
+            - ``'error'``: if any `nan` values are encountered will give a RuntimeError
+            - ``'warn'``: if any `nan` values are encountered will give a warning and continue
+            - ``'ignore'``: all `nan` values are silently removed
+            - a float: if a float is provided will impute any `nan` values with this value
+
     """
-    def __init__(self, dist_sync_on_step=False):
-        super().__init__(dist_sync_on_step=dist_sync_on_step)
+    def __init__(self, nan_strategy: Union[Literal["error", "warn", "ignore"], float], **kwargs):
+        super().__init__(
+            "sum",
+            default_value=torch.tensor(0.0, dtype=torch.get_default_dtype()),
+            nan_strategy=nan_strategy,
+            state_name="mean_value",
+            **kwargs,
+        )
         self.add_state("sum", default=torch.tensor(0.0), dist_reduce_fx="sum")
         self.add_state("sum_of_squares", default=torch.tensor(0.0), dist_reduce_fx="sum")
         self.add_state("total_weight", default=torch.tensor(0.0), dist_reduce_fx="sum")
