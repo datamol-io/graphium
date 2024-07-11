@@ -290,10 +290,13 @@ class MetricWrapper:
     
     @staticmethod
     def _ipu_metrics_name_conversion(metric, warning=True):
+        r"""
+        Convert the metric name from the removed ipu metrics to the regular torchmetrics metrics
+        """
         metric_name = metric
         if metric_name.endswith("_ipu"): # For backward compatibility when loading models with metrics for ipu
             metric_name = metric_name[:-4]
-            if metric_name == "average_precision":
+            if metric_name == "average_precision": # A previous typo in the `spaces.py`
                 metric_name = "averageprecision"
             if warning:
                 logger.warning(f"Using the metric `{metric_name}` instead of `{metric}`")
