@@ -42,7 +42,6 @@ class SingleTaskSummary(SummaryInterface):
         self,
         metrics: Dict[str, Callable],
         step_name: str,
-        n_epochs: int,
         metrics_on_training_set: Optional[List[str]] = None,
         metrics_on_progress_bar: Optional[List[str]] = None,
         task_name: Optional[str] = None,
@@ -67,7 +66,6 @@ class SingleTaskSummary(SummaryInterface):
             name of the task (Default=`None`)
 
         """
-        self.n_epochs = n_epochs
         self.step_name = step_name
         self.metrics = deepcopy(metrics)
 
@@ -177,7 +175,6 @@ class SingleTaskSummary(SummaryInterface):
         """
         computed_metrics = self._compute(metrics_to_use=self.metrics_to_use)
         self._cached_metrics = computed_metrics
-        self._cached_metrics[self.metric_log_name("n_epochs")] = self.n_epochs
 
         return computed_metrics
 
@@ -213,7 +210,6 @@ class MultiTaskSummary(SummaryInterface):
         self,
         task_metrics: Dict[str, Dict[str, Callable]],
         step_name: str,
-        n_epochs: int,
         task_metrics_on_training_set: Optional[Dict[str, List[str]]],
         task_metrics_on_progress_bar: Optional[Dict[str, List[str]]],
     ):
@@ -233,7 +229,6 @@ class MultiTaskSummary(SummaryInterface):
             self.task_summaries[task] = SingleTaskSummary(
                 metrics = self.task_metrics[task],
                 step_name = step_name,
-                n_epochs = n_epochs,
                 metrics_on_training_set = self.task_metrics_on_training_set[task] if task in self.task_metrics_on_training_set else None,
                 metrics_on_progress_bar = self.task_metrics_on_progress_bar[task] if task in self.task_metrics_on_progress_bar else None,
                 task_name = task,
