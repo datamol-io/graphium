@@ -40,7 +40,6 @@ class SummaryInterface(object):
 class SingleTaskSummary(SummaryInterface):
     def __init__(
         self,
-        loss: Tensor,
         metrics: Dict[str, Callable],
         step_name: str,
         n_epochs: int,
@@ -51,9 +50,6 @@ class SingleTaskSummary(SummaryInterface):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
         Parameters:
-            loss_fun:
-            Loss function used during training. Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
-            Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
 
             metrics:
             A dictionnary of metrics to compute on the prediction, other than the loss function.
@@ -67,14 +63,10 @@ class SingleTaskSummary(SummaryInterface):
             The metrics names from `metrics` to display also on the progress bar of the training.
             If `None`, no metrics are displayed.
 
-            monitor:
-            `str` metric to track (Default=`"loss/val"`)
-
             task_name:
             name of the task (Default=`None`)
 
         """
-        self.loss = loss.detach().cpu()
         self.n_epochs = n_epochs
         self.step_name = step_name
         self.metrics = deepcopy(metrics)
@@ -185,7 +177,6 @@ class SingleTaskSummary(SummaryInterface):
         """
         computed_metrics = self._compute(metrics_to_use=self.metrics_to_use)
         self._cached_metrics = computed_metrics
-        self._cached_metrics[self.metric_log_name("loss")] = self.loss
         self._cached_metrics[self.metric_log_name("n_epochs")] = self.n_epochs
 
         return computed_metrics
@@ -220,7 +211,6 @@ class SingleTaskSummary(SummaryInterface):
 class MultiTaskSummary(SummaryInterface):
     def __init__(
         self,
-        task_loss: Dict[str, Tensor],
         task_metrics: Dict[str, Dict[str, Callable]],
         step_name: str,
         n_epochs: int,
@@ -232,17 +222,15 @@ class MultiTaskSummary(SummaryInterface):
         Parameters:
 
         """
-        self.global_loss = None
         self.task_metrics = task_metrics
         self.task_metrics_on_progress_bar = task_metrics_on_progress_bar
         self.task_metrics_on_training_set = task_metrics_on_training_set
 
         # Initialize all the single-task summaries
-        self.tasks = list(task_loss.keys())
+        self.tasks = list(task_metrics.keys())
         self.task_summaries: Dict[str, SingleTaskSummary] = {}
         for task in self.tasks:
             self.task_summaries[task] = SingleTaskSummary(
-                loss_fun = self.task_loss[task],
                 metrics = self.task_metrics[task],
                 step_name = step_name,
                 n_epochs = n_epochs,
@@ -281,14 +269,6 @@ class MultiTaskSummary(SummaryInterface):
         for task in self.tasks:
             task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
-    
-    def add_global_loss(self, loss: Tensor) -> None:
-        r"""
-        Add the global loss to be logged with the metrics
-        Parameters:
-            loss: the global loss
-        """
-        self.global_loss = loss.detach().cpu()
 
     def compute(self) -> Dict[str, Tensor]:
         r"""
@@ -299,8 +279,6 @@ class MultiTaskSummary(SummaryInterface):
         computed_metrics = {}
         for task in self.tasks:
             computed_metrics.update(self.task_summaries[task].compute())
-        if self.global_loss is not None:
-            computed_metrics[f"{self.step_name}/loss"] = self.global_loss
         return computed_metrics
 
 
