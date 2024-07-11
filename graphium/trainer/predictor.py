@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 import time
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, Literal
 
 import lightning
 import numpy as np
@@ -164,10 +164,26 @@ class PredictorModule(lightning.LightningModule):
         self.optim_options.set_kwargs()
 
         # Initialize the epoch summary
-        monitor = self.optim_options.scheduler_kwargs["monitor"].split("/")[0]
-        mode = self.optim_options.scheduler_kwargs["mode"]
-
-        self.task_epoch_summary = {}
+        self.task_epoch_summary = {
+            "train": MultiTaskSummary(
+                task_metrics=self.metrics, 
+                step_name="train", 
+                task_metrics_on_progress_bar=None,
+                task_metrics_on_training_set=self.metrics_on_training_set,
+                ),
+            "val": MultiTaskSummary(
+                task_metrics=self.metrics, 
+                step_name="val", 
+                task_metrics_on_progress_bar=self.metrics_on_progress_bar,
+                task_metrics_on_training_set=None,
+                ),
+            "test": MultiTaskSummary(
+                task_metrics=self.metrics,
+                step_name="test",
+                task_metrics_on_progress_bar=None,
+                task_metrics_on_training_set=None,
+            ),
+        }
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
@@ -175,8 +191,6 @@ class PredictorModule(lightning.LightningModule):
         # throughput estimation
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
-        self.validation_step_outputs = []
-        self.test_step_outputs = []
         self.epoch_start_time = None
 
         # Decide whether to log every step or once at the end
@@ -319,7 +333,7 @@ class PredictorModule(lightning.LightningModule):
         weighted_loss = total_loss / num_tasks
         return weighted_loss, all_task_losses
 
-    def _general_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)  # The dictionary of predictions
 
@@ -360,7 +374,6 @@ class PredictorModule(lightning.LightningModule):
             multitask_handling=self.multitask_handling,
         )
 
-        device = "cpu" if to_cpu else None
         for task in preds:
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
             if hasattr(task_specific_norm, "normalize_val_test"):
@@ -373,55 +386,18 @@ class PredictorModule(lightning.LightningModule):
                 # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version
                 preds[task] = task_specific_norm.denormalize(preds[task])
                 targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
-            preds[task] = preds[task].detach().to(device=device)
-            targets_dict[task] = targets_dict[task].detach().to(device=device)
-        if weights is not None:
-            weights = weights.detach().to(device=device)
+            preds[task] = preds[task].detach()
+            targets_dict[task] = targets_dict[task].detach()
 
-        self.task_epoch_summary.update(targets_dict, preds)
+        self.task_epoch_summary[step_name].update(targets_dict, preds)
 
         step_dict = {}
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
         return step_dict
 
-    def update_metrics(self,
-                       preds: Dict[str, Tensor],
-                        targets: Dict[str, Tensor],
-                        step_name: str,
-                        weights: Optional[Tensor]=None,) -> None:
-        r"""
-        Compute the loss using the specified loss function, and dealing with
-        the nans in the `targets`.
 
-        Parameters:
-            preds:
-                Predicted values
-
-            targets:
-                Target values
-
-            step_name:
-                The name of the step ("train", "val", "test")
-
-            weights:
-                No longer supported, will raise an error.
-
-        """
-
-        if weights is not None:
-            raise NotImplementedError("Weights are no longer supported in the metrics")
-
-
-        # TODO!!
-        # Lost of changes from the `predictor_summaries.py` file, with `Summary.get_metrics_logs` computing the metrics at the end of an epoch.
-
-        # DON'T FORGET TO RESET ALL METRICS!!
-
-
-
-
-    def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
+    def flag_step(self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Any]:
         r"""
         Perform adversarial data agumentation during one training step using FLAG.
         Paper: https://arxiv.org/abs/2010.09891
@@ -477,22 +453,22 @@ class PredictorModule(lightning.LightningModule):
             )
             loss = loss / n_steps
 
-        device = "cpu" if to_cpu else None
         for key in preds.keys():
-            preds[key] = preds[key].detach().to(device=device)
-            targets[key] = targets[key].detach().to(device=device)
+            preds[key] = preds[key].detach()
+            targets[key] = targets[key].detach()
         if weights is not None:
-            weights = weights.detach().to(device=device)
+            weights = weights.detach()
 
         step_dict = {}
         step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
+        self.task_epoch_summary[step_name].update(targets, preds)
         return step_dict
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
 
-        # TODO: Initialize the `task_epoch_summary` for training
+        self.task_epoch_summary["train"].reset()
         self.train_batch_start_time = time.time()
         self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
             (batch_idx % self.metrics_every_n_train_steps) != 0
@@ -538,7 +514,9 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["train/batch_time"] = train_batch_time
         metrics_logs["train/batch_tput"] = tput
 
-        metrics_logs.update(self.task_epoch_summary["train"].compute())
+        metrics_computed = self.task_epoch_summary["train"].compute()
+        self.task_epoch_summary["train"].reset()
+        metrics_logs.update(metrics_computed)
 
         # Log the metrics
         if self.logger is not None:
@@ -546,50 +524,33 @@ class PredictorModule(lightning.LightningModule):
                 metrics_logs, step=self.global_step
             )  # This is a pytorch lightning function call
 
-    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         step_dict = None
 
         # Train using FLAG
         if self.flag_kwargs["n_steps"] > 0:
-            step_dict = self.flag_step(batch=batch, step_name="train", to_cpu=to_cpu)
+            step_dict = self.flag_step(batch=batch, step_name="train")
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
-            # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
-            step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
+            # step_dict = self._general_step(batch=batch, step_name="train")
+            step_dict = self._general_step(batch=batch, step_name="train")
 
-        # Remove the preds and targets if no logging is required
-        if self.skip_log_train_metrics:
-            step_dict.pop("preds")
-            step_dict.pop("targets")
         return step_dict  # Returning the metrics_logs with the loss
 
 
-    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
-        return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
+    def validation_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="val")
 
-    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
-        return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
+    def test_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="test")
 
-    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str, device: str) -> None:
+    def _general_epoch_end(self, step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
         # Transform the list of dict of dict, into a dict of list of dict
-        preds = {}
-        targets = {}
-        for task in self.tasks:
-            preds[task] = torch.cat([out["preds"][task].to(device) for out in outputs], dim=0)
-            targets[task] = torch.cat([out["targets"][task].to(device) for out in outputs], dim=0)
-
-        self.task_epoch_summary.update(
-            step_name=step_name,
-            preds=preds,
-            targets=targets,
-            loss=loss,
-            task_losses=task_losses,
-            n_epochs=self.current_epoch,
-        )
-        metrics_logs = self.task_epoch_summary.get_metrics_logs()
-
-        return metrics_logs  # Consider returning concatenated dict for logging
+        
+        metric_logs = self.task_epoch_summary[step_name].compute()
+        self.task_epoch_summary[step_name].reset()
+        return metric_logs
 
     def on_train_epoch_start(self) -> None:
         self.epoch_start_time = time.time()
@@ -605,6 +566,7 @@ class PredictorModule(lightning.LightningModule):
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
+        self.task_epoch_summary["val"].reset()
         return super().on_validation_epoch_start()
 
     def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
@@ -612,34 +574,27 @@ class PredictorModule(lightning.LightningModule):
         return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
     def on_validation_batch_end(
-        self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0
+        self, outputs, batch: Any, batch_idx: int, dataloader_idx: int = 0
     ) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
-        self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
         return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_validation_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(
-            outputs=self.validation_step_outputs, step_name="val", device="cpu"
-        )
-        self.validation_step_outputs.clear()
-        # TODO: Use the update and compute, rather than the old logic! Make sure to reset the metrics
-        aggregated_metrics_logs = self.task_epoch_summary.aggregate_metrics_logs(metrics_logs)
-        aggregated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
-        aggregated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        self.log_dict(aggregated_metrics_logs, sync_dist=True)
+        metrics_logs = self._general_epoch_end(step_name="val")
+        metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
+        metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
+        self.log_dict(metrics_logs, sync_dist=True)
 
-    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
-        self.test_step_outputs.append(outputs)
+    def on_test_epoch_start(self) -> None:
+        self.task_epoch_summary["test"].reset()
+        return super().on_test_epoch_start()
 
     def on_test_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test", device="cpu")
-        self.test_step_outputs.clear()
+        metrics_logs = self._general_epoch_end(step_name="test")
         aggregated_metrics_logs = self.task_epoch_summary.aggregate_metrics_logs(metrics_logs)
-
         self.log_dict(aggregated_metrics_logs, sync_dist=True)
 
     def on_train_start(self):

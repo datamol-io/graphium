@@ -122,7 +122,7 @@ class PredictorModuleIPU(PredictorModule):
         features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
-        step_dict = super().training_step(dict_input, to_cpu=False)
+        step_dict = super().training_step(dict_input)
 
         loss = step_dict.pop("loss")
         step_dict["loss"] = self.poptorch.identity_loss(loss, reduction="mean")
@@ -132,7 +132,7 @@ class PredictorModuleIPU(PredictorModule):
         features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
-        step_dict = super().validation_step(dict_input, to_cpu=False)
+        step_dict = super().validation_step(dict_input)
 
         return step_dict
 
@@ -141,14 +141,14 @@ class PredictorModuleIPU(PredictorModule):
         features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
-        step_dict = super().test_step(dict_input, to_cpu=False)
+        step_dict = super().test_step(dict_input)
 
         return step_dict
 
     def predict_step(self, **inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = inputs
-        step_dict = super().predict_step(dict_input, to_cpu=False)
+        step_dict = super().predict_step(dict_input)
 
         return step_dict
 

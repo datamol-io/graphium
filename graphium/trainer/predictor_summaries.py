@@ -35,12 +35,15 @@ class SummaryInterface(object):
 
     def compute(self, **kwargs) -> Tensor:
         raise NotImplementedError()
+    
+    def reset(self) -> None:
+        raise NotImplementedError()
 
 
 class SingleTaskSummary(SummaryInterface):
     def __init__(
         self,
-        metrics: Dict[str, Callable],
+        metrics: Dict[str, Union[Metric, "MetricWrapper"]],
         step_name: str,
         metrics_on_training_set: Optional[List[str]] = None,
         metrics_on_progress_bar: Optional[List[str]] = None,
@@ -177,6 +180,13 @@ class SingleTaskSummary(SummaryInterface):
         self._cached_metrics = computed_metrics
 
         return computed_metrics
+    
+    def reset(self) -> None:
+        r"""
+        reset the state of the metrics
+        """
+        for metric in self.metrics.values():
+            metric.reset()
 
     def get_results_on_progress_bar(
         self,
@@ -208,10 +218,10 @@ class SingleTaskSummary(SummaryInterface):
 class MultiTaskSummary(SummaryInterface):
     def __init__(
         self,
-        task_metrics: Dict[str, Dict[str, Callable]],
+        task_metrics: Dict[str, Dict[str, Union[Metric, "MetricWrapper"]]],
         step_name: str,
-        task_metrics_on_training_set: Optional[Dict[str, List[str]]],
-        task_metrics_on_progress_bar: Optional[Dict[str, List[str]]],
+        task_metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
+        task_metrics_on_progress_bar: Optional[Dict[str, List[str]]] = None,
     ):
         r"""
         class to store the summaries of the tasks
@@ -219,8 +229,8 @@ class MultiTaskSummary(SummaryInterface):
 
         """
         self.task_metrics = task_metrics
-        self.task_metrics_on_progress_bar = task_metrics_on_progress_bar
-        self.task_metrics_on_training_set = task_metrics_on_training_set
+        self.task_metrics_on_progress_bar = task_metrics_on_progress_bar if task_metrics_on_progress_bar is not None else {}
+        self.task_metrics_on_training_set = task_metrics_on_training_set if task_metrics_on_training_set is not None else {}
 
         # Initialize all the single-task summaries
         self.tasks = list(task_metrics.keys())
@@ -275,6 +285,13 @@ class MultiTaskSummary(SummaryInterface):
         for task in self.tasks:
             computed_metrics.update(self.task_summaries[task].compute())
         return computed_metrics
+    
+    def reset(self) -> None:
+        r"""
+        reset the state of the metrics
+        """
+        for task in self.tasks:
+            self.task_summaries[task].reset()
 
 
 class STDMetric(Metric):
