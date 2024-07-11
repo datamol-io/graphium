@@ -20,6 +20,7 @@ import torch
 from torch import Tensor
 import operator as op
 from copy import deepcopy
+from loguru import logger
 
 from torch.nn.modules.loss import _Loss
 from torchmetrics.utilities.distributed import reduce
@@ -209,7 +210,7 @@ class MetricWrapper:
         """
 
         if not isinstance(metric, type):
-            if not isinstance(metric, torchmetrics.Metric):
+            if not isinstance(metric, (torchmetrics.Metric, MetricToTorchMetrics, _Loss)):
                 raise ValueError(f"metric must be a torchmetrics.Metric, provided: {type(metric)}"
                                     f"Use `METRICS_DICT` to get the metric class")
             else:
@@ -280,12 +281,23 @@ class MetricWrapper:
         from graphium.utils.spaces import METRICS_DICT
 
         if isinstance(metric, str):
-            metric_name = metric
-            metric = METRICS_DICT[metric]
+            metric_name = MetricWrapper._ipu_metrics_name_conversion(metric)
+            metric = METRICS_DICT[metric_name]
         else:
             metric_name = None
             metric = metric
         return metric, metric_name
+    
+    @staticmethod
+    def _ipu_metrics_name_conversion(metric, warning=True):
+        metric_name = metric
+        if metric_name.endswith("_ipu"): # For backward compatibility when loading models with metrics for ipu
+            metric_name = metric_name[:-4]
+            if metric_name == "average_precision":
+                metric_name = "averageprecision"
+            if warning:
+                logger.warning(f"Using the metric `{metric_name}` instead of `{metric}`")
+        return metric_name
 
     def update(self, preds: Tensor, target: Tensor) -> Tensor:
         r"""

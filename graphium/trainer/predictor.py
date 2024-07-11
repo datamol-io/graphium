@@ -310,7 +310,7 @@ class PredictorModule(lightning.LightningModule):
             raise NotImplementedError("Weights are no longer supported in the loss")
 
         all_task_losses = {
-            task: wrapped.update_and_compute(preds=preds[task], target=targets[task])
+            task: wrapped.update_compute(preds=preds[task], target=targets[task])
             for task, wrapped in wrapped_loss_fun_dict.items()
         }
 
@@ -677,7 +677,7 @@ class PredictorModule(lightning.LightningModule):
         return GRAPHIUM_PRETRAINED_MODELS_DICT # Avoiding circular imports with `space.py`
 
     @staticmethod
-    def load_pretrained_model(name_or_path: str, device: str = None):
+    def load_pretrained_model(name_or_path: str, device: str = None, strict: bool = True, **kwargs):
         """Load a pretrained model from its name.
 
         Args:
@@ -691,7 +691,7 @@ class PredictorModule(lightning.LightningModule):
 
         if name is not None:
             return PredictorModule.load_from_checkpoint(
-                GRAPHIUM_PRETRAINED_MODELS_DICT[name_or_path], map_location=device
+                GRAPHIUM_PRETRAINED_MODELS_DICT[name_or_path], map_location=device, strict=strict, **kwargs
             )
 
         if name is None and not (fs.exists(name_or_path) and fs.get_extension(name_or_path) == "ckpt"):
@@ -700,7 +700,7 @@ class PredictorModule(lightning.LightningModule):
                 "or pass a valid checkpoint (.ckpt) path."
             )
 
-        return PredictorModule.load_from_checkpoint(name_or_path, map_location=device)
+        return PredictorModule.load_from_checkpoint(name_or_path, map_location=device, strict=strict, **kwargs)
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()
