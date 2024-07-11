@@ -91,8 +91,8 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics["grad_norm"] = GradientNormMetric()
 
         # Parse the metrics filters
-        metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
-        metrics_on_progress_bar = self._parse_metrics_filter(metrics_on_progress_bar)
+        self.metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
+        self.metrics_on_progress_bar = self._parse_metrics_filter(metrics_on_progress_bar)
 
         self._cached_metrics: Dict[str, Tensor] = {}
 
@@ -157,8 +157,9 @@ class SingleTaskSummary(SummaryInterface):
 
         # Compute the metrics
         computed_metrics = {}
-        for metric_key, metric_obj in metrics_to_use:
+        for metric_key in metrics_to_use:
             metric_name = self.metric_log_name(metric_key)
+            metric_obj = self.metrics[metric_key]
             try:
                 computed_metrics[f"{self.step_name}/{metric_name}"] = metric_obj.compute()
             except Exception as e:

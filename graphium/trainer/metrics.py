@@ -383,7 +383,7 @@ class MetricWrapper:
         r"""
         Compute the metric with the method `self.compute`
         """
-        if self.multitask_handling == "mean-per-label":
+        if isinstance(self.metric, list):
             metrics = [metric.compute() for metric in self.metric]
             return nan_mean(torch.stack(metrics))
 
@@ -402,7 +402,7 @@ class MetricWrapper:
         r"""
         Reset the metric with the method `self.metric.reset`
         """
-        if self.multitask_handling == "mean-per-label":
+        if isinstance(self.metric, list):
             for metric in self.metric:
                 metric.reset()
         else:
@@ -435,7 +435,7 @@ class MetricWrapper:
         r"""
         Control how the class is printed
         """
-        full_str = f"{self.metric.__name__}"
+        full_str = f"{self.metric.__repr__()}"
         if self.thresholder is not None:
             full_str += f"({self.thresholder})"
 
