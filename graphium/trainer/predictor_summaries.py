@@ -302,6 +302,10 @@ class STDMetric(BaseAggregator):
     Based on `torchmetrics.Metric`, with a similar implementation to `torchmetric.MeanMetric`.
 
     Parameters:
+        correction: 
+            The correction to apply to the standard deviation. Instead of dividing by number of samples `N`,
+            we divide by `N-correction`.
+
         nan_strategy: options:
             - ``'error'``: if any `nan` values are encountered will give a RuntimeError
             - ``'warn'``: if any `nan` values are encountered will give a warning and continue
@@ -309,7 +313,7 @@ class STDMetric(BaseAggregator):
             - a float: if a float is provided will impute any `nan` values with this value
 
     """
-    def __init__(self, nan_strategy: Union[Literal["error", "warn", "ignore"], float], **kwargs):
+    def __init__(self, nan_strategy: Union[Literal["error", "warn", "ignore"], float]="warn", correction:int=0, **kwargs):
         super().__init__(
             "sum",
             default_value=torch.tensor(0.0, dtype=torch.get_default_dtype()),
@@ -320,6 +324,7 @@ class STDMetric(BaseAggregator):
         self.add_state("sum", default=torch.tensor(0.0), dist_reduce_fx="sum")
         self.add_state("sum_of_squares", default=torch.tensor(0.0), dist_reduce_fx="sum")
         self.add_state("total_weight", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.correction = correction
 
     def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
         if not isinstance(value, Tensor):
@@ -338,10 +343,12 @@ class STDMetric(BaseAggregator):
         self.total_weight += weight.sum()
 
     def compute(self) -> Tensor:
+        dividor = max(0, self.total_weight - self.correction)
         mean = self.sum / self.total_weight
         mean_of_squares = self.sum_of_squares / self.total_weight
         variance = mean_of_squares - mean ** 2
-        return torch.sqrt(variance)
+        variance_corr = variance * (self.total_weight / dividor)
+        return torch.sqrt(variance_corr)
 
 class GradientNormMetric(Metric):
     """
@@ -350,15 +357,17 @@ class GradientNormMetric(Metric):
     """
     def __init__(self, dist_sync_on_step=False):
         super().__init__(dist_sync_on_step=dist_sync_on_step)
-        self.add_state("gradient_norm", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("gradient_norm_sq", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_steps", default=torch.tensor(0.0), dist_reduce_fx="sum")
 
     def update(self, model: torch.nn.Module) -> None:
-        grad_norm = torch.tensor(0.0)
+        total_norm = torch.tensor(0.0)
         for p in model.parameters():
             if p.grad is not None:
                 param_norm = p.grad.detach().data.norm(2)
                 total_norm += param_norm.detach().cpu() ** 2
-        self.gradient_norm_sq += grad_norm
+        self.gradient_norm_sq += total_norm
+        self.total_steps += 1
 
     def compute(self) -> Tensor:
-        return self.gradient_norm_sq.sqrt()
+        return (self.gradient_norm_sq / self.total_steps).sqrt()
