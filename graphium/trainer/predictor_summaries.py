@@ -49,6 +49,8 @@ class SingleTaskSummary(SummaryInterface):
         metrics_on_training_set: Optional[List[str]] = None,
         metrics_on_progress_bar: Optional[List[str]] = None,
         task_name: Optional[str] = None,
+        compute_mean: bool = True,
+        compute_std: bool = True,
     ):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
@@ -69,8 +71,16 @@ class SingleTaskSummary(SummaryInterface):
             task_name:
             name of the task (Default=`None`)
 
+            compute_mean:
+            whether to compute the mean of the predictions and targets
+
+            compute_std:
+            whether to compute the standard deviation of the predictions and targets
+
         """
         self.step_name = step_name
+        if not isinstance(metrics, dict):
+            raise ValueError(f"metrics must be a dictionary. Got {type(metrics)}")
         self.metrics = deepcopy(metrics)
 
         # Current predictor state
@@ -79,16 +89,14 @@ class SingleTaskSummary(SummaryInterface):
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
         # Add default metrics
-        if "mean_pred" not in self.metrics:
+        if ("mean_pred" not in self.metrics) and compute_mean:
             self.metrics["mean_pred"] = MeanMetric(nan_strategy="ignore")
-        if "mean_target" not in self.metrics:
+        if ("mean_target" not in self.metrics) and compute_mean:
             self.metrics["mean_target"] = MeanMetric(nan_strategy="ignore")
-        if "std_pred" not in self.metrics:
+        if ("std_pred" not in self.metrics) and compute_std:
             self.metrics["std_pred"] = STDMetric(nan_strategy="ignore")
-        if "std_target" not in self.metrics:
+        if ("std_target" not in self.metrics) and compute_std:
             self.metrics["std_target"] = STDMetric(nan_strategy="ignore")
-        if ("grad_norm" not in self.metrics) and (step_name == "train"):
-            self.metrics["grad_norm"] = GradientNormMetric()
 
         # Parse the metrics filters
         self.metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
@@ -107,6 +115,8 @@ class SingleTaskSummary(SummaryInterface):
             filter = list(filter.keys())
         elif isinstance(filter, list):
             filter = filter
+        elif isinstance(filter, str):
+            filter = [filter]
         else:
             raise ValueError(f"metrics_to_use must be a list or a dictionary. Got {type(filter)}")
 
@@ -114,7 +124,7 @@ class SingleTaskSummary(SummaryInterface):
         all_metrics = set(self.metrics.keys())
         filter = set(filter)
         if not filter.issubset(all_metrics):
-            raise ValueError(f"metrics_to_use must be a subset of the metrics. Got {filter - all_metrics}")
+            raise ValueError(f"metrics_to_use must be a subset of the metrics. Got {filter - all_metrics}, available {all_metrics}")
 
         return filter
 
@@ -161,10 +171,10 @@ class SingleTaskSummary(SummaryInterface):
             metric_name = self.metric_log_name(metric_key)
             metric_obj = self.metrics[metric_key]
             try:
-                computed_metrics[f"{self.step_name}/{metric_name}"] = metric_obj.compute()
+                computed_metrics[f"{metric_name}"] = metric_obj.compute()
             except Exception as e:
                 # If the metric computation fails, return NaN and log a warning only once
-                computed_metrics[f"{self.step_name}/{metric_name}"] = torch.as_tensor(float("nan"))
+                computed_metrics[f"{metric_name}"] = torch.as_tensor(float("nan"))
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)
@@ -224,10 +234,19 @@ class MultiTaskSummary(SummaryInterface):
         step_name: str,
         task_metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         task_metrics_on_progress_bar: Optional[Dict[str, List[str]]] = None,
+        compute_mean: bool = True,
+        compute_std: bool = True,
     ):
         r"""
         class to store the summaries of the tasks
         Parameters:
+
+        
+            compute_mean:
+            whether to compute the mean of the predictions and targets
+
+            compute_std:
+            whether to compute the standard deviation of the predictions and targets
 
         """
         self.task_metrics = task_metrics
@@ -244,6 +263,8 @@ class MultiTaskSummary(SummaryInterface):
                 metrics_on_training_set = self.task_metrics_on_training_set[task] if task in self.task_metrics_on_training_set else None,
                 metrics_on_progress_bar = self.task_metrics_on_progress_bar[task] if task in self.task_metrics_on_progress_bar else None,
                 task_name = task,
+                compute_mean = compute_mean,
+                compute_std = compute_std,
             )
 
     def update(self, targets: Dict[str, Tensor], preds: Dict[str, Tensor]) -> None:
@@ -354,6 +375,10 @@ class GradientNormMetric(Metric):
     """
     A metric to compute the norm of the gradient.
     Based on `torchmetrics.Metric`.
+
+    Warning:
+        This metric is not compatible with other metrics since it doesn't take
+        the predictions and targets as input. It takes the model as input.
     """
     def __init__(self, dist_sync_on_step=False):
         super().__init__(dist_sync_on_step=dist_sync_on_step)
