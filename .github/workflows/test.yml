@@ -50,7 +50,7 @@ jobs:
         run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
 
       - name: Install test dependencies
-        run: python -m pip install pytdc --no-deps -e .  # Required to run the `test_finetuning.py`
+        run: python -m pip install pytdc --no-deps  # Required to run the `test_finetuning.py`
 
       - name: Run tests
         run: pytest -m 'not ipu'
