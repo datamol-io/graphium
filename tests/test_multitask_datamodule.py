@@ -23,7 +23,7 @@ import numpy as np
 import graphium
 
 
-class Test_Multitask_DataModule(ut.TestCase):
+class test_Multitask_DataModule(ut.TestCase):
     def setUp(self):
         # Create a temporary directory
         self.tmp_test_dir = tempfile.mkdtemp()

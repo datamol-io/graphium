@@ -40,7 +40,7 @@ CONFIG_FILE = "graphium/config/dummy_finetuning.yaml"
 os.chdir(MAIN_DIR)
 
 
-class Test_Finetuning(ut.TestCase):
+class test_Finetuning(ut.TestCase):
     def test_finetuning_from_task_head(self):
         # Skip test if PyTDC package not installed
         try:
@@ -149,7 +149,7 @@ class Test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class TestCallback(Callback):
+        class test_Callback(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
@@ -335,7 +335,7 @@ class Test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class TestCallback(Callback):
+        class test_Callback(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
