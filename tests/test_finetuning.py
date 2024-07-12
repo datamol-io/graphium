@@ -149,7 +149,7 @@ class test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class test_Callback(Callback):
+        class CallbackTesting(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
@@ -223,7 +223,7 @@ class test_Finetuning(ut.TestCase):
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         # Add test callback to trainer
-        trainer.callbacks.append(TestCallback(cfg))
+        trainer.callbacks.append(CallbackTesting(cfg))
 
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
@@ -335,7 +335,7 @@ class test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class test_Callback(Callback):
+        class CallbackTesting(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
@@ -398,7 +398,7 @@ class test_Finetuning(ut.TestCase):
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         # Add test callback to trainer
-        trainer.callbacks.append(TestCallback(cfg))
+        trainer.callbacks.append(CallbackTesting(cfg))
 
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
