@@ -44,6 +44,7 @@ metrics:
       target_to_int: True
       num_classes: 2
       average: micro
+      task: binary
       threshold_kwargs: &threshold_05
         operator: greater
         threshold: 0.5
@@ -53,6 +54,7 @@ metrics:
       metric: precision
       multitask_handling: mean-per-label
       average: micro
+      task: binary
       threshold_kwargs: *threshold_05
   zinc: *qm9_metrics
 

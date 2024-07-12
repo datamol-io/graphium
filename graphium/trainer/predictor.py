@@ -594,8 +594,7 @@ class PredictorModule(lightning.LightningModule):
 
     def on_test_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(step_name="test")
-        aggregated_metrics_logs = self.task_epoch_summary.aggregate_metrics_logs(metrics_logs)
-        self.log_dict(aggregated_metrics_logs, sync_dist=True)
+        self.log_dict(metrics_logs, sync_dist=True)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)

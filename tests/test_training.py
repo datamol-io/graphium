@@ -19,8 +19,7 @@ import subprocess
 import os
 from unittest.mock import patch
 
-
-class TestCLITraining:
+class test_CLITraining():
     @classmethod
     def setup_class(cls):
         print("Setting up the test class...")
