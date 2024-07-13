@@ -52,7 +52,6 @@ class SingleTaskSummary(SummaryInterface):
         task_name: Optional[str] = None,
         compute_mean: bool = True,
         compute_std: bool = True,
-        compute_grad: bool = True,
     ):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
@@ -79,14 +78,10 @@ class SingleTaskSummary(SummaryInterface):
             compute_std:
             whether to compute the standard deviation of the predictions and targets
 
-            compute_grad:
-            whether to compute the gradient norm of the model, only if `step_name="train"`
-
         """
         self.step_name = step_name
         self.compute_mean = compute_mean
         self.compute_std = compute_std
-        self.compute_grad = compute_grad
 
         if not isinstance(metrics, dict):
             raise ValueError(f"metrics must be a dictionary. Got {type(metrics)}")
@@ -106,8 +101,6 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics["std_preds"] = STDMetric(nan_strategy="ignore")
         if ("std_target" not in self.metrics) and compute_std:
             self.metrics["std_target"] = STDMetric(nan_strategy="ignore")
-        if ("grad_norm" not in self.metrics) and compute_grad and (self.step_name == "train"):
-            self.metrics["grad_norm"] = GradientNormMetric()
 
         # Parse the metrics filters
         self.metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
@@ -118,8 +111,6 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics_on_training_set.update(["mean_preds", "mean_target"])
         if self.compute_std:
             self.metrics_on_training_set.update(["std_preds", "std_target"])
-        if self.compute_grad and (self.step_name == "train"):
-            self.metrics_on_training_set.update(["grad_norm"])
 
         self._cached_metrics: Dict[str, Tensor] = {}
 
@@ -161,14 +152,13 @@ class SingleTaskSummary(SummaryInterface):
             return metrics_to_use
         return self.metrics
 
-    def update(self, preds: Tensor, targets: Tensor, model: Optional[torch.nn.Module] = None) -> None:
+    def update(self, preds: Tensor, targets: Tensor) -> None:
 
         r"""
         update the state of the predictor
         Parameters:
             targets: the targets tensor
             predictions: the predictions tensor
-            model: the model, optional for some metrics like `GradientNormMetric`
         """
         for metric_key, metric_obj in self.metrics_to_use.items():
             try:
@@ -186,11 +176,6 @@ class SingleTaskSummary(SummaryInterface):
                 elif ("value" == varnames[0]) and ("target" in metric_key):
                     # The case where the metric takes only one value, and it is the target
                     metric_obj.update(targets)
-                elif ("model" == varnames[0]):
-                    # The case where the metric takes the model as input
-                    if model is None:
-                        raise ValueError(f"Metric {metric_key} requires the model as input.")
-                    metric_obj.update(model)
                 else:
                     raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
 
@@ -278,7 +263,6 @@ class MultiTaskSummary(SummaryInterface):
         task_metrics_on_progress_bar: Optional[Dict[str, List[str]]] = None,
         compute_mean: bool = True,
         compute_std: bool = True,
-        compute_grad: bool = True,
     ):
         r"""
         class to store the summaries of the tasks
@@ -308,10 +292,9 @@ class MultiTaskSummary(SummaryInterface):
                 task_name = task,
                 compute_mean = compute_mean,
                 compute_std = compute_std,
-                compute_grad=compute_grad,
             )
 
-    def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor], model: Optional[torch.nn.Module] = None) -> None:
+    def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
 
         r"""
         update the state for all predictors
@@ -323,7 +306,6 @@ class MultiTaskSummary(SummaryInterface):
             self.task_summaries[task].update(
                 preds[task].detach(),
                 targets[task],
-                model=model,
             )
 
     def get_results_on_progress_bar(
@@ -424,6 +406,7 @@ class GradientNormMetric(Metric):
     Warning:
         This metric is not compatible with other metrics since it doesn't take
         the predictions and targets as input. It takes the model as input.
+        It also doesn't work per task, but for the full model
     """
     def __init__(self, dist_sync_on_step=False):
         super().__init__(dist_sync_on_step=dist_sync_on_step)

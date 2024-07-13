@@ -33,7 +33,7 @@ from graphium.trainer.predictor_options import (
     ModelOptions,
     OptimOptions,
 )
-from graphium.trainer.predictor_summaries import MultiTaskSummary
+from graphium.trainer.predictor_summaries import MultiTaskSummary, GradientNormMetric
 from graphium.utils import fs
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 from graphium.utils.tensor import dict_tensor_fp16_to_fp32
@@ -200,6 +200,7 @@ class PredictorModule(lightning.LightningModule):
 
         self.samples_seen = 0
         self.global_bs = global_bs
+        self.model_grad = GradientNormMetric()
 
     def forward(
         self, inputs: Dict
@@ -468,6 +469,7 @@ class PredictorModule(lightning.LightningModule):
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
 
+        self.model_grad.reset()
         self.task_epoch_summary["train"].reset()
         self.train_batch_start_time = time.time()
         self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
@@ -517,6 +519,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_computed = self.task_epoch_summary["train"].compute()
         self.task_epoch_summary["train"].reset()
         metrics_logs.update(metrics_computed)
+        metrics_logs["train/grad_norm"] = self.model_grad.compute()
 
         # Log the metrics
         if self.logger is not None:
@@ -534,6 +537,9 @@ class PredictorModule(lightning.LightningModule):
         elif self.flag_kwargs["n_steps"] == 0:
             # step_dict = self._general_step(batch=batch, step_name="train")
             step_dict = self._general_step(batch=batch, step_name="train")
+
+        # Update the gradients
+        self.model_grad.update(self.model)
 
         return step_dict  # Returning the metrics_logs with the loss
 

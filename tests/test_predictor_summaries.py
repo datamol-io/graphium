@@ -243,14 +243,14 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mean_std, places=5)
 
         # Test the training step doesn't return anything when no metrics on training set are selected
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=None, compute_mean=False, compute_std=False, compute_grad=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=None, compute_mean=False, compute_std=False)
         summary_train.update(preds, targets)
         summary_train = summary_train.compute()
         self.assertDictEqual(summary_train, {})
 
         # Test the training step returns only the mae
         task_metrics_on_training_set = {"task1": ["mae"], "task2": None, "task3": "mae"}
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False, compute_grad=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
         summary_train.update(preds, targets)
         summary_dict = summary_train.compute()
         expected_dict_mae = {key: value for key, value in expected_dict.items() if "mae" in key}
@@ -258,7 +258,7 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mae, places=5)
 
         # Test the training step returns only the mae with multiple steps
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False, compute_grad=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
         summary_train.update(preds1, targets1)
         summary_train.update(preds2, targets2)
         summary_train.update(preds3, targets3)
@@ -266,35 +266,10 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mae, places=5)
 
         # Test grad_norm not available in "val" step
-        summary_val = MultiTaskSummary(task_metrics, step_name="val", compute_mean=False, compute_std=False, compute_grad=True)
+        summary_val = MultiTaskSummary(task_metrics, step_name="val", compute_mean=False, compute_std=False)
         summary_val.update(preds, targets)
         summary_dict = summary_val.compute()
         self.assertNotIn("grad_norm", summary_dict.keys())
-
-        # Test grad_norm available in "train" step
-        model = SimpleDictNN(task_list=task_metrics.keys(), in_dim=1, out_dim=1)
-        model = simple_nn_grad_step(model, preds, targets)
-        expected_norm = torch.norm(torch.stack([torch.norm(param.grad) for param in model.parameters()]))
-
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", compute_mean=False, compute_std=False, compute_grad=True)
-        summary_train.update(preds, targets, model)
-        summary_dict_grad1 = summary_train.compute()
-        self.assertIn("task1/grad_norm/train", summary_dict_grad1.keys())
-        self.assertIn("task2/grad_norm/train", summary_dict_grad1.keys())
-        self.assertIn("task3/grad_norm/train", summary_dict_grad1.keys())
-
-        # Test grad_norm available in "train" step with multiple steps
-        model = SimpleDictNN(task_list=task_metrics.keys(), in_dim=1, out_dim=1)
-        model1 = simple_nn_grad_step(model, preds1, targets1)
-        model2 = simple_nn_grad_step(model, preds2, targets2)
-        model3 = simple_nn_grad_step(model, preds3, targets3)
-
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", compute_mean=False, compute_std=False, compute_grad=True)
-        summary_train.update(preds1, targets1, model1)
-        summary_train.update(preds2, targets2, model2)
-        summary_train.update(preds3, targets3, model3)
-        summary_dict_grad2 = summary_train.compute()
-        self.assertDictTensorAlmostEqual(summary_dict_grad1, summary_dict_grad2, places=7)
 
 
 if __name__ == "__main__":
