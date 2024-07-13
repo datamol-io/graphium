@@ -17,6 +17,7 @@ r"""Classes to store information about resulting evaluation metrics when using a
 from typing import Any, Callable, Dict, List, Optional, Union, Literal
 from loguru import logger
 from copy import deepcopy
+import inspect
 
 import numpy as np
 import torch
@@ -31,7 +32,7 @@ class SummaryInterface(object):
     An interface to define the functions implemented by summary classes that implement SummaryInterface.
     """
 
-    def update(self, targets: Tensor, preds: Tensor) -> None:
+    def update(self, preds: Tensor, targets: Tensor) -> None:
         raise NotImplementedError()
 
     def compute(self, **kwargs) -> Tensor:
@@ -89,12 +90,12 @@ class SingleTaskSummary(SummaryInterface):
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
         # Add default metrics
-        if ("mean_pred" not in self.metrics) and compute_mean:
-            self.metrics["mean_pred"] = MeanMetric(nan_strategy="ignore")
+        if ("mean_preds" not in self.metrics) and compute_mean:
+            self.metrics["mean_preds"] = MeanMetric(nan_strategy="ignore")
         if ("mean_target" not in self.metrics) and compute_mean:
             self.metrics["mean_target"] = MeanMetric(nan_strategy="ignore")
-        if ("std_pred" not in self.metrics) and compute_std:
-            self.metrics["std_pred"] = STDMetric(nan_strategy="ignore")
+        if ("std_preds" not in self.metrics) and compute_std:
+            self.metrics["std_preds"] = STDMetric(nan_strategy="ignore")
         if ("std_target" not in self.metrics) and compute_std:
             self.metrics["std_target"] = STDMetric(nan_strategy="ignore")
 
@@ -141,17 +142,39 @@ class SingleTaskSummary(SummaryInterface):
             return metrics_to_use
         return self.metrics
 
-    def update(self, targets: Tensor, preds: Tensor) -> None:
+    def update(self, preds: Tensor, targets: Tensor, model: Optional[torch.nn.Module] = None) -> None:
 
         r"""
         update the state of the predictor
         Parameters:
             targets: the targets tensor
             predictions: the predictions tensor
+            model: the model, optional for some metrics like `GradientNormMetric`
         """
         for metric_key, metric_obj in self.metrics_to_use.items():
             try:
-                metric_obj.update(preds, targets)
+                # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
+                varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
+                if ("preds" == varnames[0]) and ("target" == varnames[1]):
+                    # The typical case of `torchmetrics`
+                    metric_obj.update(preds, targets)
+                if ("preds" == varnames[1]) and ("target" == varnames[0]):
+                    # Unusual case where the order of the arguments is reversed
+                    metric_obj.update(targets, preds)
+                elif ("value" == varnames[0]) and ("preds" in metric_key):
+                    # The case where the metric takes only one value, and it is the prediction
+                    metric_obj.update(preds)
+                elif ("value" == varnames[0]) and ("target" in metric_key):
+                    # The case where the metric takes only one value, and it is the target
+                    metric_obj.update(targets)
+                elif ("model" == varnames[0]):
+                    # The case where the metric takes the model as input
+                    if model is None:
+                        raise ValueError(f"Metric {metric_key} requires the model as input.")
+                    metric_obj.update(model)
+                else:
+                    raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
+
             except:
                 pass
 
@@ -267,7 +290,7 @@ class MultiTaskSummary(SummaryInterface):
                 compute_std = compute_std,
             )
 
-    def update(self, targets: Dict[str, Tensor], preds: Dict[str, Tensor]) -> None:
+    def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
 
         r"""
         update the state for all predictors
@@ -277,8 +300,8 @@ class MultiTaskSummary(SummaryInterface):
         """
         for task in self.tasks:
             self.task_summaries[task].update(
-                targets[task],
                 preds[task].detach(),
+                targets[task],
             )
 
     def get_results_on_progress_bar(

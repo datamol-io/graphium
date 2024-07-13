@@ -152,7 +152,9 @@ class test_TaskSummary(ut.TestCase):
 
     def assertDictTensorAlmostEqual(self, dict1, dict2, places=7):
         dict1 = deepcopy(dict1)
+        dict1 = {key: dict1[key] for key in sorted(dict1.keys())}
         dict2 = deepcopy(dict2)
+        dict2 = {key: dict2[key] for key in sorted(dict2.keys())}
         for key in dict1.keys():
             dict1[key] = round(dict1[key].item(), places)
         for key in dict2.keys():
@@ -217,8 +219,8 @@ class test_TaskSummary(ut.TestCase):
         summary_dict = summary_val.compute()
         expected_dict_mean_std = {}
         for task in task_metrics.keys():
-            expected_dict_mean_std[f"{task}/mean_pred/val"] = preds[task].mean()
-            expected_dict_mean_std[f"{task}/std_pred/val"] = preds[task].std(correction=0)
+            expected_dict_mean_std[f"{task}/mean_preds/val"] = preds[task].mean()
+            expected_dict_mean_std[f"{task}/std_preds/val"] = preds[task].std(correction=0)
             expected_dict_mean_std[f"{task}/mean_target/val"] = targets[task].mean()
             expected_dict_mean_std[f"{task}/std_target/val"] = targets[task].std(correction=0)
         expected_dict_mean_std.update(expected_dict)
