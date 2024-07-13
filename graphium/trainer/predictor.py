@@ -390,7 +390,7 @@ class PredictorModule(lightning.LightningModule):
             preds[task] = preds[task].detach()
             targets_dict[task] = targets_dict[task].detach()
 
-        self.task_epoch_summary[step_name].update(targets_dict, preds, self.model)
+        self.task_epoch_summary[step_name].update(targets_dict, preds)
 
         step_dict = {}
         step_dict["loss"] = loss
@@ -464,7 +464,7 @@ class PredictorModule(lightning.LightningModule):
         step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
-        self.task_epoch_summary[step_name].update(targets, preds, self.model)
+        self.task_epoch_summary[step_name].update(targets, preds)
         return step_dict
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
