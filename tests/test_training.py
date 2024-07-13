@@ -48,7 +48,7 @@ class test_CLITraining():
 
         print("Data has been successfully downloaded.")
 
-    def call_cli_with_overrides(self, acc_type: str, acc_prec: str, load_type: str) -> None:
+    def call_cli_with_overrides(self, acc_type: str, acc_prec: str) -> None:
         overrides = [
             f"accelerator={acc_type}",
             "tasks=toymix",
@@ -75,7 +75,6 @@ class test_CLITraining():
             "+datamodule.args.task_specific_args.zinc.sample_size=1000",
             "trainer.trainer.check_val_every_n_epoch=1",
             f"trainer.trainer.precision={acc_prec}",
-            f"datamodule.args.dataloading_from={load_type}",
         ]
         if acc_type == "ipu":
             overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
@@ -92,14 +91,12 @@ class test_CLITraining():
         # Restore the original sys.argv
         sys.argv = original_argv
 
-    @pytest.mark.parametrize("load_type", ["RAM", "disk"])
-    def test_cpu_cli_training(self, load_type):
-        self.call_cli_with_overrides("cpu", "32", load_type)
+    def test_cpu_cli_training(self):
+        self.call_cli_with_overrides("cpu", "32")
 
     @pytest.mark.ipu
     @pytest.mark.skip
-    @pytest.mark.parametrize("load_type", ["RAM", "disk"])
-    def test_ipu_cli_training(self, load_type):
+    def test_ipu_cli_training(self):
         with patch("poptorch.ipuHardwareIsAvailable", return_value=True):
             with patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
                 import poptorch
@@ -108,4 +105,4 @@ class test_CLITraining():
                 from lightning_graphcore.accelerator import _IPU_AVAILABLE
 
                 assert _IPU_AVAILABLE is True
-                self.call_cli_with_overrides("ipu", "16-true", load_type)
+                self.call_cli_with_overrides("ipu", "16-true")

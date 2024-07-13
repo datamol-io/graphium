@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.09", "3.10", "3.11"]
         pytorch-version: ["2.0"]
 
     runs-on: "ubuntu-latest"
@@ -51,6 +51,9 @@ jobs:
 
       - name: Install test dependencies
         run: micromamba install -c conda-forge pytdc  # Required to run the `test_finetuning.py`
+
+      - name: Install C++ library
+        run: cd graphium/graphium_cpp && git clone https://github.com/pybind/pybind11.git && export PYTHONPATH=$PYTHONPATH:./pybind11 && python -m pip install . && cd ../..
 
       - name: Run tests
         run: pytest -m 'not ipu'
