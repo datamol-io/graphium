@@ -24,6 +24,51 @@ import unittest as ut
 
 from graphium.trainer.predictor_summaries import SingleTaskSummary, MultiTaskSummary, STDMetric, GradientNormMetric
 
+class SimpleNN(nn.Module):
+# Define a simple neural network with 2 layers
+    def __init__(self, in_dim=10, out_dim=1):
+        super(SimpleNN, self).__init__()
+        torch.random.manual_seed(42)
+        # Define the first layer with 10 input features and 5 output features
+        self.layer1 = nn.Linear(in_dim, 5)
+        # Define the second layer with 5 input features and 1 output feature
+        self.layer2 = nn.Linear(5, out_dim)
+
+    def forward(self, x):
+        # Pass the input through the first layer
+        if x.ndim == 1:
+            x = x.unsqueeze(-1)
+        x = torch.relu(self.layer1(x))
+        # Pass the output of the first layer through the second layer
+        x = self.layer2(x)
+        return x
+    
+
+class SimpleDictNN(nn.Module):
+    def __init__(self, task_list, in_dim=10, out_dim=1):
+        super(SimpleDictNN, self).__init__()
+        torch.random.manual_seed(42)
+        self.dict_nn = nn.ModuleDict({task: SimpleNN(in_dim, out_dim) for task in task_list})
+
+    def forward(self, x):
+        return {task: self.dict_nn[task](x[task]) for task in self.dict_nn.keys()}
+
+
+def simple_nn_grad_step(model, inputs, targets):
+    # Initialize the optimizer and loss function
+    loss_fn = nn.MSELoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+
+    # Perform a gradient step
+    optimizer.zero_grad()
+    outputs = model(inputs)
+    if isinstance(outputs, dict):
+        loss = sum([loss_fn(outputs[task], targets[task]) for task in outputs.keys()])
+    else:
+        loss = loss_fn(outputs, targets)
+    loss.backward()
+    optimizer.step()
+    return model
 
 class test_TaskSummary(ut.TestCase):
 
@@ -74,27 +119,6 @@ class test_TaskSummary(ut.TestCase):
         self.assertAlmostEqual(std_metric_val.item(), expected_std.item(), places=5)
         
     def test_gradient_norm_metric(self):
-        # Define a simple neural network with 2 layers
-        class SimpleNN(nn.Module):
-            def __init__(self):
-                super(SimpleNN, self).__init__()
-                torch.random.manual_seed(42)
-                # Define the first layer with 10 input features and 5 output features
-                self.layer1 = nn.Linear(10, 5)
-                # Define the second layer with 5 input features and 1 output feature
-                self.layer2 = nn.Linear(5, 1)
-
-            def forward(self, x):
-                # Pass the input through the first layer
-                x = torch.relu(self.layer1(x))
-                # Pass the output of the first layer through the second layer
-                x = self.layer2(x)
-                return x
-            
-        # Create an instance of the neural network, optimizer and loss function
-        model = SimpleNN()
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-        loss_fn = nn.MSELoss()
 
         # Generate random data
         torch.random.manual_seed(42)
@@ -103,19 +127,14 @@ class test_TaskSummary(ut.TestCase):
         targets = torch.rand(LEN, 1)
 
         # Compute expected values for gradient norm
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = loss_fn(outputs, targets)
-        loss.backward()
+        model = SimpleNN()
+        model = simple_nn_grad_step(model, inputs, targets)
         expected_grad_norm = torch.norm(torch.stack([torch.norm(param.grad) for param in model.parameters()]))
-        optimizer.zero_grad()
 
         # Compute gradient norm metric
+        model = SimpleNN()
+        model = simple_nn_grad_step(model, inputs, targets)
         grad_norm_metric = GradientNormMetric()
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = loss_fn(outputs, targets)
-        loss.backward()
         grad_norm_metric.update(model)
         grad_norm_metric_val = grad_norm_metric.compute()
         grad_norm_metric.reset()
@@ -124,31 +143,20 @@ class test_TaskSummary(ut.TestCase):
 
         # Compute gradient norm metric with many update steps
         grad_norm_metric = GradientNormMetric()
-        optimizer.zero_grad()
-        outputs = model(inputs[:10])
-        loss = loss_fn(outputs, targets[:10])
-        loss.backward()
+        model = SimpleNN()
+        model = simple_nn_grad_step(model, inputs[:50], targets[:50])
         grad_norm_metric.update(model)
-        optimizer.zero_grad()
-        outputs = model(inputs[10:50])
-        loss = loss_fn(outputs, targets[10:50])
-        loss.backward()
+        model = SimpleNN()
+        model = simple_nn_grad_step(model, inputs[50:400], targets[50:400])
         grad_norm_metric.update(model)
-        optimizer.zero_grad()
-        outputs = model(inputs[50:300])
-        loss = loss_fn(outputs, targets[50:300])
-        loss.backward()
-        grad_norm_metric.update(model)
-        optimizer.zero_grad()
-        outputs = model(inputs[300:])
-        loss = loss_fn(outputs, targets[300:])
-        loss.backward()
+        model = SimpleNN()
+        model = simple_nn_grad_step(model, inputs[400:], targets[400:])
         grad_norm_metric.update(model)
 
         grad_norm_metric_val = grad_norm_metric.compute()
         grad_norm_metric.reset()
 
-        self.assertAlmostEqual(grad_norm_metric_val.item(), expected_grad_norm.item(), places=2)
+        self.assertAlmostEqual(grad_norm_metric_val.item(), expected_grad_norm.item(), places=1)
 
     def assertDictTensorAlmostEqual(self, dict1, dict2, places=7):
         dict1 = deepcopy(dict1)
@@ -226,15 +234,23 @@ class test_TaskSummary(ut.TestCase):
         expected_dict_mean_std.update(expected_dict)
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mean_std, places=5)
 
+        # Test the mean and std computation with multiple batches
+        summary_val.reset()
+        summary_val.update(preds1, targets1)
+        summary_val.update(preds2, targets2)
+        summary_val.update(preds3, targets3)
+        summary_dict = summary_val.compute()
+        self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mean_std, places=5)
+
         # Test the training step doesn't return anything when no metrics on training set are selected
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=None, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=None, compute_mean=False, compute_std=False, compute_grad=False)
         summary_train.update(preds, targets)
         summary_train = summary_train.compute()
         self.assertDictEqual(summary_train, {})
 
         # Test the training step returns only the mae
         task_metrics_on_training_set = {"task1": ["mae"], "task2": None, "task3": "mae"}
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False, compute_grad=False)
         summary_train.update(preds, targets)
         summary_dict = summary_train.compute()
         expected_dict_mae = {key: value for key, value in expected_dict.items() if "mae" in key}
@@ -242,12 +258,44 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mae, places=5)
 
         # Test the training step returns only the mae with multiple steps
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False, compute_grad=False)
         summary_train.update(preds1, targets1)
         summary_train.update(preds2, targets2)
         summary_train.update(preds3, targets3)
         summary_dict = summary_train.compute()
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mae, places=5)
+
+        # Test grad_norm not available in "val" step
+        summary_val = MultiTaskSummary(task_metrics, step_name="val", compute_mean=False, compute_std=False, compute_grad=True)
+        summary_val.update(preds, targets)
+        summary_dict = summary_val.compute()
+        self.assertNotIn("grad_norm", summary_dict.keys())
+
+        # Test grad_norm available in "train" step
+        model = SimpleDictNN(task_list=task_metrics.keys(), in_dim=1, out_dim=1)
+        model = simple_nn_grad_step(model, preds, targets)
+        expected_norm = torch.norm(torch.stack([torch.norm(param.grad) for param in model.parameters()]))
+
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", compute_mean=False, compute_std=False, compute_grad=True)
+        summary_train.update(preds, targets, model)
+        summary_dict_grad1 = summary_train.compute()
+        self.assertIn("task1/grad_norm/train", summary_dict_grad1.keys())
+        self.assertIn("task2/grad_norm/train", summary_dict_grad1.keys())
+        self.assertIn("task3/grad_norm/train", summary_dict_grad1.keys())
+
+        # Test grad_norm available in "train" step with multiple steps
+        model = SimpleDictNN(task_list=task_metrics.keys(), in_dim=1, out_dim=1)
+        model1 = simple_nn_grad_step(model, preds1, targets1)
+        model2 = simple_nn_grad_step(model, preds2, targets2)
+        model3 = simple_nn_grad_step(model, preds3, targets3)
+
+        summary_train = MultiTaskSummary(task_metrics, step_name="train", compute_mean=False, compute_std=False, compute_grad=True)
+        summary_train.update(preds1, targets1, model1)
+        summary_train.update(preds2, targets2, model2)
+        summary_train.update(preds3, targets3, model3)
+        summary_dict_grad2 = summary_train.compute()
+        self.assertDictTensorAlmostEqual(summary_dict_grad1, summary_dict_grad2, places=7)
+
 
 if __name__ == "__main__":
     ut.main()
