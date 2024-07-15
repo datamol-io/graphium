@@ -26,30 +26,39 @@ from loguru import logger
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Batch, Data
 
-from graphium.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids_and_rank
 from graphium.features import GraphDict
+from graphium.utils.enums import TaskLevel
 
 
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
         labels: List[Union[torch.Tensor, np.ndarray]],
+        task_level: TaskLevel = TaskLevel.GRAPH,
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[int]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
         unique_ids: Optional[List[str]] = None,
+        canonical_rank_pairs: Optional[List[Optional[Tuple[List[int], List[int]]]]] = None,
         mol_ids: Optional[List[str]] = None,
     ):
         r"""
         dataset for a single task
         Parameters:
             labels: A list of labels for the given task (one per graph)
+            task_level: The level of the task. One of "graph", "node", "edge", "nodepair"
             features: A list of graphs
             smiles: A list of smiles
             indices: A list of indices
             weights: A list of weights
             unique_ids: A list of unique ids for each molecule generated from `datamol.unique_id`
+            canonical_rank_pairs: A list of `None` or pairs representing the canonical ranks for each molecule generated
+                from `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`. The first element of the pair is the canonical
+                order for the atoms of the featurized molecule, and the second element is the canonical order
+                for the atoms of the original molecule.
+                If `None` is provided rather than a pair, then the ordering is not important.
             mol_ids: A list of ids coming from the original dataset. Useful to identify the molecule in the original dataset.
         """
 
@@ -63,13 +72,16 @@ class SingleTaskDataset(Dataset):
                     f"{label} must be the same length as `labels`, got {len(to_check)} and {numel}"
                 )
 
+        self.task_level = TaskLevel.from_str(task_level)
+
         _check_if_same_length(features, "features")
         _check_if_same_length(indices, "indices")
         _check_if_same_length(weights, "weights")
         _check_if_same_length(unique_ids, "unique_ids")
+        _check_if_same_length(canonical_rank_pairs, "canonical_rank_pairs")
         _check_if_same_length(mol_ids, "mol_ids")
 
-        self.labels = labels
+        self.labels = self.reorder_labels(labels, canonical_rank_pairs, task_level=task_level)
         if smiles is not None:
             manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
             self.smiles = manager.list(smiles)
@@ -99,7 +111,7 @@ class SingleTaskDataset(Dataset):
         Parameters:
             idx: the index to get the data at
         Returns:
-            datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
+            datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids", "canonical_rank_pairs" and "mol_ids"
         """
         datum = {}
 
@@ -137,6 +149,59 @@ class SingleTaskDataset(Dataset):
         state["unique_ids"] = self.unique_ids
         state["mol_ids"] = self.mol_ids
         return state
+
+    @staticmethod
+    def reorder_labels(
+        labels,
+        canonical_rank_pairs: List[Tuple[Optional[List[int]], Optional[List[int]]]],
+        task_level: TaskLevel,
+    ) -> List[Any]:
+        """
+        Reorder the labels according to the canonical rank pairs.
+        This is useful for tasks such as node/edge/nodepair classification where the order of the nodes is important.
+
+        Parameters:
+            labels: A list of labels for the given task
+            canonical_rank_pairs: A list of `None` or pairs representing the canonical ranks for each molecule generated
+                from `rdkit.Chem.rdmolfiles.CanonicalRankAtoms`. The first element of the pair is the canonical
+                order for the atoms of the featurized molecule, and the second element is the canonical order
+                for the atoms of the original molecule.
+                If `None` is provided rather than a pair, then the ordering is not important.
+            task_level: The level of the task. One of "graph", "node", "edge", "nodepair"
+
+        Returns:
+            reordered_labels: A list of labels for the given task reordered according to the canonical rank pairs.
+                Assuming the first element of the pair is the canonical order desired, and the second element is the
+                canonical order of the original molecule.
+        """
+        task_level = TaskLevel.from_str(task_level)
+
+        if (canonical_rank_pairs is None) or (task_level == TaskLevel.GRAPH):
+            return labels
+        else:
+            reordered_labels = []
+            for i in range(len(labels)):
+                if canonical_rank_pairs[i] is None:
+                    reordered_labels.append(labels[i])
+                else:
+                    # Map the indices from `b` (original molecule) to `a` (featurized molecule)
+                    a, b = canonical_rank_pairs[i]
+                    index_map = {value: index for index, value in enumerate(b)}
+                    mapped_indices = [index_map[value] for value in a]
+
+                    if task_level == TaskLevel.NODE:
+                        reordered_labels.append(labels[i][mapped_indices])
+                        # TODO: Not sure that the mapping is done on the right indices
+                    elif task_level == TaskLevel.EDGE:
+                        raise NotImplementedError(
+                            "Reordering of edge labels is not implemented yet. Need to figure out how to do this efficiently."
+                        )
+                    elif task_level == TaskLevel.NODEPAIR:
+                        raise NotImplementedError(
+                            "Reordering of nodepair labels is not implemented yet. Need to figure out how to do this efficiently."
+                        )
+
+            return reordered_labels
 
     def __setstate__(self, state: dict):
         """Reload the class from pickling."""
@@ -534,6 +599,7 @@ class MultitaskDataset(Dataset):
         all_features = []
         all_labels = []
         all_mol_ids = []
+        all_canonical_rank_pairs = []
         all_tasks = []
 
         for task, ds in datasets.items():
@@ -542,10 +608,13 @@ class MultitaskDataset(Dataset):
             # Get data from single task dataset
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
-            if "unique_ids" in ds[0].keys():
+
+            # Check if "unique_ids" and "canonical_rank_pairs" are in ds[0].keys()
+            if "unique_ids" in ds[0].keys() and "canonical_rank_pairs" in ds[0].keys():
                 ds_mol_ids = [ds[i]["unique_ids"] for i in range(len(ds))]
+                ds_canonical_rank_pairs = [ds[i]["canonical_rank_pairs"] for i in range(len(ds))]
             else:
-                ds_mol_ids = smiles_to_unique_mol_ids(
+                ds_mol_ids, ds_canonical_rank_pairs = smiles_to_unique_mol_ids_and_rank(
                     ds_smiles,
                     n_jobs=self.n_jobs,
                     featurization_batch_size=self.featurization_batch_size,
@@ -560,6 +629,7 @@ class MultitaskDataset(Dataset):
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
             all_mol_ids.extend(ds_mol_ids)
+            all_canonical_rank_pairs.extend(ds_canonical_rank_pairs)
             if ds_features is not None:
                 all_features.extend(ds_features)
 
@@ -571,6 +641,7 @@ class MultitaskDataset(Dataset):
             "features": all_features,
             "labels": all_labels,
             "mol_ids": all_mol_ids,
+            "canonical_rank_pairs": all_canonical_rank_pairs,
             "tasks": all_tasks,
         }
 
