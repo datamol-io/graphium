@@ -489,23 +489,25 @@ class PredictorModule(lightning.LightningModule):
         # report the training loss for each individual tasks
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         # filter zeros out for the individual losses
-        losses = {}
+        losses = {"_global/loss/train": outputs["loss"]}
         for task in self.tasks:
             this_losses = outputs["task_losses"][task]
             if isinstance(this_losses, torch.Tensor):
                 if this_losses.numel() > 1:
                     this_losses = this_losses[this_losses != 0].mean()
             
-            losses[f"train/loss/{task}"] = this_losses
-
+            losses[f"{task}/loss/train"] = this_losses
         metrics_logs.update(losses)
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
             if self.logger is not None:
-                self.logger.log_metrics(
-                    metrics_logs, step=self.global_step
-                )  # This is a pytorch lightning function call
+                self.log_dict(
+                    dictionary=metrics_logs,
+                    logger=self.logger,
+                    on_step=True,
+                    prog_bar=True,
+                )
             return
 
         ### The code below is not executed if the logging is skipped for this step ###
@@ -522,10 +524,12 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["train/grad_norm"] = self.model_grad.compute()
 
         # Log the metrics
-        if self.logger is not None:
-            self.logger.log_metrics(
-                metrics_logs, step=self.global_step
-            )  # This is a pytorch lightning function call
+        self.log_dict(
+            dictionary=metrics_logs,
+            logger=True,
+            on_step=True,
+            prog_bar=True,
+        )
 
     def training_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         step_dict = None
@@ -562,12 +566,11 @@ class PredictorModule(lightning.LightningModule):
         self.epoch_start_time = time.time()
 
     def on_train_epoch_end(self) -> None:
-        if self.epoch_start_time is None:
-            logger.warning("epoch timer not initialized")
-        else:
+        if self.epoch_start_time is not None:
             epoch_time = time.time() - self.epoch_start_time
+            epoch_time = torch.tensor(epoch_time)
             self.epoch_start_time = None
-            self.log("epoch_time", torch.tensor(epoch_time), sync_dist=True)
+            self.log("train/epoch_time", epoch_time, prog_bar=True, sync_dist=True, on_epoch=True)
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
@@ -592,7 +595,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs = self._general_epoch_end(step_name="val")
         metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        self.log_dict(metrics_logs, sync_dist=True)
+        self.log_dict(metrics_logs, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
 
     def on_test_epoch_start(self) -> None:
         self.task_epoch_summary["test"].reset()
@@ -600,7 +603,7 @@ class PredictorModule(lightning.LightningModule):
 
     def on_test_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(step_name="test")
-        self.log_dict(metrics_logs, sync_dist=True)
+        self.log_dict(metrics_logs, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
@@ -608,17 +611,15 @@ class PredictorModule(lightning.LightningModule):
         if self.logger is not None:
             self.logger.log_hyperparams(hparams_log)
 
-    def get_progress_bar_dict(self) -> Dict[str, float]:
-        prog_dict = {}
+    @property
+    def get_metrics_on_progress_bar(self) -> List[str]:
+        prog_list = ["_global/loss/train"]
+        for task_name in self.tasks:
+            for metric in self.metrics_on_progress_bar[task_name]:
+                this_summary = self.task_epoch_summary["val"][task_name]
+                prog_list.append(this_summary.metric_log_name(metric))
 
-        prog_dict["loss"] = self.task_epoch_summary.weighted_loss.detach().cpu()
-        results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
-        for task in self.tasks:
-            prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (
-                self.task_epoch_summary.task_summaries[task].summaries["val"].loss
-            )
-            prog_dict.update(results_on_progress_bar)
-        return prog_dict
+        return prog_list
 
     def __repr__(self) -> str:
         r"""

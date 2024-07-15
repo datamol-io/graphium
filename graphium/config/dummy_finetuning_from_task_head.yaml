@@ -70,14 +70,14 @@ accelerator:
 predictor:
   random_seed: ${constants.seed}
   optim_kwargs:
-    lr: 4.e-5
+    lr: 1.e-3
   scheduler_kwargs: null
   target_nan_mask: null
   multitask_handling: flatten # flatten, mean-per-label
   
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 2
+    max_num_epochs: 4
     warmup_epochs: 1
     verbose: False
   
@@ -113,7 +113,7 @@ trainer:
   seed: ${constants.seed}
   trainer:
     precision: 32
-    max_epochs: 2
+    max_epochs: 4
     min_epochs: 1
     check_val_every_n_epoch: 1
     accumulate_grad_batches: 1

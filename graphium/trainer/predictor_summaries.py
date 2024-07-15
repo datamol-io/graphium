@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
-from typing import Any, Callable, Dict, List, Optional, Union, Literal
+from typing import Any, Callable, Dict, List, Optional, Union, Literal, Iterable
 from loguru import logger
 from copy import deepcopy
 import inspect
@@ -24,6 +24,7 @@ import torch
 from torch import Tensor
 from torchmetrics import MeanMetric, Metric
 from torchmetrics.aggregation import BaseAggregator
+
 
 from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
 
@@ -294,6 +295,9 @@ class MultiTaskSummary(SummaryInterface):
                 compute_std = compute_std,
             )
 
+    def __getitem__(self, task: str) -> SingleTaskSummary:
+        return self.task_summaries[task]
+
     def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
 
         r"""
@@ -424,3 +428,4 @@ class GradientNormMetric(Metric):
 
     def compute(self) -> Tensor:
         return (self.gradient_norm_sq / self.total_steps).sqrt()
+

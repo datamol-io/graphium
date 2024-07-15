@@ -217,7 +217,8 @@ class test_Finetuning(ut.TestCase):
 
                     assert not False in unfrozen_parameters
 
-        trainer = load_trainer(cfg, accelerator_type)
+        metrics_on_progress_bar = predictor.get_metrics_on_progress_bar
+        trainer = load_trainer(cfg, accelerator_type, metrics_on_progress_bar=metrics_on_progress_bar)
 
         finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
@@ -392,7 +393,8 @@ class test_Finetuning(ut.TestCase):
 
                     assert not False in unfrozen_parameters
 
-        trainer = load_trainer(cfg, accelerator_type)
+        metrics_on_progress_bar = predictor.get_metrics_on_progress_bar
+        trainer = load_trainer(cfg, accelerator_type, metrics_on_progress_bar=metrics_on_progress_bar)
 
         finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))

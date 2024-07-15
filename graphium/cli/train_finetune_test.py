@@ -220,10 +220,11 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
+    metrics_on_progress_bar = predictor.get_metrics_on_progress_bar()
 
     ## Trainer
     date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-    trainer = load_trainer(cfg, accelerator_type, date_time_suffix)
+    trainer = load_trainer(cfg, accelerator_type, date_time_suffix, metrics_on_progress_bar=metrics_on_progress_bar)
 
     if not testing_only:
         # Add the fine-tuning callback to trainer

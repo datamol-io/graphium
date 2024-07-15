@@ -15,7 +15,7 @@ Refer to the LICENSE file for the full terms and conditions.
 # Misc
 import os
 from copy import deepcopy
-from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union, Iterable
 
 import joblib
 import mup
@@ -40,6 +40,7 @@ from graphium.nn.utils import MupMixin
 from graphium.trainer.metrics import MetricWrapper
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.command_line_utils import get_anchors_and_aliases, update_config
+from graphium.trainer.progress_bar import ProgressBarMetrics
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
@@ -391,6 +392,7 @@ def load_trainer(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     accelerator_type: str,
     date_time_suffix: str = "",
+    metrics_on_progress_bar: Optional[Iterable[str]] = None,
 ) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
@@ -456,12 +458,15 @@ def load_trainer(
             name += f"_{date_time_suffix}"
         trainer_kwargs["logger"] = WandbLogger(name=name, log_model=True, **wandb_cfg)
 
-    trainer_kwargs["callbacks"] = callbacks
+    progress_bar_callback = ProgressBarMetrics(metrics_on_progress_bar = metrics_on_progress_bar)
+    callbacks.append(progress_bar_callback)
+
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
         accelerator=accelerator_type,
         devices=devices,
+        callbacks=callbacks,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
