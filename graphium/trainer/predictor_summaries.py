@@ -384,8 +384,14 @@ class STDMetric(BaseAggregator):
         if not isinstance(weight, Tensor):
             weight = torch.as_tensor(weight, dtype=torch.float32)
 
-        weight = torch.broadcast_to(weight, value.shape)
-        value, weight = self._cast_and_nan_check_input(value, weight)
+        weight = torch.broadcast_to(weight, value.shape).clone()
+        # Check whether `_cast_and_nan_check_input` takes in `weight`
+        if "weight" in inspect.signature(self._cast_and_nan_check_input).parameters:
+            value, weight = self._cast_and_nan_check_input(value, weight)
+        else:
+            weight[value.isnan()] = torch.nan
+            value = self._cast_and_nan_check_input(value)
+            weight = self._cast_and_nan_check_input(weight)
 
         if value.numel() == 0:
             return

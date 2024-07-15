@@ -22,7 +22,7 @@ from torchmetrics import MeanAbsoluteError, PearsonCorrCoef
 from copy import deepcopy
 import unittest as ut
 
-from graphium.trainer.predictor_summaries import SingleTaskSummary, MultiTaskSummary, STDMetric, GradientNormMetric
+from graphium.trainer.predictor_summaries import MultiTaskSummary, STDMetric, GradientNormMetric
 
 class SimpleNN(nn.Module):
 # Define a simple neural network with 2 layers
