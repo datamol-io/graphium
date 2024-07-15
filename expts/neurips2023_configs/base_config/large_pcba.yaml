@@ -62,7 +62,6 @@ accelerator:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
 
@@ -132,11 +131,6 @@ datamodule:
         #epoch_sampling_fraction: 1.0
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
-    dataloading_from: disk
     processed_graph_data_path: ${constants.datacache_path}
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),

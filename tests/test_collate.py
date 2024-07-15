@@ -28,12 +28,12 @@ from graphium.data.collate import collate_labels, graphium_collate_fn
 class test_Collate(ut.TestCase):
     def test_collate_labels(self):
         # Create fake labels
-        labels_size_dict = {
-            "graph_label1": [1],
-            "graph_label2": [3],
-            "node_label2": [5],
-            "edge_label3": [5, 2],
-            "node_label4": [5, 1],
+        labels_num_cols_dict = {
+            "graph_label1": 1,
+            "graph_label2": 3,
+            "node_label2": 1,
+            "edge_label3": 2,
+            "node_label4": 1,
         }
         labels_dtype_dict = {
             "graph_label1": torch.float32,
@@ -57,9 +57,16 @@ class test_Collate(ut.TestCase):
                 pyg_labels[key] = val + 17 * 2
             fake_labels.append(pyg_labels)
 
+        num_nodes = [g.num_nodes for g in fake_labels]
+        num_edges = [g.num_edges for g in fake_labels]
+
         # Collate labels and check for the right shapes and dtypes
         collated_labels = collate_labels(
-            deepcopy(fake_labels), deepcopy(labels_size_dict), deepcopy(labels_dtype_dict)
+            deepcopy(fake_labels),
+            deepcopy(labels_num_cols_dict),
+            deepcopy(labels_dtype_dict),
+            num_nodes,
+            num_edges,
         )
         self.assertEqual(collated_labels["graph_label1"].shape, torch.Size([num_labels, 1]))  # , 1
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))  # , 1
@@ -108,15 +115,19 @@ class test_Collate(ut.TestCase):
         label4_true[missing_labels["node_label4"]] = float("nan")
 
         # Collate labels and check for the right shapes
-        labels_size_dict = {
-            "graph_label1": [1],
-            "graph_label2": [3],
-            "node_label2": [5],
-            "edge_label3": [5, 2],
-            "node_label4": [5, 1],
+        labels_num_cols_dict = {
+            "graph_label1": 1,
+            "graph_label2": 3,
+            "node_label2": 1,
+            "edge_label3": 2,
+            "node_label4": 1,
         }
         collated_labels = collate_labels(
-            deepcopy(fake_labels), deepcopy(labels_size_dict), deepcopy(labels_dtype_dict)
+            deepcopy(fake_labels),
+            deepcopy(labels_num_cols_dict),
+            deepcopy(labels_dtype_dict),
+            num_nodes,
+            num_edges,
         )
         self.assertEqual(collated_labels["graph_label1"].shape, torch.Size([num_labels, 1]))  # , 1
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))  # , 1
@@ -138,9 +149,14 @@ class test_Collate(ut.TestCase):
             collated_labels["node_label4"].numpy(), label4_true.flatten(0, 1).numpy()
         )
         # Now test the `graphium_collate_fn` function when only labels are given
-        fake_labels2 = [{"labels": this_label} for this_label in fake_labels]
+        fake_labels2 = [
+            {"labels": this_label, "num_nodes": this_label.num_nodes, "num_edges": this_label.num_edges}
+            for this_label in fake_labels
+        ]
         collated_labels = graphium_collate_fn(
-            deepcopy(fake_labels2), labels_size_dict=labels_size_dict, labels_dtype_dict=labels_dtype_dict
+            deepcopy(fake_labels2),
+            labels_num_cols_dict=labels_num_cols_dict,
+            labels_dtype_dict=labels_dtype_dict,
         )["labels"]
         self.assertEqual(collated_labels["graph_label1"].shape, torch.Size([num_labels, 1]))
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))
