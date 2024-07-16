@@ -515,13 +515,13 @@ class PredictorModule(lightning.LightningModule):
         # Get the throughput of the batch
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
-        metrics_logs["train/batch_time"] = train_batch_time
-        metrics_logs["train/batch_tput"] = tput
+        metrics_logs["_global/train/batch_time"] = train_batch_time
+        metrics_logs["_global/train/batch_tput"] = tput
 
         metrics_computed = self.task_epoch_summary["train"].compute()
         self.task_epoch_summary["train"].reset()
         metrics_logs.update(metrics_computed)
-        metrics_logs["train/grad_norm"] = self.model_grad.compute()
+        metrics_logs["_global/train/grad_norm"] = self.model_grad.compute()
 
         # Log the metrics
         self.log_dict(
@@ -570,7 +570,7 @@ class PredictorModule(lightning.LightningModule):
             epoch_time = time.time() - self.epoch_start_time
             epoch_time = torch.tensor(epoch_time)
             self.epoch_start_time = None
-            self.log("train/epoch_time", epoch_time, prog_bar=True, sync_dist=True, on_epoch=True)
+            self.log("_global/train/epoch_time", epoch_time, prog_bar=True, sync_dist=True, on_epoch=True)
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
