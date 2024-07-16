@@ -299,7 +299,6 @@ class MultiTaskSummary(SummaryInterface):
         return self.task_summaries[task]
 
     def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
-
         r"""
         update the state for all predictors
         Parameters:

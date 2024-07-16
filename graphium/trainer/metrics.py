@@ -12,7 +12,7 @@ Refer to the LICENSE file for the full terms and conditions.
 """
 
 
-from typing import Union, Callable, Optional, Dict, Any
+from typing import Union, Callable, Optional, Dict, Any, Literal
 
 import sys
 
@@ -41,7 +41,7 @@ class Thresholder:
     def __init__(
         self,
         threshold: float,
-        operator: Union[str, Callable] = "greater",
+        operator: Union[Literal["greater", "gt", ">", "lower", "lt", "<"], Callable] = "greater",
         th_on_preds: bool = True,
         th_on_target: bool = False,
     ):
@@ -77,10 +77,10 @@ class Thresholder:
         """Operator can either be a string, or a callable"""
         if isinstance(operator, str):
             op_name = operator.lower()
-            if op_name in ["greater", "gt"]:
+            if op_name in ["greater", "gt", ">"]:
                 op_str = ">"
                 operator = op.gt
-            elif op_name in ["lower", "lt"]:
+            elif op_name in ["lower", "lt", "<"]:
                 op_str = "<"
                 operator = op.lt
             else:
@@ -142,8 +142,8 @@ class MetricWrapper:
         self,
         metric: Union[str, torchmetrics.Metric, torch.nn.modules.loss._Loss],
         threshold_kwargs: Optional[Dict[str, Any]] = None,
-        target_nan_mask: Optional[Union[str, int]] = None,
-        multitask_handling: Optional[str] = None,
+        target_nan_mask: Union[Literal[None, "none", "ignore"], int] = None,
+        multitask_handling: Literal[None, "none", "flatten", "mean-per-label"] = None,
         squeeze_targets: bool = False,
         target_to_int: bool = False,
         **kwargs,
@@ -317,7 +317,6 @@ class MetricWrapper:
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
 
-        target_nans = torch.isnan(target)
 
         # for the classifigression task, cast predictions from
         # (batch_size, n_targets * n_brackets) to (batch_size, n_targets, n_brackets)
@@ -356,6 +355,7 @@ class MetricWrapper:
 
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
+            target_nans = torch.isnan(target)
             target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
             # TODO: make this more flexible to the target shape in the future
             if classifigression:
@@ -411,14 +411,17 @@ class MetricWrapper:
 
     def _filter_nans(self, preds: Tensor, target: Tensor):
         """Handle the NaNs according to the chosen options"""
-        target_nans = torch.isnan(target)
 
-        if self.target_nan_mask is None:
-            pass
-        elif isinstance(self.target_nan_mask, (int, float)):
+        if self.target_nan_mask is None: # No NaN handling
+            return preds, target
+        
+        target_nans = torch.isnan(target)
+        if ~target_nans.any(): # No NaNs
+            return preds, target
+        elif isinstance(self.target_nan_mask, (int, float)): # Replace NaNs
             target = target.clone()
-            target[torch.isnan(target)] = self.target_nan_mask
-        elif self.target_nan_mask == "ignore":
+            target[target_nans] = self.target_nan_mask
+        elif self.target_nan_mask == "ignore": # Remove NaNs
             target = target[~target_nans]
             preds = preds[~target_nans]
         else:

@@ -16,6 +16,7 @@ import os
 import unittest as ut
 from copy import deepcopy
 from os.path import abspath, dirname
+import shutil
 
 import torch
 from lightning.pytorch.callbacks import Callback
@@ -60,9 +61,14 @@ class test_Finetuning(ut.TestCase):
         # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
+        # If the data_cache directory exists, delete it for the purpose of the test
+        data_cache = cfg["datamodule"]["args"]["processed_graph_data_path"]
+        if os.path.exists(data_cache):
+            shutil.rmtree(data_cache)
+
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
-        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 300
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
@@ -250,9 +256,14 @@ class test_Finetuning(ut.TestCase):
         # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
+        # If the data_cache directory exists, delete it for the purpose of the test
+        data_cache = cfg["datamodule"]["args"]["processed_graph_data_path"]
+        if os.path.exists(data_cache):
+            shutil.rmtree(data_cache)
+
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
-        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 300
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
