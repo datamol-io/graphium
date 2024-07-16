@@ -498,6 +498,7 @@ class PredictorModule(lightning.LightningModule):
             
             losses[f"{task}/loss/train"] = this_losses
         metrics_logs.update(losses)
+        metrics_logs.update(self.task_epoch_summary["train"].compute())
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
