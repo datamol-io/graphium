@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
-from typing import Any, Callable, Dict, List, Optional, Union, Literal, Iterable
+from typing import Any, Callable, Dict, List, Optional, Union, Literal, Iterable, Set
 from loguru import logger
 from copy import deepcopy
 import inspect
@@ -25,8 +25,6 @@ from torch import Tensor
 from torchmetrics import MeanMetric, Metric
 from torchmetrics.aggregation import BaseAggregator
 
-
-from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
 
 class SummaryInterface(object):
     r"""
@@ -114,6 +112,7 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics_on_training_set.update(["std_preds", "std_target"])
 
         self._cached_metrics: Dict[str, Tensor] = {}
+        self._logged_warnings: Set[str] = set() # Set to track which metrics have been logged
 
     @property
     def get_cached_metrics(self) -> Dict[str, Tensor]:
@@ -168,7 +167,7 @@ class SingleTaskSummary(SummaryInterface):
                 if ("preds" == varnames[0]) and ("target" == varnames[1]):
                     # The typical case of `torchmetrics`
                     metric_obj.update(preds, targets)
-                if ("preds" == varnames[1]) and ("target" == varnames[0]):
+                elif ("preds" == varnames[1]) and ("target" == varnames[0]):
                     # Unusual case where the order of the arguments is reversed
                     metric_obj.update(targets, preds)
                 elif ("value" == varnames[0]) and ("preds" in metric_key):
@@ -180,8 +179,11 @@ class SingleTaskSummary(SummaryInterface):
                 else:
                     raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
 
-            except:
-                pass
+            except Exception as err:
+                err_msg = f"Error for metric {metric_key} on task {self.task_name} and step {self.step_name}. Exception: {err}"
+                if err_msg not in self._logged_warnings:
+                    logger.warning(err_msg)
+                    self._logged_warnings.add(err_msg)
 
     def _compute(self, metrics_to_use: Optional[Union[List[str], Dict[str, Any]]] = None) -> Dict[str, Tensor]:
 
