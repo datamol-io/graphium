@@ -30,7 +30,6 @@ from graphium.config._loader import (
     load_metrics,
     load_predictor,
     load_trainer,
-    save_params_to_wandb,
 )
 from graphium.finetuning import GraphFinetuning, modify_cfg_for_finetuning
 from graphium.trainer import PredictorModule
@@ -236,6 +235,7 @@ class test_Finetuning(ut.TestCase):
 
         # Run the model training
         trainer.fit(model=predictor, datamodule=datamodule)
+        trainer.test(model=predictor, datamodule=datamodule)
 
     def test_finetuning_from_gnn(self):
         # Skip test if PyTDC package not installed
@@ -417,6 +417,7 @@ class test_Finetuning(ut.TestCase):
 
         # Run the model training
         trainer.fit(model=predictor, datamodule=datamodule)
+        trainer.test(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":
