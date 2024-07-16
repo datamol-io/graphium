@@ -398,7 +398,7 @@ class MetricWrapper:
         self.update(preds, target)
         return self.compute()
 
-    def reset(self):
+    def reset(self) -> None:
         r"""
         Reset the metric with the method `self.metric.reset`
         """
@@ -407,6 +407,16 @@ class MetricWrapper:
                 metric.reset()
         else:
             self.metric.reset()
+
+    def to(self, device: Union[str, torch.device]) -> None:
+        r"""
+        Move the metric to the device with the method `self.metric.to`
+        """
+        if isinstance(self.metric, list):
+            for metric in self.metric:
+                metric.to(device)
+        else:
+            self.metric.to(device)
 
 
     def _filter_nans(self, preds: Tensor, target: Tensor):

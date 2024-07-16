@@ -161,6 +161,7 @@ class SingleTaskSummary(SummaryInterface):
             predictions: the predictions tensor
         """
         for metric_key, metric_obj in self.metrics_to_use.items():
+            metric_obj.to(preds.device) # Not sure if good for DDP, but otherwise it crashes
             try:
                 # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
                 varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
@@ -381,9 +382,9 @@ class STDMetric(BaseAggregator):
 
     def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
         if not isinstance(value, Tensor):
-            value = torch.as_tensor(value, dtype=torch.float32)
+            value = torch.as_tensor(value, dtype=torch.float32, device=self.device)
         if not isinstance(weight, Tensor):
-            weight = torch.as_tensor(weight, dtype=torch.float32)
+            weight = torch.as_tensor(weight, dtype=torch.float32, device=self.device)
 
         weight = torch.broadcast_to(weight, value.shape).clone()
         # Check whether `_cast_and_nan_check_input` takes in `weight`
