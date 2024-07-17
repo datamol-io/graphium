@@ -23,6 +23,7 @@ from loguru import logger
 from mup.optim import MuAdam
 from torch import Tensor, nn
 from torch_geometric.data import Batch, Data
+from torchmetrics import Metric
 
 from graphium.config.config_convert import recursive_config_reformating
 from graphium.data.datamodule import BaseDataModule
@@ -53,7 +54,7 @@ class PredictorModule(lightning.LightningModule):
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
-        metrics: Dict[str, Callable] = None,
+        metrics: Dict[str, Dict[str, Union[Metric, "MetricWrapper"]]] = None,
         metrics_on_progress_bar: Dict[str, List[str]] = [],
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
@@ -138,11 +139,12 @@ class PredictorModule(lightning.LightningModule):
 
         # Task-specific evalutation attributes
         self.loss_fun = {}
+        loss_names = {}
         self.metrics = {}
         self.metrics_on_progress_bar = {}
         self.metrics_on_training_set = {}
         for task in self.tasks:
-            self.loss_fun[task] = EvalOptions.parse_loss_fun(loss_fun[task])
+            loss_names[task], self.loss_fun[task] = EvalOptions.parse_loss_fun(loss_fun[task])
             self.metrics[task] = (
                 self._eval_options_dict[task].metrics
                 if self._eval_options_dict[task].metrics is not None
@@ -163,22 +165,31 @@ class PredictorModule(lightning.LightningModule):
         # Set the parameters for optimizer options
         self.optim_options.set_kwargs()
 
+        # Add the loss to the metrics
+        metrics_with_loss = deepcopy(self.metrics)
+        for task in self.tasks:
+            metrics_with_loss[task][f"loss_{loss_names[task]}"] = MetricWrapper(
+                metric=MetricToTorchMetrics(self.loss_fun[task]),
+                target_nan_mask=self.target_nan_mask,
+                multitask_handling=self.multitask_handling,
+            )
+        
         # Initialize the epoch summary
         self.task_epoch_summary = {
             "train": MultiTaskSummary(
-                task_metrics=self.metrics, 
+                task_metrics=metrics_with_loss, 
                 step_name="train", 
                 task_metrics_on_progress_bar=None,
                 task_metrics_on_training_set=self.metrics_on_training_set,
                 ),
             "val": MultiTaskSummary(
-                task_metrics=self.metrics, 
+                task_metrics=metrics_with_loss, 
                 step_name="val", 
                 task_metrics_on_progress_bar=self.metrics_on_progress_bar,
                 task_metrics_on_training_set=None,
                 ),
             "test": MultiTaskSummary(
-                task_metrics=self.metrics,
+                task_metrics=metrics_with_loss,
                 step_name="test",
                 task_metrics_on_progress_bar=None,
                 task_metrics_on_training_set=None,
@@ -241,6 +252,22 @@ class PredictorModule(lightning.LightningModule):
         if not task.startswith(task_prefix):
             task = task_prefix + task
         return task
+    
+    def _get_average_loss_from_outputs(self, outputs: Dict[Literal["loss", "task_losses"], Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
+        r"""
+        Averages the loss over the different tasks
+        """
+        global_loss = torch.as_tensor(outputs["loss"]).detach()
+        if global_loss.numel() > 1:
+            global_loss = global_loss[global_loss != 0].mean()
+        average_losses = {f"_global/loss/{step_name}": global_loss}
+        for task in self.tasks:
+            this_losses = torch.as_tensor(outputs["task_losses"][task]).detach()
+            if this_losses.numel() > 1:
+                this_losses = this_losses[this_losses != 0].mean()
+            average_losses[f"{task}/loss/{step_name}"] = this_losses
+        return average_losses
+
 
     def configure_optimizers(self, impl=None):
         if impl is None:
@@ -489,14 +516,8 @@ class PredictorModule(lightning.LightningModule):
         # report the training loss for each individual tasks
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         # filter zeros out for the individual losses
-        losses = {"_global/loss/train": outputs["loss"]}
-        for task in self.tasks:
-            this_losses = outputs["task_losses"][task]
-            if isinstance(this_losses, torch.Tensor):
-                if this_losses.numel() > 1:
-                    this_losses = this_losses[this_losses != 0].mean()
-            
-            losses[f"{task}/loss/train"] = this_losses
+        losses = self._get_average_loss_from_outputs(outputs, step_name="train")
+
         metrics_logs.update(losses)
         metrics_logs.update(self.task_epoch_summary["train"].compute())
 

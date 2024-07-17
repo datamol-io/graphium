@@ -201,6 +201,7 @@ class EvalOptions:
                     f"`loss_fun` expected to be one of the strings in {LOSS_DICT.keys()}. "
                     f"Provided: {loss_fun}."
                 )
+            loss_name = loss_fun
             loss_fun = LOSS_DICT[loss_fun]()
         elif isinstance(loss_fun, dict):
             if loss_fun.get("name") is None:
@@ -213,10 +214,12 @@ class EvalOptions:
             loss_fun = deepcopy(loss_fun)
             loss_name = loss_fun.pop("name")
             loss_fun = LOSS_DICT[loss_name](**loss_fun)
-        elif not callable(loss_fun):
+        elif callable(loss_fun):
+            loss_name = str(loss_fun)
+        else:
             raise ValueError(f"`loss_fun` must be `str`, `dict` or `callable`. Provided: {type(loss_fun)}")
 
-        return loss_fun
+        return loss_name, loss_fun
 
 
 @dataclass

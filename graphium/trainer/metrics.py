@@ -12,7 +12,7 @@ Refer to the LICENSE file for the full terms and conditions.
 """
 
 
-from typing import Union, Callable, Optional, Dict, Any, Literal
+from typing import Union, Callable, Optional, Dict, Any, Literal, List
 
 import sys
 
@@ -504,7 +504,7 @@ class MetricToTorchMetrics():
 
     def __init__(self, metric):
         self.metric = metric
-        self.scores = []
+        self.scores: List[Tensor] = []
 
     def update(self, preds: Tensor, target: Tensor):
         self.scores.append(self.metric(preds, target))
@@ -515,6 +515,10 @@ class MetricToTorchMetrics():
         elif len(self.scores) == 1:
             return self.scores[0]
         return nan_mean(torch.stack(self.scores))
+    
+    def to(self, device: Union[str, torch.device]):
+        for ii in range(len(self.scores)):
+            self.scores[ii] = self.scores[ii].to(device)
 
     def reset(self):
         self.scores = []
