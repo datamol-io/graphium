@@ -507,7 +507,7 @@ class MetricToTorchMetrics():
         self.scores: List[Tensor] = []
 
     def update(self, preds: Tensor, target: Tensor):
-        self.scores.append(self.metric(preds.detach(), target))
+        self.scores.append(self.metric(preds, target))
 
     def compute(self):
         if len(self.scores) == 0:
