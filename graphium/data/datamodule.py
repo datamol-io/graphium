@@ -1102,6 +1102,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 num_molecules,
                 split_val=self.task_dataset_processing_params[task].split_val,
                 split_test=self.task_dataset_processing_params[task].split_test,
+                sample_idx=sample_idx,
                 split_seed=self.task_dataset_processing_params[task].seed,
                 splits_path=self.task_dataset_processing_params[task].splits_path,
                 split_names=self.task_dataset_processing_params[task].split_names,

@@ -21,7 +21,6 @@ from torch_geometric.data import Batch
 
 from graphium.nn.utils import MupMixin
 from graphium.trainer.predictor import PredictorModule
-from graphium.utils.spaces import FINETUNING_HEADS_DICT
 
 
 class FullGraphFinetuningNetwork(nn.Module, MupMixin):
@@ -309,6 +308,8 @@ class FinetuningHead(nn.Module, MupMixin):
 
         """
 
+        from graphium.utils.spaces import FINETUNING_HEADS_DICT # Avoiding circular imports with `spaces.py`
+        
         super().__init__()
         self.task = finetuning_head_kwargs.pop("task", None)
         self.previous_module = finetuning_head_kwargs.pop("previous_module", "task_heads")

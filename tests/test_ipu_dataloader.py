@@ -47,7 +47,7 @@ def global_batch_collator(batch_size, batches):
 
 @pytest.mark.ipu
 class test_DataLoading(ut.TestCase):
-    class TestSimpleLightning(LightningModule):
+    class SimpleLightningTesting(LightningModule):
         # Create a basic Ligthning for testing the batch sizes
         def __init__(self, batch_size, node_feat_size, edge_feat_size, num_batch) -> None:
             super().__init__()
@@ -98,7 +98,7 @@ class test_DataLoading(ut.TestCase):
         def configure_optimizers(self):
             return torch.optim.Adam(self.parameters(), lr=1e-3)
 
-    class TestDataset(torch.utils.data.Dataset):
+    class DatasetTesting(torch.utils.data.Dataset):
         # Create a simple dataset for testing the Lightning integration
         def __init__(self, labels, node_features, edge_features):
             self.labels = labels

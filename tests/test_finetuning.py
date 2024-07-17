@@ -16,6 +16,7 @@ import os
 import unittest as ut
 from copy import deepcopy
 from os.path import abspath, dirname
+import shutil
 
 import torch
 from lightning.pytorch.callbacks import Callback
@@ -29,7 +30,6 @@ from graphium.config._loader import (
     load_metrics,
     load_predictor,
     load_trainer,
-    save_params_to_wandb,
 )
 from graphium.finetuning import GraphFinetuning, modify_cfg_for_finetuning
 from graphium.trainer import PredictorModule
@@ -40,7 +40,7 @@ CONFIG_FILE = "graphium/config/dummy_finetuning.yaml"
 os.chdir(MAIN_DIR)
 
 
-class Test_Finetuning(ut.TestCase):
+class test_Finetuning(ut.TestCase):
     def test_finetuning_from_task_head(self):
         # Skip test if PyTDC package not installed
         try:
@@ -60,9 +60,14 @@ class Test_Finetuning(ut.TestCase):
         # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
+        # If the data_cache directory exists, delete it for the purpose of the test
+        data_cache = cfg["datamodule"]["args"]["processed_graph_data_path"]
+        if os.path.exists(data_cache):
+            shutil.rmtree(data_cache)
+
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
-        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 300
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
@@ -149,7 +154,7 @@ class Test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class TestCallback(Callback):
+        class CallbackTesting(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
@@ -217,18 +222,20 @@ class Test_Finetuning(ut.TestCase):
 
                     assert not False in unfrozen_parameters
 
-        trainer = load_trainer(cfg, accelerator_type)
+        metrics_on_progress_bar = predictor.get_metrics_on_progress_bar
+        trainer = load_trainer(cfg, accelerator_type, metrics_on_progress_bar=metrics_on_progress_bar)
 
         finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         # Add test callback to trainer
-        trainer.callbacks.append(TestCallback(cfg))
+        trainer.callbacks.append(CallbackTesting(cfg))
 
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
         # Run the model training
         trainer.fit(model=predictor, datamodule=datamodule)
+        trainer.test(model=predictor, datamodule=datamodule)
 
     def test_finetuning_from_gnn(self):
         # Skip test if PyTDC package not installed
@@ -249,9 +256,14 @@ class Test_Finetuning(ut.TestCase):
         # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
+        # If the data_cache directory exists, delete it for the purpose of the test
+        data_cache = cfg["datamodule"]["args"]["processed_graph_data_path"]
+        if os.path.exists(data_cache):
+            shutil.rmtree(data_cache)
+
         # Load and initialize the dataset
         datamodule = load_datamodule(cfg, accelerator_type)
-        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 100
+        datamodule.task_specific_args["lipophilicity_astrazeneca"].sample_size = 300
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(
@@ -335,7 +347,7 @@ class Test_Finetuning(ut.TestCase):
         #################################################
 
         # Define test callback that checks for correct (un)freezing
-        class TestCallback(Callback):
+        class CallbackTesting(Callback):
             def __init__(self, cfg):
                 super().__init__()
 
@@ -392,18 +404,20 @@ class Test_Finetuning(ut.TestCase):
 
                     assert not False in unfrozen_parameters
 
-        trainer = load_trainer(cfg, accelerator_type)
+        metrics_on_progress_bar = predictor.get_metrics_on_progress_bar
+        trainer = load_trainer(cfg, accelerator_type, metrics_on_progress_bar=metrics_on_progress_bar)
 
         finetuning_training_kwargs = cfg["finetuning"]["training_kwargs"]
         trainer.callbacks.append(GraphFinetuning(**finetuning_training_kwargs))
 
         # Add test callback to trainer
-        trainer.callbacks.append(TestCallback(cfg))
+        trainer.callbacks.append(CallbackTesting(cfg))
 
         predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
         # Run the model training
         trainer.fit(model=predictor, datamodule=datamodule)
+        trainer.test(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":

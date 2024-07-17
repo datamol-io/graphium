@@ -105,7 +105,7 @@ def dataframes_to_dataset(dataframes_dict, case_num):
     return multitask_dataset
 
 
-class Test_Multitask_Dataset(ut.TestCase):
+class test_Multitask_Dataset(ut.TestCase):
     # Then we can choose different rows and columns for the tests as we see fit.
     # Remember tests are supposed to be FAST, and reading from the file system multiple times slows things down.
 

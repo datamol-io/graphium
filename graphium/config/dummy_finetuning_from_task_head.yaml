@@ -61,7 +61,7 @@ finetuning:
 
 constants:
   seed: 42
-  max_epochs: 2
+  max_epochs: 5
 
 accelerator:
   float32_matmul_precision: medium
@@ -70,14 +70,14 @@ accelerator:
 predictor:
   random_seed: ${constants.seed}
   optim_kwargs:
-    lr: 4.e-5
+    lr: 1.e-3
   scheduler_kwargs: null
   target_nan_mask: null
   multitask_handling: flatten # flatten, mean-per-label
   
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 2
+    max_num_epochs: 5
     warmup_epochs: 1
     verbose: False
   
@@ -113,7 +113,7 @@ trainer:
   seed: ${constants.seed}
   trainer:
     precision: 32
-    max_epochs: 2
+    max_epochs: 4
     min_epochs: 1
     check_val_every_n_epoch: 1
     accumulate_grad_batches: 1
@@ -128,12 +128,12 @@ datamodule:
 
   module_type: "ADMETBenchmarkDataModule"
   args:
+    processed_graph_data_path: datacache/processed_graph_data/dummy_finetuning_task_head
     # TDC specific
     tdc_benchmark_names: [lipophilicity_astrazeneca]
     tdc_train_val_seed: ${constants.seed}
-    
-    batch_size_training: 200
-    batch_size_inference: 200
+    batch_size_training: 20
+    batch_size_inference: 20
     num_workers: 0
 
     persistent_workers: False

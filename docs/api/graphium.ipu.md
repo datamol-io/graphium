@@ -22,11 +22,6 @@ Code for adapting to run on IPU
 ::: graphium.ipu.ipu_losses
 
 
-## IPU Metrics
-------------
-::: graphium.ipu.ipu_metrics
-
-
 ## IPU Simple Lightning
 ------------
 ::: graphium.ipu.ipu_simple_lightning

@@ -18,7 +18,7 @@ import graphium
 import tempfile
 
 
-class TestDataUtils(ut.TestCase):
+class test_DataUtils(ut.TestCase):
     def test_list_datasets(
         self,
     ):

@@ -17,10 +17,10 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, 
 from collections import OrderedDict
 
 import torch.nn as nn
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 
 from torch.optim.optimizer import Optimizer
-from pytorch_lightning.callbacks import BaseFinetuning
+from lightning.pytorch.callbacks import BaseFinetuning
 
 
 class GraphFinetuning(BaseFinetuning):
