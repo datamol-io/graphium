@@ -815,6 +815,42 @@ std::tuple<
         save_num_cols_and_dtypes(common_path, return_label_num_cols, return_label_data_types);
     }
 
+    // Determine the level of each task's data, for node reordering.
+    std::vector<FeatureLevel> task_levels(num_tasks, FeatureLevel::GRAPH);
+    for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
+        pybind11::handle task = task_names[task_index];
+        if (!smiles_numpy_arrays[task_index]) {
+            continue;
+        }
+        const std::string task_name{ pybind11::str(task) };
+
+        constexpr const char* graph_prefix = "graph_";
+        constexpr const char* node_prefix = "node_";
+        constexpr const char* edge_prefix = "edge_";
+        constexpr const char* nodepair_prefix = "nodepair_";
+        constexpr size_t graph_prefix_length{ std::char_traits<char>::length(graph_prefix) };
+        constexpr size_t node_prefix_length{ std::char_traits<char>::length(node_prefix) };
+        constexpr size_t edge_prefix_length{ std::char_traits<char>::length(edge_prefix) };
+        constexpr size_t nodepair_prefix_length{ std::char_traits<char>::length(nodepair_prefix) };
+
+        if (std::strncmp(task_name.c_str(), graph_prefix, graph_prefix_length) == 0) {
+            task_levels[task_index] = FeatureLevel::GRAPH;
+        }
+        else if (std::strncmp(task_name.c_str(), node_prefix, node_prefix_length) == 0) {
+            task_levels[task_index] = FeatureLevel::NODE;
+        }
+        else if (std::strncmp(task_name.c_str(), edge_prefix, edge_prefix_length) == 0) {
+            task_levels[task_index] = FeatureLevel::EDGE;
+        }
+        else if (std::strncmp(task_name.c_str(), nodepair_prefix, nodepair_prefix_length) == 0) {
+            task_levels[task_index] = FeatureLevel::NODEPAIR;
+        }
+        else {
+            // Invalid, but for now, just use default
+            continue;
+        }
+    }
+
     // Get the total number of molecules, by stage and task
     size_t total_num_mols = 0;
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
@@ -1182,7 +1218,7 @@ std::tuple<
 
     std::unordered_map<std::string, std::vector<at::Tensor>> per_stage_return_data;
 
-    // Deal with non-label data first
+    // Deal with non-label data first (smiles, num_nodes, num_edges)
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
         size_t concatenated_smiles_size = 0;
         uint64_t num_unique_mols = 0;
@@ -1288,6 +1324,13 @@ std::tuple<
 
     std::vector<char> data;
     data.reserve(num_mols_per_file*(total_num_cols*sizeof(double) + (1+2*num_tasks)*sizeof(uint64_t)));
+
+    // These are for reordering label data at node, edge, or nodepair level
+    // when the same molecule may appear in multiple tasks with different
+    // atom orders.
+    std::vector<unsigned int> first_atom_order;
+    std::vector<unsigned int> current_atom_order;
+    std::vector<unsigned int> inverse_atom_order;
 
     // Now, deal with label data
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
@@ -1454,6 +1497,45 @@ std::tuple<
 
                 const size_t bytes_per_float = task_bytes_per_float[task_index];
                 
+                // Before copying this task's label data, check whether the atom order
+                // is different from the representative SMILES string's atom order.
+                bool same_order_as_first = true;
+                if (i != first_sorted_index && task_levels[task_index] != FeatureLevel::GRAPH) {
+                    const std::string& first_string = smiles_strings[keys[first_sorted_index].mol_index];
+                    const std::string& current_string = smiles_strings[keys[i].mol_index];
+                    if (first_string != current_string) {
+                        // Different string, so get first and current atom orders
+                        if (first_atom_order.size() == 0) {
+                            std::unique_ptr<RDKit::RWMol> mol = parse_mol(first_string, explicit_H);
+                            get_canonical_atom_order(*mol, first_atom_order);
+                        }
+                        std::unique_ptr<RDKit::RWMol> mol = parse_mol(current_string, explicit_H);
+                        get_canonical_atom_order(*mol, current_atom_order);
+                        assert(first_atom_order.size() == current_atom_order.size());
+                        
+                        // first_atom_order maps from the first order to the canonical order.
+                        // current_atom_order maps from the first order to the canonical order.
+                        // We need the inverse current map, to go from the first order to the
+                        // canonical order, and then from there to the current order.
+                        inverse_atom_order.resize(first_atom_order.size());
+                        for (unsigned int current_index = 0; current_index < current_atom_order.size(); ++current_index) {
+                            unsigned int canon_index = current_atom_order[current_index];
+                            assert(canon_index < inverse_atom_order.size());
+                            inverse_atom_order[canon_index] = current_index;
+                        }
+                        for (unsigned int first_index = 0; first_index < first_atom_order.size(); ++first_index) {
+                            unsigned int canon_index = first_atom_order[first_index];
+                            assert(canon_index < inverse_atom_order.size());
+                            unsigned int current_index = inverse_atom_order[canon_index];
+                            assert(first_index < current_atom_order.size());
+                            current_atom_order[first_index] = current_index;
+                            if (current_index != first_index) {
+                                same_order_as_first = false;
+                            }
+                        }
+                    }
+                }
+
                 PyArrayObject*const labels_numpy_array = labels_numpy_arrays[task_index];
                 if (labels_numpy_array != nullptr) {
                     const char* raw_data = (const char*)PyArray_DATA(labels_numpy_array);
@@ -1469,12 +1551,39 @@ std::tuple<
                         size_t begin_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*task_mol_index);
                         size_t end_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*(task_mol_index+1));
                         const char* row_data = raw_data + strides[0]*begin_offset;
-                        for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
-                            store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                        if (same_order_as_first) {
+                            for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
+                                store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                            }
+                        }
+                        else if (task_levels[task_index] == FeatureLevel::NODE) {
+                            assert(end_offset - begin_offset == current_atom_order.size());
+                            for (unsigned int current_index : current_atom_order) {
+                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                            }
+                        }
+                        else if (task_levels[task_index] == FeatureLevel::NODEPAIR) {
+                            const size_t n = current_atom_order.size();
+                            assert(end_offset - begin_offset == n*n);
+                            for (unsigned int current_index0 : current_atom_order) {
+                                for (unsigned int current_index1 : current_atom_order) {
+                                    store_single_row(row_data + (current_index0*n + current_index1)*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                                }
+                            }
+                        }
+                        else {
+                            assert(task_levels[task_index] == FeatureLevel::EDGE);
+                            // FIXME: Re-order edge-level data, too
+                            for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
+                                store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                            }
                         }
                     }
                 }
             }
+            first_atom_order.resize(0);
+            current_atom_order.resize(0);
+            inverse_atom_order.resize(0);
 
             ++num_unique_mols;
             if (num_unique_mols % num_mols_per_file == 0 || sorted_index == stage_end_index) {
