@@ -179,11 +179,11 @@ static MolBriefData smiles_to_brief_data(
         // Convert from capital letter characters to 64-bit integers:
         // 13 characters for first integer, 12 characters for 2nd integer.
         // Neither should overflow a 64-bit unsigned integer.
-        uint64_t id0 = (n > 0) ? (inchiKeyString[0] - 'A') : 0;
+        id0 = (n > 0) ? (inchiKeyString[0] - 'A') : 0;
         for (size_t i = 1; i < 13 && i < n; ++i) {
             id0 = 26*id0 + (inchiKeyString[i] - 'A');
         }
-        uint64_t id1 = (13 < n) ? (inchiKeyString[13] - 'A') : 0;
+        id1 = (13 < n) ? (inchiKeyString[13] - 'A') : 0;
         for (size_t i = 15; i < 25 && i < n; ++i) {
             id1 = 26*id1 + (inchiKeyString[i] - 'A');
         }
