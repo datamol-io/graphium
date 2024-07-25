@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
@@ -918,7 +917,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         explicit_H = featurization["explicit_H"] if "explicit_H" in featurization else False
         add_self_loop = featurization["add_self_loop"] if "add_self_loop" in featurization else False
-        merge_equivalent_mols = featurization["merge_equivalent_mols"] if "merge_equivalent_mols" in featurization else True
+        merge_equivalent_mols = (
+            featurization["merge_equivalent_mols"] if "merge_equivalent_mols" in featurization else True
+        )
 
         # Save these for calling graphium_cpp.prepare_and_save_data later
         self.add_self_loop = add_self_loop
