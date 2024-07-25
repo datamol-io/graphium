@@ -80,6 +80,7 @@ def dataframes_to_dataset(dataframes_dict, case_num):
         False,  # add_self_loop
         False,  # explicit_H
         0,  # preprocessing_n_jobs
+        True,  # merge_equivalent_mols
     )
 
     stage_data = stage_data["train"]
