@@ -1725,8 +1725,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         Get a hash specific to a dataset.
         Useful to cache the pre-processed data.
+        Don't include options only used at data loading time, such as
+        most featurization options, but include options used during
+        pre-processing, like merge_equivalent_mols.
         """
-        args = {}
+        args = {
+            "add_self_loop": self.add_self_loop,
+            "explicit_H": self.explicit_H,
+            "merge_equivalent_mols": self.merge_equivalent_mols,
+        }
         # pop epoch_sampling_fraction out when creating hash
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.
