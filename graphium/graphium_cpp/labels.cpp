@@ -617,67 +617,21 @@ const std::string stages[num_stages] = {
 };
 
 
-// Returns:
-// stage -> [
-//      unique mol smiles strings all concatenated,
-//      unique mol smiles string offsets (including one extra for the end),
-//      unique mol num_nodes,
-//      unique mol num_edges,
-//      mol_file_data_offsets
-// ]
-// task -> 4 stats tensors each
-// task index -> label num columns
-// task index -> label torch data type enum
-std::tuple<
-    std::unordered_map<std::string, std::vector<at::Tensor>>,
-    std::unordered_map<std::string, std::vector<at::Tensor>>,
-    std::vector<int64_t>,
-    std::vector<int32_t>
-> prepare_and_save_data(
+static void get_task_data(
     const pybind11::list& task_names,
     pybind11::dict& task_dataset_args,
     const pybind11::dict& task_label_normalization,
-    const std::string processed_graph_data_path,
-    const std::string data_hash,
-    const pybind11::dict& task_train_indices,
-    const pybind11::dict& task_val_indices,
-    const pybind11::dict& task_test_indices,
-    bool add_self_loop,
-    bool explicit_H,
-    int max_threads,
-    bool merge_equivalent_mols) {
-
-    ensure_numpy_array_module_initialized();
-
-    std::filesystem::path base_path{processed_graph_data_path};
-    std::filesystem::create_directories(base_path);
-    std::filesystem::path common_path(base_path / data_hash);
-    std::filesystem::create_directories(common_path);
-    std::filesystem::path stage_paths[num_stages] = {
-        base_path / (stages[0] + "_" + data_hash),
-        base_path / (stages[1] + "_" + data_hash),
-        base_path / (stages[2] + "_" + data_hash)
-    };
-    std::filesystem::create_directories(stage_paths[0]);
-    std::filesystem::create_directories(stage_paths[1]);
-    std::filesystem::create_directories(stage_paths[2]);
-    const pybind11::dict* stage_task_indices[num_stages] = {
-        &task_train_indices,
-        &task_val_indices,
-        &task_test_indices
-    };
-
-    const size_t num_tasks = task_names.size();
-    std::vector<int64_t> return_label_num_cols(num_tasks, 0);
-    std::vector<int32_t> return_label_data_types(num_tasks, -1);
+    int64_t* return_label_num_cols,
+    int32_t* return_label_data_types,
+    size_t* task_col_starts,
+    size_t* task_bytes_per_float,
+    NormalizationOptions* task_normalization_options,
+    PyArrayObject** smiles_numpy_arrays,
+    PyArrayObject** labels_numpy_arrays,
+    PyArrayObject** label_offsets_numpy_arrays,
+    FeatureLevel* task_levels
+) {
     size_t total_num_cols = 0;
-    std::unique_ptr<size_t[]> task_col_starts(new size_t[num_tasks+1]);
-    std::unique_ptr<size_t[]> task_bytes_per_float(new size_t[num_tasks]);
-    std::unique_ptr<NormalizationOptions[]> task_normalization_options(new NormalizationOptions[num_tasks]);
-    std::unique_ptr<PyArrayObject*[]> smiles_numpy_arrays(new PyArrayObject*[num_tasks]);
-    std::unique_ptr<PyArrayObject*[]> labels_numpy_arrays(new PyArrayObject*[num_tasks]);
-    std::unique_ptr<PyArrayObject*[]> label_offsets_numpy_arrays(new PyArrayObject*[num_tasks]);
-    // Figure out the task bounds first, so that everything can be parallelized perfectly.
     size_t task_index = 0;
     for (const auto& task : task_names) {
         const size_t current_task_index = task_index;
@@ -815,14 +769,11 @@ std::tuple<
             task_normalization_options[current_task_index].max_clipping = double(max_handle.cast<pybind11::float_>());
         }
     }
+    const size_t num_tasks = task_names.size();
+    assert(task_index == num_tasks);
     task_col_starts[num_tasks] = total_num_cols;
 
-    if (total_num_cols > 0) {
-        save_num_cols_and_dtypes(common_path, return_label_num_cols, return_label_data_types);
-    }
-
     // Determine the level of each task's data, for node reordering.
-    std::vector<FeatureLevel> task_levels(num_tasks, FeatureLevel::GRAPH);
     for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
         pybind11::handle task = task_names[task_index];
         if (!smiles_numpy_arrays[task_index]) {
@@ -852,11 +803,31 @@ std::tuple<
             task_levels[task_index] = FeatureLevel::NODEPAIR;
         }
         else {
-            // Invalid, but for now, just use default
+            // Invalid, but for now, just default to graph-level
+            task_levels[task_index] = FeatureLevel::GRAPH;
             continue;
         }
     }
+}
 
+static void get_indices_and_strings(
+    const pybind11::list& task_names,
+    const pybind11::dict& task_train_indices,
+    const pybind11::dict& task_val_indices,
+    const pybind11::dict& task_test_indices,
+    size_t* task_mol_start,
+    std::vector<size_t>& task_mol_indices,
+    PyArrayObject*const*const smiles_numpy_arrays,
+    std::vector<std::string>& smiles_strings
+) {
+    const size_t num_tasks = task_names.size();
+
+    const pybind11::dict* stage_task_indices[num_stages] = {
+        &task_train_indices,
+        &task_val_indices,
+        &task_test_indices
+    };
+    
     // Get the total number of molecules, by stage and task
     size_t total_num_mols = 0;
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
@@ -883,12 +854,9 @@ std::tuple<
     }
     
     // Get the mol indices for all stages and tasks
-    std::vector<size_t> task_mol_indices;
     task_mol_indices.reserve(total_num_mols);
-    std::vector<size_t> task_mol_start(num_stages*num_tasks + 1);
     // Unfortunately, reading strings from a numpy array isn't threadsafe,
     // so we have to do that single-threaded first, too.
-    std::vector<std::string> smiles_strings;
     smiles_strings.reserve(total_num_mols);
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
         const pybind11::dict& task_indices_dict = *stage_task_indices[stage_index];
@@ -938,45 +906,55 @@ std::tuple<
     }
     total_num_mols = task_mol_indices.size();
     task_mol_start[num_stages*num_tasks] = total_num_mols;
+}
 
-    struct MolKey {
-        uint64_t id0;
-        uint64_t id1;
-        uint32_t num_nodes;
-        uint32_t num_edges;
-        uint64_t task_index;
-        uint64_t task_mol_index;
-        uint64_t mol_index;
+struct MolKey {
+    uint64_t id0;
+    uint64_t id1;
+    uint32_t num_nodes;
+    uint32_t num_edges;
+    uint64_t task_index;
+    uint64_t task_mol_index;
+    uint64_t mol_index;
 
-        bool operator<(const MolKey& other) const {
-            if (id0 != other.id0) {
-                return (id0 < other.id0);
-            }
-            if (id1 != other.id1) {
-                return (id1 < other.id1);
-            }
-            if (num_nodes != other.num_nodes) {
-                return (num_nodes < other.num_nodes);
-            }
-            if (num_edges != other.num_edges) {
-                return (num_edges < other.num_edges);
-            }
-            if (task_index != other.task_index) {
-                return (task_index < other.task_index);
-            }
-            return (task_mol_index < other.task_mol_index);
+    bool operator<(const MolKey& other) const {
+        if (id0 != other.id0) {
+            return (id0 < other.id0);
         }
-        
-        // This is used for identifying keys of molecules with invalid SMILES strings.
-        // They show up as having no nodes, no edges, and ID 0.
-        bool isInvalid() const {
-            return id0 == 0 && id1 == 0 && num_nodes == 0 && num_edges == 0;
+        if (id1 != other.id1) {
+            return (id1 < other.id1);
         }
-    };
-
-    // Compute all InChI keys for all molecules, in parallel if applicable.
-    std::unique_ptr<MolKey[]> keys(new MolKey[total_num_mols]);
+        if (num_nodes != other.num_nodes) {
+            return (num_nodes < other.num_nodes);
+        }
+        if (num_edges != other.num_edges) {
+            return (num_edges < other.num_edges);
+        }
+        if (task_index != other.task_index) {
+            return (task_index < other.task_index);
+        }
+        return (task_mol_index < other.task_mol_index);
+    }
     
+    // This is used for identifying keys of molecules with invalid SMILES strings.
+    // They show up as having no nodes, no edges, and ID 0.
+    bool isInvalid() const {
+        return id0 == 0 && id1 == 0 && num_nodes == 0 && num_edges == 0;
+    }
+};
+
+static void compute_mol_keys(
+    MolKey*const keys,
+    const size_t total_num_mols,
+    const size_t num_tasks,
+    int max_threads,
+    const size_t*const task_mol_start,
+    const bool add_self_loop,
+    const bool explicit_H,
+    const bool merge_equivalent_mols,
+    const size_t*const task_mol_indices,
+    const std::vector<std::string>& smiles_strings) {
+
     // Determine the number of threads to use for computing MolKey values
     const size_t num_mols_per_block = 512;
     const size_t num_blocks = (total_num_mols + num_mols_per_block-1) / num_mols_per_block;
@@ -995,7 +973,7 @@ std::tuple<
         num_threads = size_t(max_threads);
     }
 
-    auto&& get_single_mol_key = [&task_mol_start,add_self_loop,explicit_H,&task_mol_indices,&smiles_strings,num_tasks,merge_equivalent_mols](size_t mol_index) -> MolKey {
+    auto&& get_single_mol_key = [task_mol_start,add_self_loop,explicit_H,task_mol_indices,&smiles_strings,num_tasks,merge_equivalent_mols](size_t mol_index) -> MolKey {
         // Find which task this mol is in.  If there could be many tasks,
         // this could be a binary search, but for small numbers of tasks,
         // a linear search is fine.
@@ -1024,7 +1002,7 @@ std::tuple<
     }
     else {
         std::atomic<size_t> next_block_index(0);
-        auto&& thread_functor = [&keys,&next_block_index,num_blocks,num_mols_per_block,total_num_mols,&get_single_mol_key]() {
+        auto&& thread_functor = [keys,&next_block_index,num_blocks,num_mols_per_block,total_num_mols,&get_single_mol_key]() {
             while (true) {
                 const size_t block_index = next_block_index.fetch_add(1);
                 if (block_index >= num_blocks) {
@@ -1045,18 +1023,35 @@ std::tuple<
             threads[thread_index].join();
         }
     }
+}
+
+constexpr size_t stat_min_offset = 0;
+constexpr size_t stat_max_offset = 1;
+constexpr size_t stat_mean_offset = 2;
+constexpr size_t stat_std_offset = 3;
+constexpr size_t num_stats = 4;
+
+static auto compute_stats(
+    const std::filesystem::path& common_path,
+    const size_t total_num_cols,
+    const pybind11::list& task_names,
+    const size_t*const task_mol_start,
+    const size_t*const task_col_starts,
+    const size_t*const task_bytes_per_float,
+    const NormalizationOptions*const task_normalization_options,
+    PyArrayObject*const*const labels_numpy_arrays,
+    PyArrayObject*const*const label_offsets_numpy_arrays,
+    const MolKey*const keys,
+    std::unique_ptr<double[]>& all_task_stats) {
+
+    const size_t num_tasks = task_names.size();
 
     // Compute stats on the train stage only (stage 0), like how the python code did it.
     // Normalization will be applied to all stages later.
     // TODO: Does it matter that stats calculations will include all copies of molecules
     // that occur multiple times in the same dataset?
-    constexpr size_t stat_min_offset = 0;
-    constexpr size_t stat_max_offset = 1;
-    constexpr size_t stat_mean_offset = 2;
-    constexpr size_t stat_std_offset = 3;
-    constexpr size_t num_stats = 4;
     size_t stats_floats = num_stats*total_num_cols;
-    std::unique_ptr<double[]> all_task_stats((stats_floats > 0) ? new double[stats_floats] : nullptr);
+    all_task_stats.reset((stats_floats > 0) ? new double[stats_floats] : nullptr);
     std::unordered_map<std::string, std::vector<at::Tensor>> all_stats_return_data;
 
     if (total_num_cols > 0) {
@@ -1221,19 +1216,20 @@ std::tuple<
             all_stats_return_data.insert(std::make_pair(std::move(task_name), std::move(task_stats_out)));
         }
     }
+    
+    return all_stats_return_data;
+}
 
-    if (merge_equivalent_mols) {
-        // Sort train, val, and test separately, since they need to be stored separately.
-        // Don't sort until after accumulating stats, because the code above currently assumes that the tasks
-        // aren't interleaved.
-        std::sort(keys.get(), keys.get() + task_mol_start[num_tasks]);
-        std::sort(keys.get() + task_mol_start[num_tasks], keys.get() + task_mol_start[2*num_tasks]);
-        std::sort(keys.get() + task_mol_start[2*num_tasks], keys.get() + total_num_mols);
-    }
+static auto save_non_label_data(
+    const std::filesystem::path* stage_paths,
+    const size_t num_tasks,
+    const size_t*const task_mol_start,
+    const MolKey*const keys,
+    const std::vector<std::string>& smiles_strings,
+    const size_t total_num_cols) {
 
     std::unordered_map<std::string, std::vector<at::Tensor>> per_stage_return_data;
 
-    // Deal with non-label data first (smiles, num_nodes, num_edges)
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
         size_t concatenated_smiles_size = 0;
         uint64_t num_unique_mols = 0;
@@ -1317,15 +1313,26 @@ std::tuple<
         stage_return_data.push_back(std::move(num_edges_tensor));
         per_stage_return_data.insert(std::make_pair(stages[stage_index], std::move(stage_return_data)));
     }
- 
-    if (total_num_cols == 0) {
-        // No label data, so all done
-        return std::make_tuple(
-            std::move(per_stage_return_data),
-            std::move(all_stats_return_data),
-            std::move(return_label_num_cols),
-            std::move(return_label_data_types));
-    }
+
+    return per_stage_return_data;
+}
+
+static void save_label_data(
+    std::unordered_map<std::string, std::vector<at::Tensor>>& per_stage_return_data,
+    const std::filesystem::path* stage_paths,
+    const size_t num_tasks,
+    const size_t*const task_mol_start,
+    const size_t*const task_col_starts,
+    const size_t total_num_cols,
+    const MolKey*const keys,
+    PyArrayObject*const*const labels_numpy_arrays,
+    PyArrayObject*const*const label_offsets_numpy_arrays,
+    const NormalizationOptions*const task_normalization_options,
+    const double*const all_task_stats,
+    const size_t*const task_bytes_per_float,
+    const FeatureLevel*const task_levels,
+    const std::vector<std::string>& smiles_strings,
+    const bool explicit_H) {
 
     // mol_data_offsets will only need one entry for each unique molecule,
     // plus one per file, but we can preallocate an upper bound.
@@ -1509,7 +1516,7 @@ std::tuple<
                 const size_t task_first_col = task_col_starts[task_index];
                 const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
                 const NormalizationOptions& normalization = task_normalization_options[task_index];
-                const double* task_stats = all_task_stats.get() + num_stats*task_first_col;
+                const double* task_stats = all_task_stats + num_stats*task_first_col;
 
                 const size_t bytes_per_float = task_bytes_per_float[task_index];
                 
@@ -1613,11 +1620,7 @@ std::tuple<
                 std::filesystem::path file_path(stage_paths[stage_index] / filename);
                 FileType file = fopen_write_wrapper(file_path);
                 if (file == INVALID_FILE) {
-                    return std::make_tuple(
-                        std::move(per_stage_return_data),
-                        std::move(all_stats_return_data),
-                        std::move(return_label_num_cols),
-                        std::move(return_label_data_types));
+                    return;
                 }
 #if GRAPHIUM_CPP_DEBUGGING
                 printf("Writing file %s\n", file_path.string().c_str());
@@ -1625,11 +1628,7 @@ std::tuple<
                 size_t num_bytes_written = fwrite_wrapper(data.data(), data_offset, file);
                 fclose_wrapper(file);
                 if (num_bytes_written != data_offset) {
-                    return std::make_tuple(
-                        std::move(per_stage_return_data),
-                        std::move(all_stats_return_data),
-                        std::move(return_label_num_cols),
-                        std::move(return_label_data_types));
+                    return;
                 }
                 data.resize(0);
                 
@@ -1651,31 +1650,19 @@ std::tuple<
         std::filesystem::path file_path(stage_paths[stage_index] / "mol_offsets.tmp");
         FileType file = fopen_write_wrapper(file_path);
         if (file == INVALID_FILE) {
-            return std::make_tuple(
-                std::move(per_stage_return_data),
-                std::move(all_stats_return_data),
-                std::move(return_label_num_cols),
-                std::move(return_label_data_types));
+            return;
         }
         size_t num_bytes_written = fwrite_wrapper(&num_unique_mols, sizeof(num_unique_mols), file);
         if (num_bytes_written != sizeof(num_unique_mols)) {
             fclose_wrapper(file);
-            return std::make_tuple(
-                std::move(per_stage_return_data),
-                std::move(all_stats_return_data),
-                std::move(return_label_num_cols),
-                std::move(return_label_data_types));
+            return;
         }
         size_t num_offsets = mol_data_offsets.size();
         size_t data_offsets_size = num_offsets*sizeof(mol_data_offsets[0]);
         num_bytes_written = fwrite_wrapper(mol_data_offsets.data(), data_offsets_size, file);
         fclose_wrapper(file);
         if (num_bytes_written != data_offsets_size) {
-            return std::make_tuple(
-                std::move(per_stage_return_data),
-                std::move(all_stats_return_data),
-                std::move(return_label_num_cols),
-                std::move(return_label_data_types));
+            return;
         }
         
         static_assert(sizeof(int64_t) == sizeof(mol_data_offsets[0]));
@@ -1688,6 +1675,171 @@ std::tuple<
         per_stage_return_data[stages[stage_index]].push_back(std::move(data_offsets_tensor));
         mol_data_offsets.resize(0);
     }
+}
+
+// Returns:
+// stage -> [
+//      unique mol smiles strings all concatenated,
+//      unique mol smiles string offsets (including one extra for the end),
+//      unique mol num_nodes,
+//      unique mol num_edges,
+//      mol_file_data_offsets
+// ]
+// task -> 4 stats tensors each
+// task index -> label num columns
+// task index -> label torch data type enum
+std::tuple<
+    std::unordered_map<std::string, std::vector<at::Tensor>>,
+    std::unordered_map<std::string, std::vector<at::Tensor>>,
+    std::vector<int64_t>,
+    std::vector<int32_t>
+> prepare_and_save_data(
+    const pybind11::list& task_names,
+    pybind11::dict& task_dataset_args,
+    const pybind11::dict& task_label_normalization,
+    const std::string processed_graph_data_path,
+    const std::string data_hash,
+    const pybind11::dict& task_train_indices,
+    const pybind11::dict& task_val_indices,
+    const pybind11::dict& task_test_indices,
+    bool add_self_loop,
+    bool explicit_H,
+    int max_threads,
+    bool merge_equivalent_mols) {
+
+    ensure_numpy_array_module_initialized();
+
+    const size_t num_tasks = task_names.size();
+    std::vector<int64_t> return_label_num_cols(num_tasks, 0);
+    std::vector<int32_t> return_label_data_types(num_tasks, -1);
+    std::unique_ptr<size_t[]> task_col_starts(new size_t[num_tasks+1]);
+    std::unique_ptr<size_t[]> task_bytes_per_float(new size_t[num_tasks]);
+    std::unique_ptr<NormalizationOptions[]> task_normalization_options(new NormalizationOptions[num_tasks]);
+    std::unique_ptr<PyArrayObject*[]> smiles_numpy_arrays(new PyArrayObject*[num_tasks]);
+    std::unique_ptr<PyArrayObject*[]> labels_numpy_arrays(new PyArrayObject*[num_tasks]);
+    std::unique_ptr<PyArrayObject*[]> label_offsets_numpy_arrays(new PyArrayObject*[num_tasks]);
+    std::unique_ptr<FeatureLevel[]> task_levels(new FeatureLevel[num_tasks]);
+
+    // Figure out the task bounds first, so that everything can be parallelized perfectly.
+    get_task_data(
+        task_names,
+        task_dataset_args,
+        task_label_normalization,
+        return_label_num_cols.data(),
+        return_label_data_types.data(),
+        task_col_starts.get(),
+        task_bytes_per_float.get(),
+        task_normalization_options.get(),
+        smiles_numpy_arrays.get(),
+        labels_numpy_arrays.get(),
+        label_offsets_numpy_arrays.get(),
+        task_levels.get());
+
+    const size_t total_num_cols = task_col_starts[num_tasks];
+
+    std::filesystem::path base_path{processed_graph_data_path};
+    std::filesystem::create_directories(base_path);
+    std::filesystem::path common_path(base_path / data_hash);
+    std::filesystem::create_directories(common_path);
+    
+    if (total_num_cols > 0) {
+        save_num_cols_and_dtypes(common_path, return_label_num_cols, return_label_data_types);
+    }
+
+    std::unique_ptr<size_t[]> task_mol_start(new size_t[num_stages*num_tasks + 1]);
+    std::vector<size_t> task_mol_indices;
+    std::vector<std::string> smiles_strings;
+    get_indices_and_strings(
+        task_names,
+        task_train_indices,
+        task_val_indices,
+        task_test_indices,
+        task_mol_start.get(),
+        task_mol_indices,
+        smiles_numpy_arrays.get(),
+        smiles_strings);
+    const size_t total_num_mols = task_mol_indices.size();
+
+    // Compute all InChI keys for all molecules, in parallel if applicable.
+    std::unique_ptr<MolKey[]> keys(new MolKey[total_num_mols]);
+    compute_mol_keys(
+        keys.get(),
+        total_num_mols,
+        num_tasks,
+        max_threads,
+        task_mol_start.get(),
+        add_self_loop,
+        explicit_H,
+        merge_equivalent_mols,
+        task_mol_indices.data(),
+        smiles_strings);
+
+    std::unique_ptr<double[]> all_task_stats;
+    auto all_stats_return_data = compute_stats(
+        common_path,
+        total_num_cols,
+        task_names,
+        task_mol_start.get(),
+        task_col_starts.get(),
+        task_bytes_per_float.get(),
+        task_normalization_options.get(),
+        labels_numpy_arrays.get(),
+        label_offsets_numpy_arrays.get(),
+        keys.get(),
+        all_task_stats);
+
+    if (merge_equivalent_mols) {
+        // Sort train, val, and test separately, since they need to be stored separately.
+        // Don't sort until after accumulating stats, because the code above currently assumes that the tasks
+        // aren't interleaved.
+        std::sort(keys.get(), keys.get() + task_mol_start[num_tasks]);
+        std::sort(keys.get() + task_mol_start[num_tasks], keys.get() + task_mol_start[2*num_tasks]);
+        std::sort(keys.get() + task_mol_start[2*num_tasks], keys.get() + total_num_mols);
+    }
+
+    std::filesystem::path stage_paths[num_stages] = {
+        base_path / (stages[0] + "_" + data_hash),
+        base_path / (stages[1] + "_" + data_hash),
+        base_path / (stages[2] + "_" + data_hash)
+    };
+    std::filesystem::create_directories(stage_paths[0]);
+    std::filesystem::create_directories(stage_paths[1]);
+    std::filesystem::create_directories(stage_paths[2]);
+
+    // Deal with non-label data first (smiles, num_nodes, num_edges)
+    auto per_stage_return_data = save_non_label_data(
+        stage_paths,
+        num_tasks,
+        task_mol_start.get(),
+        keys.get(),
+        smiles_strings,
+        total_num_cols);
+
+    if (total_num_cols == 0) {
+        // No label data, so all done
+        return std::make_tuple(
+            std::move(per_stage_return_data),
+            std::move(all_stats_return_data),
+            std::move(return_label_num_cols),
+            std::move(return_label_data_types));
+    }
+
+    save_label_data(
+        per_stage_return_data,
+        stage_paths,
+        num_tasks,
+        task_mol_start.get(),
+        task_col_starts.get(),
+        total_num_cols,
+        keys.get(),
+        labels_numpy_arrays.get(),
+        label_offsets_numpy_arrays.get(),
+        task_normalization_options.get(),
+        all_task_stats.get(),
+        task_bytes_per_float.get(),
+        task_levels.get(),
+        smiles_strings,
+        explicit_H);
 
     return std::make_tuple(
         std::move(per_stage_return_data),
