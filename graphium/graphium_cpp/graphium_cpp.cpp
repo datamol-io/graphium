@@ -71,6 +71,11 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
     return mol;
 }
 
+void get_canonical_atom_order(const RDKit::ROMol& mol, std::vector<unsigned int>& atom_order) {
+    RDKit::Canon::rankMolAtoms(mol, atom_order);
+    assert(atom_order.size() == mol->getNumAtoms());
+}
+
 // This is necessary to export Python functions in a Python module named graphium_cpp.
 PYBIND11_MODULE(graphium_cpp, m) {
     m.doc() = "graphium C++ plugin"; // Python module docstring

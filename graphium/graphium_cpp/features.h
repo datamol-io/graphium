@@ -275,3 +275,8 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
     const std::string& smiles_string,
     bool explicit_H,
     bool ordered = false);
+
+// Determines a canonical ordering of the atoms
+void get_canonical_atom_order(
+    const RDKit::ROMol& mol,
+    std::vector<unsigned int>& atom_order);
