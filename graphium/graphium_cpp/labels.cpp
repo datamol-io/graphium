@@ -1353,6 +1353,9 @@ static void save_label_data(
     std::vector<unsigned int> first_atom_order;
     std::vector<unsigned int> current_atom_order;
     std::vector<unsigned int> inverse_atom_order;
+    std::vector<unsigned int> first_bond_atoms;
+    std::vector<unsigned int> current_bond_atoms;
+    std::vector<unsigned int> current_bond_order;
 
     // Now, deal with label data
     for (size_t stage_index = 0; stage_index < num_stages; ++stage_index) {
@@ -1502,6 +1505,7 @@ static void save_label_data(
             // Copy in the task data, with optional normalization
             // Start with an invalid prev_task_index to pick up the first task
             prev_task_index = uint64_t(int64_t(-1));
+            std::unique_ptr<RDKit::RWMol> first_mol;
             for (size_t i = first_sorted_index; i < sorted_index; ++i) {
                 const uint64_t task_index = keys[i].task_index;
                 // The same molecule can occur multiple times in a single dataset,
@@ -1529,8 +1533,18 @@ static void save_label_data(
                     if (first_string != current_string) {
                         // Different string, so get first and current atom orders
                         if (first_atom_order.size() == 0) {
-                            std::unique_ptr<RDKit::RWMol> mol = parse_mol(first_string, explicit_H);
-                            get_canonical_atom_order(*mol, first_atom_order);
+                            first_mol = parse_mol(first_string, explicit_H);
+                            get_canonical_atom_order(*first_mol, first_atom_order);
+                        }
+                        if (first_bond_atoms.size() == 0 && task_levels[task_index] == FeatureLevel::EDGE) {
+                            const unsigned int num_bonds = first_mol->getNumBonds();
+                            for (unsigned int bond_index = 0; bond_index < num_bonds; ++bond_index) {
+                                auto bond = first_mol->getBondWithIdx(bond_index);
+                                unsigned int a = bond->getBeginAtomIdx();
+                                unsigned int b = bond->getEndAtomIdx();
+                                first_bond_atoms.push_back(a);
+                                first_bond_atoms.push_back(b);
+                            }
                         }
                         std::unique_ptr<RDKit::RWMol> mol = parse_mol(current_string, explicit_H);
                         get_canonical_atom_order(*mol, current_atom_order);
@@ -1554,6 +1568,48 @@ static void save_label_data(
                             current_atom_order[first_index] = current_index;
                             if (current_index != first_index) {
                                 same_order_as_first = false;
+                            }
+                        }
+
+                        if (task_levels[task_index] == FeatureLevel::EDGE) {
+                            const unsigned int num_bonds = mol->getNumBonds();
+                            for (unsigned int bond_index = 0; bond_index < num_bonds; ++bond_index) {
+                                auto bond = mol->getBondWithIdx(bond_index);
+                                unsigned int a = bond->getBeginAtomIdx();
+                                unsigned int b = bond->getEndAtomIdx();
+                                current_bond_atoms.push_back(a);
+                                current_bond_atoms.push_back(b);
+                            }
+                            assert(first_bond_atoms.size() == current_bond_atoms.size());
+
+                            // Create a mapping from the first bond order to the current bond order
+                            same_order_as_first = true;
+                            for (size_t i = 0; i < first_bond_atoms.size(); i += 2) {
+                                const unsigned int first_a = current_atom_order[first_bond_atoms[i]];
+                                const unsigned int first_b = current_atom_order[first_bond_atoms[i + 1]];
+                                
+                                // TODO: If this search ever becomes a bottleneck, do it properly by sorting both arrays and using a binary search.
+                                bool found = false;
+                                for (size_t j = 0; j < current_bond_atoms.size(); j += 2) {
+                                    const unsigned int a = current_bond_atoms[j];
+                                    const unsigned int b = current_bond_atoms[j + 1];
+                                    // Check both orders
+                                    if ((first_a == a && first_b == b) || (first_b == a && first_a == b)) {
+                                        if (current_bond_order.size() != (j / 2)) {
+                                            same_order_as_first = false;
+                                        }
+                                        current_bond_order.push_back(j / 2);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                assert(found);
+                                if (!found) {
+                                    // The bond should be found, but in case it isn't, fall back to current order
+                                    // to avoid crashing.  This could happen if there's an InChI key collision.
+                                    same_order_as_first = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1596,9 +1652,8 @@ static void save_label_data(
                         }
                         else {
                             assert(task_levels[task_index] == FeatureLevel::EDGE);
-                            // FIXME: Re-order edge-level data, too
-                            for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
-                                store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                            for (unsigned int current_index : current_bond_order) {
+                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
                             }
                         }
                     }
@@ -1607,6 +1662,10 @@ static void save_label_data(
             first_atom_order.resize(0);
             current_atom_order.resize(0);
             inverse_atom_order.resize(0);
+            first_mol.reset();
+            first_bond_atoms.resize(0);
+            current_bond_atoms.resize(0);
+            current_bond_order.resize(0);
 
             ++num_unique_mols;
             if (num_unique_mols % num_mols_per_file == 0 || sorted_index == stage_end_index) {
