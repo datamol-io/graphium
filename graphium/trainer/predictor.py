@@ -562,6 +562,13 @@ class PredictorModule(lightning.LightningModule):
         total_norm = total_norm**0.5
         return total_norm
 
+    
+    def predict_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
+        preds = self.forward(batch)  # The dictionary of predictions
+        targets_dict = batch.get("labels")
+
+        return preds, targets_dict
+    
     def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
 
@@ -601,7 +608,10 @@ class PredictorModule(lightning.LightningModule):
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()
-        self.task_epoch_summary.set_results(task_metrics=metrics_logs)
+        
+        for task in metrics_logs.keys():
+            for key, val in metrics_logs[task].items():
+                metrics_logs[task][key] = val.to(self.device)
 
         return metrics_logs  # Consider returning concatenated dict for logging
 
@@ -614,7 +624,7 @@ class PredictorModule(lightning.LightningModule):
         else:
             epoch_time = time.time() - self.epoch_start_time
             self.epoch_start_time = None
-            self.log("epoch_time", torch.tensor(epoch_time), sync_dist=True)
+            self.log("epoch_time", torch.tensor(epoch_time).to(self.device), sync_dist=True)
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
@@ -641,8 +651,8 @@ class PredictorModule(lightning.LightningModule):
         )
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
-        concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
+        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value).to(self.device)
+        concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value.to(self.device)
         self.log_dict(concatenated_metrics_logs, sync_dist=True)
 
         # Save yaml file with the per-task metrics summaries

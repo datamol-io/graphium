@@ -525,7 +525,7 @@ class TaskSummaries(SummaryInterface):
         concatenated_metrics_logs = {}
         for task in list(self.tasks) + ["_global"]:
             concatenated_metrics_logs.update(metrics_logs[task])
-        concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+        concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().to(self.device)
         return concatenated_metrics_logs
 
     def metric_log_name(
