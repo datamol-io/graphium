@@ -57,6 +57,12 @@ class LabelNormalization:
         self.data_mean = None
         self.data_std = None
 
+    def set_statistics(self, data_min, data_max, data_mean, data_std):
+        self.data_min = data_min
+        self.data_max = data_max
+        self.data_mean = data_mean
+        self.data_std = data_std
+
     def calculate_statistics(self, array):
         """
         Saves the normalization parameters (e.g. mean and variance) to the object.

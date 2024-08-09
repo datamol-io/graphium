@@ -8,7 +8,6 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
@@ -26,12 +25,7 @@ datamodule:
         split_names: ["train", "valid", "test-dev"]
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
-    featurization_progress: True
-    featurization_backend: "loky"
     processed_graph_data_path: "graphium/data/PCQM4Mv2/"
-    dataloading_from: ram
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -61,7 +55,6 @@ datamodule:
     num_workers: 40 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
     # ipu_dataloader_training_opts:
     #   mode: async

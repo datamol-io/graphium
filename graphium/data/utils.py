@@ -25,7 +25,6 @@ import numpy as np
 import graphium
 
 from torch_geometric.data import Data
-from graphium.features.featurizer import GraphDict
 
 GRAPHIUM_DATASETS_BASE_URL = "gs://graphium-public/datasets"
 GRAPHIUM_DATASETS = {
@@ -129,7 +128,7 @@ def get_keys(pyg_data):
         return pyg_data.keys()
 
 
-def found_size_mismatch(task: str, features: Union[Data, GraphDict], labels: np.ndarray, smiles: str) -> bool:
+def found_size_mismatch(task: str, features: Data, labels: np.ndarray, smiles: str) -> bool:
     """Check if a size mismatch exists between features and labels with respect to node/edge/nodepair.
 
     Args:

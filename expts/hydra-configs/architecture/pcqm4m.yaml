@@ -81,13 +81,8 @@ architecture:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
     processed_graph_data_path: ${constants.datacache_path}
     num_workers: 40 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.

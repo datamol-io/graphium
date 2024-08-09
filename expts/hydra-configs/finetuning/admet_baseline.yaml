@@ -20,7 +20,6 @@ constants:
 datamodule:
   args:
     batch_size_training: 32
-    dataloading_from: ram
     persistent_workers: true
     num_workers: 4
   

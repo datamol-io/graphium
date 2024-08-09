@@ -7,7 +7,6 @@ datamodule:
   args:
     batch_size_training: 2048
     batch_size_inference: 2048
-    featurization_n_jobs: 6
     num_workers: 6
 
 predictor:

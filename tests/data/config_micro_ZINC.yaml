@@ -11,8 +11,6 @@ datamodule:
     smiles_col: SMILES
 
     # Featurization
-    featurization_n_jobs: -1
-    featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring]

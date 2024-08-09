@@ -22,7 +22,6 @@ import scipy as sp
 import unittest as ut
 import gzip
 
-from graphium.utils.read_file import file_opener
 from graphium.utils.tensor import (
     nan_mad,
     nan_mean,

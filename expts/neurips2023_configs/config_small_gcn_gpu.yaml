@@ -41,7 +41,6 @@ datamodule:
       zinc:
         df_path: expts/data/neurips2023/small-dataset/ZINC12k.csv.gz
         splits_path: expts/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
-    featurization_n_jobs: 4 # 30
     processed_graph_data_path: "../datacache/neurips2023-small/"
     num_workers: 4 # 30
 

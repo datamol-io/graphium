@@ -83,12 +83,7 @@ architecture:
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   args:
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
-    featurization_progress: True
-    featurization_backend: "loky"
     processed_graph_data_path: ${constants.datacache_path}
-    dataloading_from: "disk"
     num_workers: 20 # -1 to use all
     persistent_workers: True
     featurization:

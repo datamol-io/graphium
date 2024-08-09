@@ -61,9 +61,6 @@ datamodule:
         weights_type: null                # This may not always be provided
         task_level: graph
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
-    featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring]
