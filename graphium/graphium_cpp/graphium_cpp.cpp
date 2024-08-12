@@ -63,14 +63,11 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
             else {
                 atom_order[i] = (unsigned int)atom->getAtomMapNum();
                 
-                // 1-based to 0-based, and must be in range
-                if (atom_order[i] < 1 || atom_order[i] > num_atoms) {
+                // 0-based, and must be in range
+                if (atom_order[i] >= num_atoms) {
                     ordered = false;
                 }
-                else {
-                    --atom_order[i];
-                }
-                
+
                 // Clear the property, so that any equivalent molecules will
                 // get the same canoncial order.
                 atom->clearProp(RDKit::common_properties::molAtomMapNumber);
@@ -93,7 +90,7 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
             }
             
             if (ordered) {
-                // Reorder the atoms to the canonical order
+                // Reorder the atoms to the explicit order
                 mol.reset(static_cast<RDKit::RWMol*>(RDKit::MolOps::renumberAtoms(*mol, inverse_order)));
             }
         }
