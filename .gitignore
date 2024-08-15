@@ -38,6 +38,7 @@ graphium/data/cache/
 graphium/data/b3lyp/
 graphium/data/PCQM4Mv2/
 graphium/data/PCQM4M/
+graphium/data/largemix/
 graphium/data/neurips2023/small-dataset/
 graphium/data/neurips2023/large-dataset/
 graphium/data/neurips2023/dummy-dataset/
