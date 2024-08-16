@@ -588,12 +588,12 @@ class PredictorModule(lightning.LightningModule):
 
     def on_train_epoch_end(self) -> None:
         if self.epoch_start_time is not None:
-            epoch_time = time.time() - self.epoch_start_time
-            epoch_time = torch.tensor(epoch_time)
+            epoch_time = torch.tensor(time.time() - self.epoch_start_time)
             self.epoch_start_time = None
             self.log("_global/train/epoch_time", epoch_time, prog_bar=True, sync_dist=False, on_epoch=True)
 
     def on_validation_epoch_start(self) -> None:
+        self.epoch_start_time = time.time()
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
         self.task_epoch_summary["val"].reset()
@@ -618,8 +618,11 @@ class PredictorModule(lightning.LightningModule):
 
         # Time metrics are tracked always on CPU, so we log them separatly
         time_metrics = {}
-        time_metrics["_global/val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
+        time_metrics["_global/val/mean_batch_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         time_metrics["_global/val/mean_tput"] = self.mean_val_tput_tracker.mean_value
+        if self.epoch_start_time is not None:
+            time_metrics["_global/val/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time)
+            self.epoch_start_time = None
         self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
     def on_test_epoch_start(self) -> None:
