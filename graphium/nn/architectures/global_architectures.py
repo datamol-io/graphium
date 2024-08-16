@@ -1479,6 +1479,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             if accelerator == "ipu":
                 self._apply_ipu_options(accelerator_kwargs)
 
+        self.loss_weights = nn.Parameter(torch.Tensor([0.001]*len(task_heads_kwargs)), requires_grad=True)
         self._check_bad_arguments()
 
     @staticmethod
