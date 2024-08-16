@@ -591,7 +591,7 @@ class PredictorModule(lightning.LightningModule):
             epoch_time = time.time() - self.epoch_start_time
             epoch_time = torch.tensor(epoch_time)
             self.epoch_start_time = None
-            self.log("_global/train/epoch_time", epoch_time, prog_bar=True, sync_dist=True, on_epoch=True)
+            self.log("_global/train/epoch_time", epoch_time, prog_bar=True, sync_dist=False, on_epoch=True)
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
@@ -614,9 +614,13 @@ class PredictorModule(lightning.LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(step_name="val")
-        metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
-        metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
         self.log_dict(metrics_logs, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
+
+        # Time metrics are tracked always on CPU, so we log them separatly
+        time_metrics = {}
+        time_metrics["_global/val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
+        time_metrics["_global/val/mean_tput"] = self.mean_val_tput_tracker.mean_value
+        self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
     def on_test_epoch_start(self) -> None:
         self.task_epoch_summary["test"].reset()
