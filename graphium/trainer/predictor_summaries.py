@@ -89,7 +89,8 @@ class SingleTaskSummary(SummaryInterface):
         # Current predictor state
         # self.predictor_outputs = None
         self.task_name = task_name
-        self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
+        self.logged_metrics_exceptions: List[str] = []  # Track which metric exceptions have been logged
+        self.last_metrics_exceptions: List[str] = []  # Track which metric exceptions have been logged
 
         # Add default metrics
         if ("mean_preds" not in self.metrics) and compute_mean:
@@ -195,6 +196,8 @@ class SingleTaskSummary(SummaryInterface):
             metrics_to_use = list(metrics_to_use.keys())
         else:
             raise ValueError(f"metrics_to_use must be a list or a dictionary. Got {type(metrics_to_use)}")
+        
+        self.last_metrics_exceptions = []  # Reset the exceptions for this step
 
         # Compute the metrics
         computed_metrics = {}
@@ -205,11 +208,12 @@ class SingleTaskSummary(SummaryInterface):
                 computed_metrics[f"{metric_name}"] = metric_obj.compute()
             except Exception as e:
                 # If the metric computation fails, return NaN and log a warning only once
-                computed_metrics[f"{metric_name}"] = torch.as_tensor(float("nan"))
+                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=metric_obj.metric.device)
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)
                     logger.warning(f"Error for metric {metric_name}. NaN is returned. Exception: {e}")
+                self.last_metrics_exceptions.append(metric_name)
 
         return computed_metrics
 
@@ -228,8 +232,15 @@ class SingleTaskSummary(SummaryInterface):
         r"""
         reset the state of the metrics
         """
-        for metric in self.metrics.values():
-            metric.reset()
+        for metric_key, metric in self.metrics.items():
+            try:
+                metric.reset()
+            except AttributeError as e:
+                metric_name = self.metric_log_name(metric_key)
+                # Skip error if the message is `AttributeError: 'Tensor' object has no attribute 'clear'. Did you mean: 'char'?`
+                # This error happens when there's nothing to reset, usually because the metric failed.
+                if (metric_name not in self.last_metrics_exceptions) or ("'Tensor' object has no attribute 'clear'" not in str(e)):
+                    raise e
 
     def get_results_on_progress_bar(
         self,
