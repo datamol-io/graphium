@@ -208,7 +208,7 @@ class SingleTaskSummary(SummaryInterface):
                 computed_metrics[f"{metric_name}"] = metric_obj.compute()
             except Exception as e:
                 # If the metric computation fails, return NaN and log a warning only once
-                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=metric_obj.metric.device)
+                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=metric_obj.device)
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)

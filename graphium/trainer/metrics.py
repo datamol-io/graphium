@@ -418,6 +418,15 @@ class MetricWrapper:
         else:
             self.metric.to(device)
 
+    @property
+    def device(self) -> torch.device:
+        r"""
+        Return the device of the metric with the method `self.metric.device` or `self.metric[0].device`
+        """
+        if isinstance(self.metric, list):
+            return self.metric[0].device
+        return self.metric.device
+
 
     def _filter_nans(self, preds: Tensor, target: Tensor):
         """Handle the NaNs according to the chosen options"""
