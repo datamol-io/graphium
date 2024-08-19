@@ -447,7 +447,7 @@ def load_trainer(
         name = wandb_cfg.pop("name", "main")
         if len(date_time_suffix) > 0:
             name += f"_{date_time_suffix}"
-        trainer_kwargs["logger"] = WandbLogger(name=name, log_model=True, **wandb_cfg)
+        trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
 
     trainer_kwargs["callbacks"] = callbacks
     trainer = Trainer(
