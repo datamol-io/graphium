@@ -195,6 +195,7 @@ class MultitaskDataset(Dataset):
             datum = {"features": self.featurize_smiles(smiles_str)}
         else:
             datum = {
+                "smiles": smiles_str,
                 "labels": self.load_graph_from_index(idx),
                 "features": self.featurize_smiles(smiles_str),
             }
