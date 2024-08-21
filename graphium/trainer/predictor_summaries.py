@@ -437,11 +437,11 @@ class GradientNormMetric(Metric):
         self.add_state("total_steps", default=torch.tensor(0.0), dist_reduce_fx="sum")
 
     def update(self, model: torch.nn.Module) -> None:
-        total_norm = torch.tensor(0.0)
+        total_norm = torch.tensor(0.0, device=self.device)
         for p in model.parameters():
             if p.grad is not None:
                 param_norm = p.grad.detach().data.norm(2)
-                total_norm += param_norm.detach().cpu() ** 2
+                total_norm += param_norm.detach() ** 2
         self.gradient_norm_sq += total_norm
         self.total_steps += 1
 
