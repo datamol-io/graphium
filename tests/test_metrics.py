@@ -27,7 +27,7 @@ from graphium.trainer.metrics import (
     Thresholder,
 )
 
-from torchmetrics.functional import mean_squared_error, pearson_corrcoef
+from torchmetrics.functional import mean_squared_error, pearson_corrcoef, auroc
 from torchmetrics import MeanSquaredError
 
 
@@ -220,46 +220,94 @@ class test_MetricWrapper(ut.TestCase):
 
             assert score == expected_score
 
-    def test_update_compute(self):
+    def test_update_compute_reset(self):
         torch.manual_seed(42)
-        preds = torch.rand(100, dtype=torch.float32)
-        target = torch.rand(100, dtype=torch.float32)
-
         th = 0.7
 
-        # Test the update and compute with accuracy
-        preds_greater = preds > th
-        target_greater = target > th
-        accuracy = (preds_greater == target_greater).float().mean()
-
-        for batch_size in [1, 5, 25, 100]:
-            metric = MetricWrapper(
+        # ---------- ACCURACY ----------
+        metric = MetricWrapper(
                 metric="accuracy", threshold_kwargs={"threshold": th, "operator": "greater"}, task="binary",
             )
+        for batch_size in [1, 5, 25, 100]:
+            # Generate random predictions and targets, and compute the true accuracy
+            preds = torch.rand(100, dtype=torch.float32)
+            target = torch.rand(100, dtype=torch.float32)
+            preds_greater = preds > th
+            target_greater = target > th
+            true_accuracy = (preds_greater == target_greater).float().mean()
+
+            # Test the reset, update and compute
             metric.reset()
             for ii in range(0, 100, batch_size):
                 preds_batch = preds[ii : ii + batch_size]
                 target_batch = target_greater[ii : ii + batch_size]
                 metric.update(preds_batch, target_batch)
 
-            self.assertAlmostEqual(metric.compute(), accuracy, places=5)
+            self.assertAlmostEqual(metric.compute(), true_accuracy, places=5, msg=f"Error for batch_size={batch_size}")
         
-        # Test the update and compute with pearsonr
-        pearson = pearson_corrcoef(preds, target)
-
-        for batch_size in [1, 5, 25, 100]:
-            metric = MetricWrapper(
+        # ---------- PEARSONR ----------
+        metric = MetricWrapper(
                 metric="pearsonr",
             )
+        for batch_size in [1, 5, 25, 100]:
+            # Generate random predictions and targets, and compute the true pearsonr
+            preds = torch.rand(100, dtype=torch.float32)
+            target = torch.rand(100, dtype=torch.float32)
+            true_pearson = pearson_corrcoef(preds, target)
+
+            # Test the reset, update and compute with pearsonr
             metric.reset()
             for ii in range(0, 100, batch_size):
                 preds_batch = preds[ii : ii + batch_size]
                 target_batch = target[ii : ii + batch_size]
                 metric.update(preds_batch, target_batch)
 
-            self.assertAlmostEqual(metric.compute().numpy(), pearson.numpy(), places=5)
+            self.assertAlmostEqual(metric.compute().numpy(), true_pearson.numpy(), places=5, msg=f"Error for batch_size={batch_size}")
 
 
+        # ---------- PEARSONR with mean-per-label ----------
+
+        metric = MetricWrapper(
+                metric="pearsonr",
+                multitask_handling="mean-per-label",
+            )
+        for batch_size in [1, 5, 25, 100]:
+            # Generate random predictions and targets, and compute the true pearsonr
+            preds = torch.rand(100, 10, dtype=torch.float32)
+            target = torch.rand(100, 10, dtype=torch.float32)
+            true_pearson = pearson_corrcoef(preds, target).mean().numpy()
+
+            # Test the pearson reset, update and compute with mean-per-label
+            metric.reset()
+            for ii in range(0, 100, batch_size):
+                preds_batch = preds[ii : ii + batch_size]
+                target_batch = target[ii : ii + batch_size]
+                metric.update(preds_batch, target_batch)
+
+            self.assertAlmostEqual(metric.compute().numpy(), true_pearson, places=5, msg=f"Error for batch_size={batch_size}")
+
+        # ---------- AUROC with mean-per-label ----------
+        metric = MetricWrapper(
+                metric="auroc",
+                target_to_int=True,
+                multitask_handling="mean-per-label",
+                task="binary",
+            )
+        for batch_size in [1, 5, 25, 100]:
+            # Generate random predictions and targets, and compute the true auroc
+            preds = torch.rand(100, 10, dtype=torch.float32)
+            target = (0.5*preds + 0.5*torch.rand(100, 10, dtype=torch.float32)) > th
+            true_auroc = torch.stack([auroc(preds[:, ii], target[:, ii], task="binary") for ii in range(preds.shape[1])]).mean().numpy()
+
+            # Test the auroc reset, update and compute with mean-per-label
+            metric.reset()
+            for ii in range(0, 100, batch_size):
+                preds_batch = preds[ii : ii + batch_size]
+                target_batch = target[ii : ii + batch_size]
+                metric.update(preds_batch, target_batch)
+
+            self.assertAlmostEqual(metric.compute().numpy(), true_auroc, places=5, msg=f"Error for batch_size={batch_size}")
+        
 
 
 if __name__ == "__main__":
