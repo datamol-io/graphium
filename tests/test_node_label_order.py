@@ -43,13 +43,15 @@ class Test_NodeLabelOrdering(ut.TestCase):
             "task": {"task_level": "node", "label_cols": ["node_charges_mulliken", "node_charges_lowdin"], "smiles_col": "ordered_smiles", "seed": 42, **task_kwargs},
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
-        ds.prepare_data()
-        ds.setup()
+        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
+        dm.prepare_data()
+        dm.setup()
 
-        self.assertEqual(len(ds.train_ds), 10)
+        dm.train_ds.return_smiles = True
 
-        dl = ds.train_dataloader()
+        self.assertEqual(len(dm.train_ds), 10)
+
+        dl = dm.train_dataloader()
 
         batch = next(iter(dl))
         
@@ -73,13 +75,15 @@ class Test_NodeLabelOrdering(ut.TestCase):
             "task_2": {"task_level": "node", "label_cols": ["node_charges_lowdin"], "smiles_col": "ordered_smiles", "seed": 43, **task_kwargs},
         }
 
-        ds = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
-        ds.prepare_data()
-        ds.setup()
+        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH)
+        dm.prepare_data()
+        dm.setup()
 
-        self.assertEqual(len(ds.train_ds), 10)
+        dm.train_ds.return_smiles = True
 
-        dl = ds.train_dataloader()
+        self.assertEqual(len(dm.train_ds), 10)
+
+        dl = dm.train_dataloader()
 
         batch = next(iter(dl))
         

@@ -45,6 +45,7 @@ class MultitaskDataset(Dataset):
         num_edges_tensor=None,
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
+        return_smiles: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -74,6 +75,8 @@ class MultitaskDataset(Dataset):
         self.num_nodes_tensor = num_nodes_tensor
         self.num_edges_tensor = num_edges_tensor
         self.dataset_length = num_nodes_tensor.size(dim=0)
+
+        self.return_smiles = return_smiles
 
         logger.info(f"Dataloading from DISK")
 
@@ -195,10 +198,12 @@ class MultitaskDataset(Dataset):
             datum = {"features": self.featurize_smiles(smiles_str)}
         else:
             datum = {
-                "smiles": smiles_str,
                 "labels": self.load_graph_from_index(idx),
                 "features": self.featurize_smiles(smiles_str),
             }
+
+        if self.return_smiles:
+            datum["smiles"] = smiles_str
 
         # One of the featurization error handling options returns a string on error,
         # instead of throwing an exception, so assume that the intention is to just skip,
