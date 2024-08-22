@@ -202,7 +202,7 @@ class PredictorModule(lightning.LightningModule):
         # throughput estimation
         self.mean_time_tracker = MovingAverageTracker()
         self.mean_tput_tracker = MovingAverageTracker()
-        self.epoch_start_time = None
+        self.epoch_start_time = {}
 
         # Decide whether to log every step or once at the end
         # of the epoch.
@@ -579,7 +579,7 @@ class PredictorModule(lightning.LightningModule):
     
     def _general_epoch_start(self, step_name: Literal["train", "val", "test"]) -> None:
         self.task_epoch_summary[step_name].reset()
-        self.epoch_start_time = time.time()
+        self.epoch_start_time[step_name] = time.time()
         self.mean_time_tracker.reset()
         self.mean_tput_tracker.reset()
 
@@ -602,7 +602,7 @@ class PredictorModule(lightning.LightningModule):
         time_metrics = {}
         time_metrics[f"_global/{step_name}/mean_batch_time"] = torch.tensor(self.mean_time_tracker.mean_value)
         time_metrics[f"_global/{step_name}/mean_tput"] = self.mean_tput_tracker.mean_value
-        time_metrics[f"_global/{step_name}/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time)
+        time_metrics[f"_global/{step_name}/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time[step_name])
 
         self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
