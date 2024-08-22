@@ -25,6 +25,7 @@ from loguru import logger
 from torch.nn.modules.loss import _Loss
 from torchmetrics.utilities.distributed import reduce
 import torchmetrics.functional.regression.mae
+from torchmetrics.utilities.data import dim_zero_cat
 from torchmetrics import Metric
 
 from graphium.utils.tensor import nan_mean
@@ -603,14 +604,14 @@ class MetricToConcatenatedTorchMetrics(Metric):
         self.add_state("target", default=[], dist_reduce_fx="cat")
 
     def update(self, preds: Tensor, target: Tensor):
-        self.preds.append(preds.detach())
-        self.target.append(target)
+        self.preds.append(preds.detach().cpu())
+        self.target.append(target.cpu())
 
     def compute(self):
         if len(self.preds) == 0:
             raise ValueError("No scores to compute")
-        preds = torch.cat(self.preds, dim=0)
-        target = torch.cat(self.target, dim=0)
+        preds = dim_zero_cat(self.preds)
+        target = dim_zero_cat(self.target)
         
 
         if (self.multitask_handling is None) or (self.multitask_handling in ["none", "flatten"]):
