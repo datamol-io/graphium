@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 import time
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, Literal
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, Literal, Mapping
 
 import lightning
 import numpy as np
@@ -200,8 +200,8 @@ class PredictorModule(lightning.LightningModule):
         self._set_hparams(recursive_config_reformating(self.hparams))
 
         # throughput estimation
-        self.mean_val_time_tracker = MovingAverageTracker()
-        self.mean_val_tput_tracker = MovingAverageTracker()
+        self.mean_time_tracker = MovingAverageTracker()
+        self.mean_tput_tracker = MovingAverageTracker()
         self.epoch_start_time = None
 
         # Decide whether to log every step or once at the end
@@ -498,14 +498,14 @@ class PredictorModule(lightning.LightningModule):
 
         self.model_grad.reset()
         self.task_epoch_summary["train"].reset()
-        self.train_batch_start_time = time.time()
+        self.batch_start_time = time.time()
         self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
             (batch_idx % self.metrics_every_n_train_steps) != 0
         )
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        train_batch_time = time.time() - self.train_batch_start_time  # To be used for throughput calculation
+        train_batch_time = time.time() - self.batch_start_time  # To be used for throughput calculation
 
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
         metrics_logs = {}
@@ -538,6 +538,8 @@ class PredictorModule(lightning.LightningModule):
         tput = num_graphs / train_batch_time
         metrics_logs["_global/train/batch_time"] = train_batch_time
         metrics_logs["_global/train/batch_tput"] = tput
+        self.mean_time_tracker.update(train_batch_time)
+        self.mean_tput_tracker.update(tput)
 
         metrics_computed = self.task_epoch_summary["train"].compute()
         self.task_epoch_summary["train"].reset()
@@ -574,6 +576,13 @@ class PredictorModule(lightning.LightningModule):
 
     def test_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test")
+    
+    def _general_epoch_start(self, step_name: Literal["train", "val", "test"]) -> None:
+        self.task_epoch_summary[step_name].reset()
+        self.epoch_start_time = time.time()
+        self.mean_time_tracker.reset()
+        self.mean_tput_tracker.reset()
+
 
     def _general_epoch_end(self, step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
@@ -581,59 +590,70 @@ class PredictorModule(lightning.LightningModule):
         
         metric_logs = self.task_epoch_summary[step_name].compute()
         self.task_epoch_summary[step_name].reset()
+        metric_logs_cpu = {k: v for k, v in metric_logs.items() if v.device == torch.device("cpu")}
+        if len(metric_logs_cpu) > 0:
+            self.log_dict(metric_logs_cpu, logger=True, prog_bar=True, sync_dist=False, on_epoch=True)
+        
+        metric_logs_accelerator = {k: v for k, v in metric_logs.items() if v.device != torch.device("cpu")}
+        if len(metric_logs_accelerator) > 0:
+            self.log_dict(metric_logs_accelerator, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
+
+        # Time metrics are tracked always on CPU, without progress bar, so we log them separatly
+        time_metrics = {}
+        time_metrics[f"_global/{step_name}/mean_batch_time"] = torch.tensor(self.mean_time_tracker.mean_value)
+        time_metrics[f"_global/{step_name}/mean_tput"] = self.mean_tput_tracker.mean_value
+        time_metrics[f"_global/{step_name}/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time)
+
+        self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
+
         return metric_logs
 
     def on_train_epoch_start(self) -> None:
-        self.epoch_start_time = time.time()
+        self._general_epoch_start(step_name="train")
 
     def on_train_epoch_end(self) -> None:
-        if self.epoch_start_time is not None:
-            epoch_time = torch.tensor(time.time() - self.epoch_start_time)
-            self.epoch_start_time = None
-            self.log("_global/train/epoch_time", epoch_time, prog_bar=True, sync_dist=False, on_epoch=True)
+        self._general_epoch_end(step_name="train")
 
     def on_validation_epoch_start(self) -> None:
-        self.epoch_start_time = time.time()
-        self.mean_val_time_tracker.reset()
-        self.mean_val_tput_tracker.reset()
-        
-        # If not in sanity check
-        self.task_epoch_summary["val"].reset()
+        self._general_epoch_start(step_name="val")
         return super().on_validation_epoch_start()
 
     def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
-        self.validation_batch_start_time = time.time()
+        self.batch_start_time = time.time()
         return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
     def on_validation_batch_end(
         self, outputs, batch: Any, batch_idx: int, dataloader_idx: int = 0
     ) -> None:
-        val_batch_time = time.time() - self.validation_batch_start_time
-        self.mean_val_time_tracker.update(val_batch_time)
+        val_batch_time = time.time() - self.batch_start_time
+        self.mean_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
-        self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
+        self.mean_tput_tracker.update(num_graphs / val_batch_time)
         return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_validation_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(step_name="val")
-        self.log_dict(metrics_logs, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
+        self._general_epoch_end(step_name="val")
+        return super().on_validation_epoch_end()
 
-        # Time metrics are tracked always on CPU, so we log them separatly
-        time_metrics = {}
-        time_metrics["_global/val/mean_batch_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
-        time_metrics["_global/val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-        if self.epoch_start_time is not None:
-            time_metrics["_global/val/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time)
-            self.epoch_start_time = None
-        self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
     def on_test_epoch_start(self) -> None:
-        self.task_epoch_summary["test"].reset()
+        self._general_epoch_start(step_name="test")
         return super().on_test_epoch_start()
 
     def on_test_epoch_end(self) -> None:
-        metrics_logs = self._general_epoch_end(step_name="test")
-        self.log_dict(metrics_logs, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
+        self._general_epoch_end(step_name="test")
+        return super().on_test_epoch_end()
+    
+    def on_test_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+        self.batch_start_time = time.time()
+        return super().on_test_batch_start(batch, batch_idx, dataloader_idx)
+    
+    def on_test_batch_end(self, outputs: Tensor | Mapping[str, Any] | None, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+        test_batch_time = time.time() - self.batch_start_time
+        self.mean_time_tracker.update(test_batch_time)
+        num_graphs = self.get_num_graphs(batch["features"])
+        self.mean_tput_tracker.update(num_graphs / test_batch_time)
+        return super().on_test_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
