@@ -27,7 +27,7 @@ from torchmetrics import Metric
 
 from graphium.config.config_convert import recursive_config_reformating
 from graphium.data.datamodule import BaseDataModule
-from graphium.trainer.metrics import MetricWrapper, MetricToTorchMetrics
+from graphium.trainer.metrics import MetricWrapper, LossWrapper
 from graphium.trainer.predictor_options import (
     EvalOptions,
     FlagOptions,
@@ -169,7 +169,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_with_loss = deepcopy(self.metrics)
         for task in self.tasks:
             metrics_with_loss[task][f"loss_{loss_names[task]}"] = MetricWrapper(
-                metric=MetricToTorchMetrics(self.loss_fun[task]),
+                metric=LossWrapper(self.loss_fun[task]),
                 target_nan_mask=self.target_nan_mask,
                 multitask_handling=self.multitask_handling,
             )
@@ -340,7 +340,7 @@ class PredictorModule(lightning.LightningModule):
 
         wrapped_loss_fun_dict = {
             task: MetricWrapper(
-                metric=MetricToTorchMetrics(loss),
+                metric=LossWrapper(loss),
                 threshold_kwargs=None,
                 target_nan_mask=target_nan_mask,
                 multitask_handling=multitask_handling,
@@ -596,6 +596,8 @@ class PredictorModule(lightning.LightningModule):
         self.epoch_start_time = time.time()
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
+        
+        # If not in sanity check
         self.task_epoch_summary["val"].reset()
         return super().on_validation_epoch_start()
 

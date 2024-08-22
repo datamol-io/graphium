@@ -102,8 +102,8 @@ SCHEDULER_DICT = {
 
 METRICS_CLASSIFICATION = {
     "accuracy": TorchMetrics.Accuracy,
-    "averageprecision": TorchMetrics.AveragePrecision,
-    "auroc": TorchMetrics.AUROC,
+    "averageprecision": TorchMetrics.functional.average_precision,  # Not using a class to better handle concatenation of preds and targets
+    "auroc": TorchMetrics.functional.auroc,  # Not using a class to better handle concatenation of preds and targets
     "confusionmatrix": TorchMetrics.ConfusionMatrix,
     "f1": TorchMetrics.F1Score,
     "fbeta": TorchMetrics.FBetaScore,

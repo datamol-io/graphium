@@ -311,6 +311,9 @@ class MultiTaskSummary(SummaryInterface):
 
     def __getitem__(self, task: str) -> SingleTaskSummary:
         return self.task_summaries[task]
+    
+    def keys(self) -> List[str]:
+        return self.tasks
 
     def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
         r"""
