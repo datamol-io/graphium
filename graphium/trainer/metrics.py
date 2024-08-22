@@ -239,7 +239,7 @@ class MetricWrapper:
                     metric_fn=metric,
                     target_nan_mask=target_nan_mask, 
                     multitask_handling=multitask_handling, 
-                    **kwargs), kwargs
+                    **kwargs).to("cpu"), kwargs
             elif all(hasattr(metric, method) for method in ["update", "compute", "reset", "to"]):
                 return metric, kwargs
             else:
@@ -536,12 +536,12 @@ class LossWrapper():
     However, it is simply limited to computing the average of the metric over all the updates.
     """
 
-    def __init__(self, metric):
-        self.metric = metric
+    def __init__(self, loss):
+        self.loss = loss
         self.scores: List[Tensor] = []
 
     def update(self, preds: Tensor, target: Tensor):
-        self.scores.append(self.metric(preds, target))
+        self.scores.append(self.loss(preds, target))
 
     def compute(self):
         if len(self.scores) == 0:
@@ -553,6 +553,10 @@ class LossWrapper():
     def to(self, device: Union[str, torch.device]):
         for ii in range(len(self.scores)):
             self.scores[ii] = self.scores[ii].to(device)
+
+    @property
+    def device(self) -> torch.device:
+        self.loss.device
 
     def reset(self):
         self.scores = []
@@ -604,8 +608,8 @@ class MetricToConcatenatedTorchMetrics(Metric):
         self.add_state("target", default=[], dist_reduce_fx="cat")
 
     def update(self, preds: Tensor, target: Tensor):
-        self.preds.append(preds.detach().cpu())
-        self.target.append(target.cpu())
+        self.preds.append(preds.detach().clone().cpu())
+        self.target.append(target.clone().cpu())
 
     def compute(self):
         if len(self.preds) == 0:

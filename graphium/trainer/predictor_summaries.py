@@ -25,6 +25,8 @@ from torch import Tensor
 from torchmetrics import MeanMetric, Metric
 from torchmetrics.aggregation import BaseAggregator
 
+from graphium.trainer.metrics import MetricToConcatenatedTorchMetrics
+
 
 class SummaryInterface(object):
     r"""
@@ -152,40 +154,59 @@ class SingleTaskSummary(SummaryInterface):
 
             return metrics_to_use
         return self.metrics
+    
+    @staticmethod
+    def _update(metric_key:str, metric_obj, preds: Tensor, targets: Tensor) -> None:
+        r"""
+        update the state of the metrics
+        Parameters:
+            targets: the targets tensor
+            predictions: the predictions tensor
+        """
+        # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
+        varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
+        if ("preds" == varnames[0]) and ("target" == varnames[1]):
+            # The typical case of `torchmetrics`
+            metric_obj.update(preds, targets)
+        elif ("preds" == varnames[1]) and ("target" == varnames[0]):
+            # Unusual case where the order of the arguments is reversed
+            metric_obj.update(targets, preds)
+        elif ("value" == varnames[0]) and ("preds" in metric_key):
+            # The case where the metric takes only one value, and it is the prediction
+            metric_obj.update(preds)
+        elif ("value" == varnames[0]) and ("target" in metric_key):
+            # The case where the metric takes only one value, and it is the target
+            metric_obj.update(targets)
+        else:
+            raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
+
 
     def update(self, preds: Tensor, targets: Tensor) -> None:
 
         r"""
-        update the state of the predictor
+        update the state of the metrics
         Parameters:
             targets: the targets tensor
             predictions: the predictions tensor
         """
         for metric_key, metric_obj in self.metrics_to_use.items():
-            metric_obj.to(preds.device) # Not sure if good for DDP, but otherwise it crashes
             try:
-                # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
-                varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
-                if ("preds" == varnames[0]) and ("target" == varnames[1]):
-                    # The typical case of `torchmetrics`
-                    metric_obj.update(preds, targets)
-                elif ("preds" == varnames[1]) and ("target" == varnames[0]):
-                    # Unusual case where the order of the arguments is reversed
-                    metric_obj.update(targets, preds)
-                elif ("value" == varnames[0]) and ("preds" in metric_key):
-                    # The case where the metric takes only one value, and it is the prediction
-                    metric_obj.update(preds)
-                elif ("value" == varnames[0]) and ("target" in metric_key):
-                    # The case where the metric takes only one value, and it is the target
-                    metric_obj.update(targets)
-                else:
-                    raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
-
+                self._update(metric_key, metric_obj, preds, targets)
             except Exception as err:
                 err_msg = f"Error for metric {metric_key} on task {self.task_name} and step {self.step_name}. Exception: {err}"
-                if err_msg not in self._logged_warnings:
+                # Check if the error is due to the device mismatch, cast to the device, and retry
+                if "device" in str(err):
+                    metric_obj.to(preds.device)
+                    try:
+                        self._update(metric_key, metric_obj, preds, targets)
+                    except Exception as err:
+                        if err_msg not in self._logged_warnings:
+                            logger.warning(err_msg)
+                            self._logged_warnings.add(err_msg)
+                else: 
                     logger.warning(err_msg)
                     self._logged_warnings.add(err_msg)
+                
 
     def _compute(self, metrics_to_use: Optional[Union[List[str], Dict[str, Any]]] = None) -> Dict[str, Tensor]:
 
@@ -396,9 +417,9 @@ class STDMetric(BaseAggregator):
 
     def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
         if not isinstance(value, Tensor):
-            value = torch.as_tensor(value, dtype=torch.float32, device=self.device)
+            value = torch.as_tensor(value, dtype=torch.float32, device=value.device)
         if not isinstance(weight, Tensor):
-            weight = torch.as_tensor(weight, dtype=torch.float32, device=self.device)
+            weight = torch.as_tensor(weight, dtype=torch.float32, device=value.device)
 
         weight = torch.broadcast_to(weight, value.shape).clone()
         # Check whether `_cast_and_nan_check_input` takes in `weight`
