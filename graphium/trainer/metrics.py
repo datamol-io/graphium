@@ -18,6 +18,7 @@ import sys
 
 import torch
 from torch import Tensor
+import torch.distributed as dist
 import operator as op
 from copy import deepcopy
 from loguru import logger
@@ -235,11 +236,12 @@ class MetricWrapper:
     
         if not isinstance(metric, type):
             if callable(metric):
-                return MetricToConcatenatedTorchMetrics(
+                metric = MetricToConcatenatedTorchMetrics(
                     metric_fn=metric,
                     target_nan_mask=target_nan_mask, 
                     multitask_handling=multitask_handling, 
-                    **kwargs).to("cpu"), kwargs
+                    **kwargs)
+                return metric, kwargs
             elif all(hasattr(metric, method) for method in ["update", "compute", "reset", "to"]):
                 return metric, kwargs
             else:
@@ -589,8 +591,9 @@ class MetricToMeanTorchMetrics(Metric):
 
 
 class MetricToConcatenatedTorchMetrics(Metric):
-    preds: List[Tensor]
-    target: List[Tensor]
+
+    preds: List[Tensor] # Always on CPU
+    target: List[Tensor] # Always on CPU
 
     def __init__(self, 
                     metric_fn: Callable,
@@ -598,25 +601,71 @@ class MetricToConcatenatedTorchMetrics(Metric):
                     multitask_handling: Literal[None, "none", "flatten", "mean-per-label"] = None,
                     **kwargs,
                  ):
-        
-        super().__init__(dist_sync_on_step=False)
+        r"""
+            A wrapper around the `torchmetrics.Metric` to handle the saving and syncing of `preds` and `target` tensors,
+            and moving them to the CPU.
+            This is useful for certain metrics that require to save all preds and targets, such as auroc and average_precision.
+            Otherwise, if using `MetricWrapper` with the option `mean-per-label`, the `preds` and `target` would be
+            duplicated for each label, causing major memory spikes. 
+            On top of that, all preds and targets would be on the GPU, which would cause the memory to increase at every step, 
+            and potentially lead to out-of-memory before the end of the epoch.
+
+            Parameters
+            ----------
+
+            metric_fn:
+                The metric function to use. This function should take `preds` and `target` as input, and return a scalar value.
+
+            target_nan_mask:
+                - None: Do not change behaviour if there are NaNs
+
+                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+                  all NaNs will be replaced by zeros
+
+                - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+                  Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
+
+            multitask_handling:
+                - None: Do not process the tensor before passing it to the metric.
+                  Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+                  Use either 'flatten' or 'mean-per-label'.
+
+                - 'flatten': Flatten the tensor to produce the equivalent of a single task
+
+                - 'mean-per-label': Loop all the labels columns, process them as a single task,
+                    and average the results over each task
+                  *This option might slow down the computation if there are too many labels*
+
+        """
+                 
+        super().__init__(compute_on_cpu=True, dist_sync_on_step=False, sync_on_compute=False)
         self.metric_fn = metric_fn
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
         self.kwargs = kwargs
         self.add_state("preds", default=[], dist_reduce_fx="cat")
         self.add_state("target", default=[], dist_reduce_fx="cat")
+        self._to_device_warned: bool = False
+        super().to("cpu")
 
     def update(self, preds: Tensor, target: Tensor):
-        self.preds.append(preds.detach().clone().cpu())
-        self.target.append(target.clone().cpu())
+
+        # If distributed, gather the preds and target tensors
+        if self.dist_sync_fn is not None:
+            preds_list = [torch.zeros_like(preds) for _ in range(dist.get_world_size())]
+            target_list = [torch.zeros_like(target) for _ in range(dist.get_world_size())]
+            dist.all_gather(preds_list, preds)
+            dist.all_gather(target_list, target)
+            preds = dim_zero_cat(preds_list)
+            target = dim_zero_cat(target_list)
+
+        # Move the tensors to the CPU after gathering them
+        self.preds.append(preds.detach().cpu())
+        self.target.append(target.cpu())
 
     def compute(self):
-        if len(self.preds) == 0:
-            raise ValueError("No scores to compute")
         preds = dim_zero_cat(self.preds)
         target = dim_zero_cat(self.target)
-        
 
         if (self.multitask_handling is None) or (self.multitask_handling in ["none", "flatten"]):
             preds, target = _filter_nans(preds, target, self.target_nan_mask)
@@ -638,5 +687,16 @@ class MetricToConcatenatedTorchMetrics(Metric):
             # Wrong option
             raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
         return value
+    
+    def to(self, device: Union[str, torch.device]):
+        """
+        Disables the moving of the metric to another device. Stays on CPU to avoid overflow.
+        """
+        device = torch.device(device)
+        if device == torch.device("cpu"):
+            return
+        if not self._to_device_warned:
+            self._to_device_warned = True
+            logger.info(f"MetricToConcatenatedTorchMetrics({self.metric_fn}) stays on `{self.device}`, won't move to `{device}`")
         
 

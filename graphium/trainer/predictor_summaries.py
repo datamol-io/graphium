@@ -116,6 +116,7 @@ class SingleTaskSummary(SummaryInterface):
 
         self._cached_metrics: Dict[str, Tensor] = {}
         self._logged_warnings: Set[str] = set() # Set to track which metrics have been logged
+        self._device: torch.device = None
 
     @property
     def get_cached_metrics(self) -> Dict[str, Tensor]:
@@ -163,6 +164,7 @@ class SingleTaskSummary(SummaryInterface):
             targets: the targets tensor
             predictions: the predictions tensor
         """
+
         # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
         varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
         if ("preds" == varnames[0]) and ("target" == varnames[1]):
@@ -182,28 +184,24 @@ class SingleTaskSummary(SummaryInterface):
 
 
     def update(self, preds: Tensor, targets: Tensor) -> None:
-
         r"""
         update the state of the metrics
         Parameters:
             targets: the targets tensor
             predictions: the predictions tensor
         """
+
+        self._device = preds.device
+
         for metric_key, metric_obj in self.metrics_to_use.items():
+            metric_obj.to(self.device)
             try:
                 self._update(metric_key, metric_obj, preds, targets)
             except Exception as err:
                 err_msg = f"Error for metric {metric_key} on task {self.task_name} and step {self.step_name}. Exception: {err}"
                 # Check if the error is due to the device mismatch, cast to the device, and retry
-                if "device" in str(err):
-                    metric_obj.to(preds.device)
-                    try:
-                        self._update(metric_key, metric_obj, preds, targets)
-                    except Exception as err:
-                        if err_msg not in self._logged_warnings:
-                            logger.warning(err_msg)
-                            self._logged_warnings.add(err_msg)
-                else: 
+
+                if err_msg not in self._logged_warnings:
                     logger.warning(err_msg)
                     self._logged_warnings.add(err_msg)
                 
@@ -229,7 +227,7 @@ class SingleTaskSummary(SummaryInterface):
                 computed_metrics[f"{metric_name}"] = metric_obj.compute()
             except Exception as e:
                 # If the metric computation fails, return NaN and log a warning only once
-                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=metric_obj.device)
+                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=self.device)
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)
@@ -288,6 +286,10 @@ class SingleTaskSummary(SummaryInterface):
             return f"{metric_name}/{self.step_name}"
         else:
             return f"{self.task_name}/{metric_name}/{self.step_name}"
+        
+    @property
+    def device(self) -> Optional[torch.device]:
+        return self._device
 
 
 class MultiTaskSummary(SummaryInterface):
