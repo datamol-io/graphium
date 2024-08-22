@@ -320,16 +320,17 @@ class PredictorModule(lightning.LightningModule):
             task: wrapped(preds=preds[task], target=targets[task])
             for task, wrapped in wrapped_loss_fun_dict.items()
         }
-        
+
         total_loss = 0
+
         task_weights = {key: 0.5 * torch.exp(-weight) for weight, key in zip(self.model.loss_weights, all_task_losses.keys())}
         for task_name, task_loss in all_task_losses.items():
             total_loss += task_loss * task_weights[task_name]
         regularising_term = 0.5 * torch.sum(self.model.loss_weights, dim=0)
         total_loss += regularising_term
 
-        num_tasks = len(all_task_losses.keys())
-        total_loss /= num_tasks
+        # num_tasks = len(all_task_losses.keys())
+        # total_loss /= num_tasks
 
         return total_loss, all_task_losses, task_weights, regularising_term
 

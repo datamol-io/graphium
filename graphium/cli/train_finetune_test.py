@@ -241,6 +241,11 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         # When resuming training from a checkpoint, we need to provide the path to the checkpoint in the config
         resume_ckpt_path = cfg["trainer"].get("resume_from_checkpoint", None)
 
+        # Run the model testing
+        with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+            trainer.eval(model=predictor, datamodule=datamodule, ckpt_path=test_ckpt_path)
+
+
         # Run the model training
         with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
             trainer.fit(model=predictor, datamodule=datamodule, ckpt_path=resume_ckpt_path)
