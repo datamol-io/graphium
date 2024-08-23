@@ -651,13 +651,7 @@ class MetricToConcatenatedTorchMetrics(Metric):
     def update(self, preds: Tensor, target: Tensor):
 
         # If distributed, gather the preds and target tensors
-        if self.dist_sync_fn is not None:
-            preds_list = [torch.zeros_like(preds) for _ in range(dist.get_world_size())]
-            target_list = [torch.zeros_like(target) for _ in range(dist.get_world_size())]
-            dist.all_gather(preds_list, preds)
-            dist.all_gather(target_list, target)
-            preds = dim_zero_cat(preds_list)
-            target = dim_zero_cat(target_list)
+        self.sync(self.dist_sync_fn, self.process_group)
 
         # Move the tensors to the CPU after gathering them
         self.preds.append(preds.detach().cpu())
@@ -697,6 +691,25 @@ class MetricToConcatenatedTorchMetrics(Metric):
             return
         if not self._to_device_warned:
             self._to_device_warned = True
-            logger.info(f"MetricToConcatenatedTorchMetrics({self.metric_fn}) stays on `{self.device}`, won't move to `{device}`")
+            logger.warning(f"{self.get_obj_name(self)}({self.get_obj_name(self.metric_fn)}) stays on `{self.device}`, won't move to `{device}`")
         
+    @staticmethod
+    def get_obj_name(obj):
+        """
+        Returns the name of a function, class, or instance of a class.
+        
+        Parameters:
+        - obj: The object to get the name of.
+        
+        Returns:
+        - The name of the object as a string.
+        """
+        # If the object is a class or function, return its __name__
+        if hasattr(obj, '__name__'):
+            return obj.__name__
+        # If the object is an instance of a class, return its class's __name__
+        elif hasattr(obj, '__class__'):
+            return obj.__class__.__name__
+        else:
+            return str(obj)  # Fallback to converting the object to string
 
