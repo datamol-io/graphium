@@ -536,15 +536,15 @@ class PredictorModule(lightning.LightningModule):
         # Get the throughput of the batch
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
-        metrics_logs["_global/train/batch_time"] = train_batch_time
-        metrics_logs["_global/train/batch_tput"] = tput
+        metrics_logs["_global/batch_time/train"] = train_batch_time
+        metrics_logs["_global/batch_tput/train"] = tput
         self.mean_time_tracker.update(train_batch_time)
         self.mean_tput_tracker.update(tput)
 
         metrics_computed = self.task_epoch_summary["train"].compute()
         self.task_epoch_summary["train"].reset()
         metrics_logs.update(metrics_computed)
-        metrics_logs["_global/train/grad_norm"] = self.model_grad.compute()
+        metrics_logs["_global/grad_norm/train"] = self.model_grad.compute()
 
         # Log the metrics
         self.log_dict(
@@ -600,9 +600,9 @@ class PredictorModule(lightning.LightningModule):
 
         # Time metrics are tracked always on CPU, without progress bar, so we log them separatly
         time_metrics = {}
-        time_metrics[f"_global/{step_name}/mean_batch_time"] = torch.tensor(self.mean_time_tracker.mean_value)
-        time_metrics[f"_global/{step_name}/mean_tput"] = self.mean_tput_tracker.mean_value
-        time_metrics[f"_global/{step_name}/epoch_time"] = torch.tensor(time.time() - self.epoch_start_time[step_name])
+        time_metrics[f"_global/mean_batch_time/{step_name}"] = torch.tensor(self.mean_time_tracker.mean_value)
+        time_metrics[f"_global/mean_tput/{step_name}"] = self.mean_tput_tracker.mean_value
+        time_metrics[f"_global/epoch_time/{step_name}"] = torch.tensor(time.time() - self.epoch_start_time[step_name])
 
         self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
