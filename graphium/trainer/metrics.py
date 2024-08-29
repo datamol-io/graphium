@@ -396,13 +396,11 @@ class MetricWrapper:
         
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
-            target_nans = torch.isnan(target)
-            target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
-            # TODO: make this more flexible to the target shape in the future
+            target_list = [target[..., ii] for ii in range(target.shape[-1])]
             if classifigression:
-                preds_list = [preds[..., i, :][~target_nans[..., i]] for i in range(preds.shape[1])]
+                preds_list = [preds[..., ii, :] for ii in range(preds.shape[1])]
             else:
-                preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
+                preds_list = [preds[..., ii] for ii in range(preds.shape[-1])]
 
             if not isinstance(self.metric, list):
                 self.metric = [deepcopy(self.metric) for _ in range(len(target_list))]
