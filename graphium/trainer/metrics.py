@@ -649,7 +649,11 @@ class MetricToConcatenatedTorchMetrics(Metric):
     def update(self, preds: Tensor, target: Tensor):
 
         # If distributed, gather the preds and target tensors
-        self.sync(self.dist_sync_fn, self.process_group)
+        if self.dist_sync_fn is not None:
+            preds_list = self.dist_sync_fn(preds, self.process_group)
+            target_list = self.dist_sync_fn(target, self.process_group)
+            preds = dim_zero_cat(preds_list)
+            target = dim_zero_cat(target_list)
 
         # Move the tensors to the CPU after gathering them
         self.preds.append(preds.detach().cpu())
