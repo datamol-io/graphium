@@ -665,7 +665,7 @@ class MetricToConcatenatedTorchMetrics(Metric):
 
         if (self.multitask_handling is None) or (self.multitask_handling in ["none", "flatten"]):
             preds, target = _filter_nans(preds, target, self.target_nan_mask)
-            value = self.metric_fn(preds, target)
+            value = self.metric_fn(preds, target,  **self.kwargs)
 
         elif self.multitask_handling == "mean-per-label":
             value = []
