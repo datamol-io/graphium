@@ -60,9 +60,6 @@ class PredictorModule(lightning.LightningModule):
         flag_kwargs: Dict[str, Any] = None,
         task_norms: Optional[Dict[Callable, Any]] = None,
         metrics_every_n_train_steps: Optional[int] = None,
-        replicas: int = 1,
-        gradient_acc: int = 1,
-        global_bs: Optional[int] = 1,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -209,8 +206,6 @@ class PredictorModule(lightning.LightningModule):
         self.metrics_every_n_train_steps = metrics_every_n_train_steps
         # Wether save preds and targets for each training step.
 
-        self.samples_seen = 0
-        self.global_bs = global_bs
         self.model_grad = GradientNormMetric()
 
     def forward(
@@ -509,9 +504,6 @@ class PredictorModule(lightning.LightningModule):
 
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
         metrics_logs = {}
-        # Incriment by the batch size
-        self.samples_seen += self.global_bs
-        metrics_logs["samples_seen"] = self.samples_seen
 
         # report the training loss for each individual tasks
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
@@ -545,6 +537,7 @@ class PredictorModule(lightning.LightningModule):
         self.task_epoch_summary["train"].reset()
         metrics_logs.update(metrics_computed)
         metrics_logs["_global/grad_norm/train"] = self.model_grad.compute()
+        self.model_grad.reset()
 
         # Log the metrics
         self.log_dict(

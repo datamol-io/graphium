@@ -52,41 +52,6 @@ def cli(cfg: DictConfig) -> None:
     return run_training_finetuning_testing(cfg)
 
 
-def get_replication_factor(cfg):
-    try:
-        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
-        for item in ipu_config:
-            if "replicationFactor" in item:
-                # Extract the number between parentheses
-                start = item.find("(") + 1
-                end = item.find(")")
-                if start != 0 and end != -1:
-                    return int(item[start:end])
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if replicationFactor is not found or an error occurred
-    return 1
-
-
-def get_gradient_accumulation_factor(cfg):
-    """
-    WARNING: This MUST be called after accelerator overrides have been applied
-    (i.e. after `load_accelerator` has been called)
-    """
-    try:
-        # Navigate through the nested dictionaries and get the gradient accumulation factor
-        grad_accumulation_factor = cfg.get("trainer", {}).get("trainer", {}).get("accumulate_grad_batches", 1)
-
-        # Ensure that the extracted value is an integer
-        return int(grad_accumulation_factor)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if an error occurred
-    return 1
-
-
 def get_training_batch_size(cfg):
     """
     WARNING: This MUST be called after accelerator overrides have been applied
@@ -195,14 +160,6 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         ## Metrics
         metrics = load_metrics(cfg)
 
-        # Note: these MUST be called after `cfg, accelerator = load_accelerator(cfg)`
-        replicas = get_replication_factor(cfg)
-        gradient_acc = get_gradient_accumulation_factor(cfg)
-        micro_bs = get_training_batch_size(cfg)
-        device_iterations = get_training_device_iterations(cfg)
-
-        global_bs = replicas * gradient_acc * micro_bs * device_iterations
-
         ## Predictor
         predictor = load_predictor(
             config=cfg,
@@ -213,9 +170,6 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             accelerator_type=accelerator_type,
             featurization=datamodule.featurization,
             task_norms=datamodule.task_norms,
-            replicas=replicas,
-            gradient_acc=gradient_acc,
-            global_bs=global_bs,
         )
 
     logger.info(predictor.model)
