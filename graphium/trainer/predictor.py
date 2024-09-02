@@ -251,8 +251,8 @@ class PredictorModule(lightning.LightningModule):
         }
         return [optimiser], [scheduler]
 
+    @staticmethod
     def compute_loss(
-        self,
         preds: Dict[str, Tensor],
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
@@ -320,19 +320,19 @@ class PredictorModule(lightning.LightningModule):
             task: wrapped(preds=preds[task], target=targets[task])
             for task, wrapped in wrapped_loss_fun_dict.items()
         }
+        
+        if True:
+            total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
+            num_tasks = len(all_task_losses.keys())
+            weighted_loss = total_loss / num_tasks
+        else:
+            task_weights = {key: 0.5 * torch.exp(-weight) for weight, key in zip(self.model.loss_weights, all_task_losses.keys())}
+            for task_name, task_loss in all_task_losses.items():
+                total_loss += task_loss * task_weights[task_name]
+            regularising_term = 0.5 * torch.sum(self.model.loss_weights, dim=0)
+            total_loss += regularising_term
 
-        total_loss = 0
-
-        task_weights = {key: 0.5 * torch.exp(-weight) for weight, key in zip(self.model.loss_weights, all_task_losses.keys())}
-        for task_name, task_loss in all_task_losses.items():
-            total_loss += task_loss * task_weights[task_name]
-        regularising_term = 0.5 * torch.sum(self.model.loss_weights, dim=0)
-        total_loss += regularising_term
-
-        # num_tasks = len(all_task_losses.keys())
-        # total_loss /= num_tasks
-
-        return total_loss, all_task_losses, task_weights, regularising_term
+        return weighted_loss, all_task_losses
 
     def _general_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
@@ -366,7 +366,7 @@ class PredictorModule(lightning.LightningModule):
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 
-        loss, task_losses, task_weights, loss_reg_term = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=preds,
             targets=targets_dict,
             weights=weights,
@@ -406,8 +406,6 @@ class PredictorModule(lightning.LightningModule):
         step_dict["loss"] = loss
         # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
-        step_dict["task_weights"] = task_weights
-        step_dict["loss_reg_term"] = loss_reg_term
         step_dict["gradient_norm"] = self.get_gradient_norm()
         return step_dict
 
@@ -436,7 +434,7 @@ class PredictorModule(lightning.LightningModule):
         for key in targets.keys():
             targets[key] = targets[key].to(dtype=preds[key].dtype)
         weights = batch.pop("weights", None)
-        loss, task_losses, _, _ = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=preds,
             targets=targets,
             weights=weights,
@@ -457,7 +455,7 @@ class PredictorModule(lightning.LightningModule):
             features["feat"] = features["feat"] + pert
             pert_batch["features"] = features
             preds = self.forward(pert_batch)["preds"]
-            loss, _, _, _ = self.compute_loss(
+            loss, _ = self.compute_loss(
                 preds=preds,
                 targets=targets,
                 weights=weights,
@@ -493,8 +491,6 @@ class PredictorModule(lightning.LightningModule):
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
         concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
-        concatenated_metrics_logs["task_weights"] = outputs["task_weights"]
-        concatenated_metrics_logs["loss_reg_term"] = outputs["loss_reg_term"]
         concatenated_metrics_logs["epoch_count"] = self.current_epoch
         # Incriment by the batch size
         self.samples_seen += self.global_bs
@@ -528,7 +524,7 @@ class PredictorModule(lightning.LightningModule):
         tput = num_graphs / train_batch_time
         concatenated_metrics_logs["train/batch_time"] = train_batch_time
         concatenated_metrics_logs["train/batch_tput"] = tput
-        concatenated_metrics_logs["task_loss_weights"] = list(self.model.loss_weights)
+
         # Compute all the metrics for the training set
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
@@ -596,7 +592,7 @@ class PredictorModule(lightning.LightningModule):
 
         # NOTE: Computing the loss over the entire split may cause
         # overflow issues when using fp16
-        loss, task_losses, _, _ = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=dict_tensor_fp16_to_fp32(preds),
             targets=dict_tensor_fp16_to_fp32(targets),
             weights=weights,
