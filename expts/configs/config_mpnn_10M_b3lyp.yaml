@@ -1,11 +1,11 @@
-# Testing the mpnn only model with the b3lyp dataset on IPU.
+# Testing the mpnn only model with the b3lyp dataset.
 constants:
   name: &name b3lyp_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
@@ -27,36 +27,6 @@ accelerator:
       trainer:
         precision: 16
         accumulate_grad_batches: 4
-
-  ipu_config:
-    - deviceIterations(20) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
-  ipu_inference_config: # Optional. If not provided, same as `ipu_config`
-    - deviceIterations(80) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       batch_size_training: 256
-#       batch_size_inference: 64
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"

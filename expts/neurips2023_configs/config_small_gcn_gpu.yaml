@@ -12,7 +12,7 @@ architecture:
     layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
 
 accelerator:
-  type: gpu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   float32_matmul_precision: medium
   config_override:
     datamodule:

@@ -7,7 +7,7 @@ constants:
   datacache_path: "/localdata/neurips2023-large/"
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
@@ -30,35 +30,6 @@ accelerator:
       trainer:
         precision: 16-true
         accumulate_grad_batches: 2
-
-  ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 96)
-    - Precision.enableStochasticRounding(True)
-    # - Precision.enableFloatingPointExceptions(True)
-
-  ipu_inference_config:
-  # set device iteration and replication factor to 1 during inference
-  # gradient accumulation was set to 1 in the code
-    - deviceIterations(1)
-    - replicationFactor(1)
-    - Precision.enableStochasticRounding(False)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       args:
-#         batch_size_training: 64
-#         batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"

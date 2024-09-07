@@ -112,13 +112,11 @@ class LabelNormalization:
             return input
         elif self.method == "normal":
             mean, std = torch.tensor(self.data_mean), torch.tensor(self.data_std)
-            if input.device.type != "ipu":  # Cast to device if not on IPU
-                mean, std = mean.to(input.device), std.to(input.device)
+            mean, std = mean.to(input.device), std.to(input.device)
             return (input * std) + mean
         elif self.method == "unit":
             dmax, dmin = torch.tensor(self.data_max), torch.tensor(self.data_min)
-            if input.device.type != "ipu":  # Cast to device if not on IPU
-                dmax, dmin = dmax.to(input.device), dmin.to(input.device)
+            dmax, dmin = dmax.to(input.device), dmin.to(input.device)
             return input * (dmax - dmin) + dmin
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")

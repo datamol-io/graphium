@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 from typing import Iterable, List, Dict, Literal, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
-from graphium.ipu.to_dense_batch import to_dense_batch
+from torch_geometric.utils import to_dense_batch
 from loguru import logger
 
 # Misc imports
@@ -40,9 +40,6 @@ from graphium.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 from graphium.nn.utils import MupMixin
-
-poptorch = import_poptorch(raise_error=False)
-
 import collections
 
 
@@ -2004,8 +2001,7 @@ class GraphOutputNN(nn.Module, MupMixin):
             batch=batch,
             fill_value=fill_value,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes,
-            drop_nodes_last_graph=drop_nodes_last_graph,
+            max_num_nodes=max_num_nodes,
         )
         n = dense_feat.size(1)
         h_X = dense_feat[:, :, None].repeat(1, 1, n, 1)

@@ -1,11 +1,11 @@
-# Testing the gine model with the PCQMv2 dataset on IPU.
+# Testing the gine model with the PCQMv2 dataset.
 constants:
   name: &name neurips2023_large_data_gine_n4
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
@@ -27,26 +27,6 @@ accelerator:
       trainer:
         precision: 32
         accumulate_grad_batches: 8
-
-  ipu_config:
-    - deviceIterations(10) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"

@@ -1,10 +1,10 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the mpnn only model with the PCQMv2 dataset.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: gpu  # cpu or ipu or gpu
+    type: gpu  # cpu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"

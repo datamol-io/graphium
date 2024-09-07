@@ -16,13 +16,13 @@ import math
 import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
+from torch_geometric.utils import to_dense_batch
 from typing import Tuple
 from torch import Tensor
 
 from torch_geometric.typing import SparseTensor
 
 from graphium.nn.base_layers import MLP, get_norm
-from graphium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
 
 class PreprocessPositions(nn.Module):
@@ -94,12 +94,11 @@ class PreprocessPositions(nn.Module):
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]
-        pos, mask, idx = to_dense_batch(
+        pos, mask = to_dense_batch(
             pos,
             batch=batch.batch,
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
-            drop_nodes_last_graph=False,
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.

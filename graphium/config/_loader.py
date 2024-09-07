@@ -33,8 +33,6 @@ from loguru import logger
 
 from graphium.data.datamodule import BaseDataModule, MultitaskFromSmilesDataModule
 from graphium.finetuning.finetuning_architecture import FullGraphFinetuningNetwork
-from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
-from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
 from graphium.nn.architectures import FullGraphMultiTaskNetwork
 from graphium.nn.utils import MupMixin
 from graphium.trainer.metrics import MetricWrapper
@@ -62,38 +60,10 @@ def get_accelerator(
     if (accelerator_type == "gpu") and (not torch.cuda.is_available()):
         raise ValueError(f"GPUs selected, but GPUs are not available on this device")
 
-    # Get the IPU info
-    if accelerator_type == "ipu":
-        poptorch = import_poptorch()
-        if poptorch is None:
-            raise ValueError("IPUs selected, but PopTorch is not available")
-        if not poptorch.ipuHardwareIsAvailable():
-            raise ValueError(
-                "IPUs selected, but no IPU is available/visible on this device. "
-                "If you do have IPUs, please check that the IPUOF_VIPU_API_PARTITION_ID and "
-                "IPUOF_VIPU_API_HOST environment variables are set."
-            )
-
     # Fall on cpu at the end
     if accelerator_type is None:
         accelerator_type = "cpu"
     return accelerator_type
-
-
-def _get_ipu_opts(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
-    r"""
-    Get the paths of the IPU-specific config files from the main YAML config
-    """
-
-    accelerator_options = config["accelerator"]
-    accelerator_type = accelerator_options["type"]
-
-    if accelerator_type != "ipu":
-        return None, None
-    ipu_opts = accelerator_options["ipu_config"]
-    ipu_inference_opts = accelerator_options.get("ipu_inference_config", None)
-
-    return ipu_opts, ipu_inference_opts
 
 
 def load_datamodule(
@@ -102,11 +72,10 @@ def load_datamodule(
     """
     Load the datamodule from the specified configurations at the key
     `datamodule: args`.
-    If the accelerator is IPU, load the IPU options as well.
 
     Parameters:
         config: The config file, with key `datamodule: args`
-        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu"
     Returns:
         datamodule: The datamodule used to process and load the data
     """
@@ -118,53 +87,11 @@ def load_datamodule(
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
 
-    if accelerator_type != "ipu":
-        datamodule = module_class(
-            **config["datamodule"]["args"],
-        )
-        return datamodule
+    datamodule = module_class(
+        **config["datamodule"]["args"],
+    )
+    return datamodule
 
-    # IPU specific adjustments
-    else:
-        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
-
-        # Default empty values for the IPU configurations
-        ipu_training_opts = None
-
-        ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
-        ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
-        ipu_training_opts, ipu_inference_opts = load_ipu_options(
-            ipu_opts=ipu_opts,
-            seed=config["constants"]["seed"],
-            model_name=config["constants"]["name"],
-            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            ipu_inference_opts=ipu_inference_opts,
-            precision=config["trainer"]["trainer"].get("precision"),
-        )
-
-        # Define the Dataloader options for the IPU on the training sets
-        bz_train = cfg_data["batch_size_training"]
-        ipu_dataloader_training_opts = IPUDataloaderOptions(
-            batch_size=bz_train, **ipu_dataloader_training_opts
-        )
-        ipu_dataloader_training_opts.set_kwargs()
-
-        # Define the Dataloader options for the IPU on the inference sets
-        bz_test = cfg_data["batch_size_inference"]
-        ipu_dataloader_inference_opts = IPUDataloaderOptions(
-            batch_size=bz_test, **ipu_dataloader_inference_opts
-        )
-        ipu_dataloader_inference_opts.set_kwargs()
-
-        datamodule = module_class(
-            ipu_training_opts=ipu_training_opts,
-            ipu_inference_opts=ipu_inference_opts,
-            ipu_dataloader_training_opts=ipu_dataloader_training_opts,
-            ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
-            **config["datamodule"]["args"],
-        )
-
-        return datamodule
 
 
 def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
@@ -305,17 +232,12 @@ def load_predictor(
     Defining the predictor module, which handles the training logic from `lightning.LighningModule`
     Parameters:
         model_class: The torch Module containing the main forward function
-        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu"
     Returns:
         predictor: The predictor module
     """
 
-    if accelerator_type == "ipu":
-        from graphium.ipu.ipu_wrapper import PredictorModuleIPU
-
-        predictor_class = PredictorModuleIPU
-    else:
-        predictor_class = PredictorModule
+    predictor_class = PredictorModule
 
     cfg_pred = dict(deepcopy(config["predictor"]))
     predictor = predictor_class(
@@ -383,42 +305,15 @@ def load_trainer(
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
-        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu"
         date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
         trainer: the trainer module
     """
     cfg_trainer = deepcopy(config["trainer"])
 
-    # Define the IPU plugin if required
-    strategy = cfg_trainer["trainer"].pop("strategy", "auto")
-    if accelerator_type == "ipu":
-        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
-
-        training_opts, inference_opts = load_ipu_options(
-            ipu_opts=ipu_opts,
-            ipu_inference_opts=ipu_inference_opts,
-            seed=config["constants"]["seed"],
-            model_name=config["constants"]["name"],
-            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            precision=config["trainer"]["trainer"].get("precision"),
-        )
-
-        if strategy != "auto":
-            raise ValueError("IPUs selected, but strategy is not set to 'auto'")
-
-        from lightning_graphcore import IPUStrategy
-
-        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
-
     # Get devices
     devices = cfg_trainer["trainer"].pop("devices", 1)
-    if accelerator_type == "ipu":
-        devices = 1  # number of IPUs used is defined in the ipu options files
-
-    # Remove the gradient accumulation from IPUs, since it's handled by the device
-    if accelerator_type == "ipu":
-        cfg_trainer["trainer"].pop("accumulate_grad_batches", None)
 
     # Define the early stopping parameters
     trainer_kwargs = {}

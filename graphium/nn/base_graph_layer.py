@@ -258,14 +258,14 @@ class BaseGraphStructure:
     @property
     def max_num_nodes_per_graph(self) -> Optional[int]:
         """
-        Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        Get the maximum number of nodes per graph. Useful for reshaping a compiled model
         """
         return self._max_num_nodes_per_graph
 
     @max_num_nodes_per_graph.setter
     def max_num_nodes_per_graph(self, value: Optional[int]):
         """
-        Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        Set the maximum number of nodes per graph. Useful for reshaping a compiled model
         """
         if value is not None:
             assert isinstance(value, int) and (
@@ -276,14 +276,14 @@ class BaseGraphStructure:
     @property
     def max_num_edges_per_graph(self) -> Optional[int]:
         """
-        Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        Get the maximum number of nodes per graph. Useful for reshaping a compiled model
         """
         return self._max_num_edges_per_graph
 
     @max_num_edges_per_graph.setter
     def max_num_edges_per_graph(self, value: Optional[int]):
         """
-        Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        Set the maximum number of nodes per graph. Useful for reshaping a compiled model
         """
         if value is not None:
             assert isinstance(value, int) and (
