@@ -93,12 +93,11 @@ class PreprocessPositions(nn.Module):
         batch_size = None
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
-        # idx: [totoal_nodes]
         pos, mask = to_dense_batch(
             pos,
             batch=batch.batch,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            max_num_nodes=max_num_nodes_per_graph,
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.
@@ -149,7 +148,7 @@ class PreprocessPositions(nn.Module):
         # unsqueezed mask size: [batch, 1, 1] apply on tensor [batch, nodes, embed_dim]
         node_feature.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2).to(torch.bool), 0.0)
         # [total_nodes, embed_dim]
-        node_feature = to_sparse_batch(node_feature, idx)
+        node_feature = node_feature[mask]
 
         return attn_bias, node_feature
 

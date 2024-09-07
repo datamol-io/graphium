@@ -151,7 +151,7 @@ class test_mup(ut.TestCase):
 
     def test_fullgraphmultitasknetwork(self):
         # Load the configuration file for the model
-        CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
+        CONFIG_FILE = "tests/config_test_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
 

@@ -343,7 +343,6 @@ def load_trainer(
 
     trainer = Trainer(
         detect_anomaly=True,
-        strategy=strategy,
         accelerator=accelerator_type,
         devices=devices,
         callbacks=callbacks,

@@ -1996,7 +1996,7 @@ class GraphOutputNN(nn.Module, MupMixin):
             result: concatenated node features of shape B * max_num_nodes * 2*h,
             where B is number of graphs, max_num_nodes is the chosen maximum number nodes, and h is the feature dim
         """
-        dense_feat, mask, _ = to_dense_batch(
+        dense_feat, mask = to_dense_batch(
             node_feats,
             batch=batch,
             fill_value=fill_value,

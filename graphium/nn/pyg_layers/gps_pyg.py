@@ -369,7 +369,7 @@ class GPSLayerPyg(BaseGraphModule):
         h: Tensor,
         batch: Batch,
         batch_size: Optional[int] = None,
-        max_num_nodes_per_graph: Optional[int] = None,
+        max_num_nodes: Optional[int] = None,
     ) -> Tensor:
         """
         Convert the batch of graphs to a dense batch.
@@ -380,7 +380,7 @@ class GPSLayerPyg(BaseGraphModule):
             h,
             batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            max_num_nodes=max_num_nodes,
         )
         key_padding_mask = ~key_padding_mask
         return h_dense, attn_mask, key_padding_mask
@@ -411,7 +411,7 @@ class GPSLayerPyg(BaseGraphModule):
             feat,
             batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            max_num_nodes=max_num_nodes_per_graph,
         )
 
         attn_bias = None
