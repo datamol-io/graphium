@@ -29,7 +29,7 @@ class test_Predictor(ut.TestCase):
         preds = torch.rand(10, 5)
         target = (torch.rand(10, 5) > 0.5).to(preds.dtype)
         for this_loss in losses:
-            loss_fun = EvalOptions.parse_loss_fun(this_loss)
+            loss_name, loss_fun = EvalOptions.parse_loss_fun(this_loss)
             loss = loss_fun(preds, target)
 
 

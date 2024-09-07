@@ -2098,6 +2098,12 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             for t in tdc_benchmark_names
         }
 
+        # Create a temporary `processed_graph_data_path` to store the processed graphs and labels
+        if processed_graph_data_path is None:
+            processed_graph_data_path = fs.join(tdc_cache_dir, "processed_graph_data")
+            if not fs.exists(processed_graph_data_path):
+                fs.mkdir(processed_graph_data_path)
+
         super().__init__(
             task_specific_args=task_specific_args,
             featurization=featurization,

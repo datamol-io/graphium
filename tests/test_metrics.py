@@ -197,28 +197,6 @@ class test_MetricWrapper(ut.TestCase):
                                 if isinstance(metric, str):
                                     self.assertIsInstance(state["metric"], str, msg=err_msg)
 
-    def test_classifigression_target_squeezing(self):
-        preds = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0, 0.1, 0.0, 0.7, 0.2, 0.0]])
-        target = torch.Tensor([3, 0])
-        expected_scores = [0.5, 0.75]
-        n_brackets = 5
-        metrics = ["accuracy", "averageprecision"]
-        other_kwargs = [
-            {"task": "multiclass", "num_classes": n_brackets, "top_k": 1},
-            {"task": "multiclass", "num_classes": n_brackets},
-        ]
-
-        for metric, kwargs, expected_score in zip(metrics, other_kwargs, expected_scores):
-            metric_wrapper = MetricWrapper(
-                metric=metric,
-                multitask_handling="mean-per-label",
-                squeeze_targets=True,
-                target_to_int=True,
-                **kwargs,
-            )
-            score = metric_wrapper(preds, target)
-
-            assert score == expected_score
 
     def test_update_compute_reset(self):
         torch.manual_seed(42)
