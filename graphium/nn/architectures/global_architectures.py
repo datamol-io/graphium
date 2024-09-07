@@ -1889,7 +1889,6 @@ class GraphOutputNN(nn.Module, MupMixin):
                 node_feats=g["feat"],
                 batch=g.batch,
                 max_num_nodes=self.max_num_nodes_per_graph,
-                drop_nodes_last_graph=False,
             )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":
@@ -1979,7 +1978,6 @@ class GraphOutputNN(nn.Module, MupMixin):
         max_num_nodes: int = None,
         fill_value: float = float("nan"),
         batch_size: int = None,
-        drop_nodes_last_graph: bool = False,
     ) -> torch.Tensor:
         r"""
         Vectorized implementation of nodepair-level task:
@@ -1990,8 +1988,6 @@ class GraphOutputNN(nn.Module, MupMixin):
             fill_value: The value for invalid entries in the
                 resulting dense output tensor. (default: :obj:`NaN`)
             batch_size: The batch size. (default: :obj:`None`)
-            drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
-                the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
         Returns:
             result: concatenated node features of shape B * max_num_nodes * 2*h,
             where B is number of graphs, max_num_nodes is the chosen maximum number nodes, and h is the feature dim

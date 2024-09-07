@@ -83,7 +83,6 @@ class test_Base_Layers(ut.TestCase):
             batch=bg.batch,
             batch_size=self.batch_size,
             max_num_nodes=self.max_num_nodes_per_graph,
-            drop_nodes_last_graph=False,
         )
         attn_mask = None
         key_padding_mask = ~key_padding_mask

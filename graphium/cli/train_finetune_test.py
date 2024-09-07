@@ -43,8 +43,8 @@ import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
-
-@hydra.main(version_base=None, config_path="/home/domix/Gitx/graphium/graphium/config/", config_name="loc-config_largemix")
+@hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
+# @hydra.main(version_base=None, config_path="/home/domix/Gitx/graphium/graphium/config/", config_name="loc-config_largemix")
 def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training, fine-tuning and evaluating Graphium models.

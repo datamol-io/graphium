@@ -69,8 +69,7 @@ class test_MultiHeadAttention(ut.TestCase):
             bg.feat,
             batch=bg.batch,
             batch_size=None,
-            max_num_nodes_per_graph=None,
-            drop_nodes_last_graph=False,
+            max_num_nodes=None,
         )
         # attn_bias [batch, num_heads, nodes, nodes]
         nodes = h_dense.size()[1]
