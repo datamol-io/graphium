@@ -392,7 +392,7 @@ predictor:
     lr: ${eval:"0.003/(((${architecture.gnn.depth}+8)/24)**0.5)"}
   random_seed: 42
   scheduler_kwargs: null
-  target_nan_mask: null
+  target_nan_mask: ignore
   torch_scheduler_kwargs:
     max_num_epochs: ${constants.max_epochs}
     module_type: WarmUpLinearLR
