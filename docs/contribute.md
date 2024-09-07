@@ -18,21 +18,6 @@ mamba activate graphium
 pip install --no-deps -e .
 ```
 
-### For IPU developers
-
-Download the SDK and use pypi to create your environment:
-
-```bash
-# Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
-./install_ipu.sh .graphium_ipu
-```
-
-The above step needs to be done once. After that, enable the SDK and the environment as follows:
-
-```bash
-source enable_ipu.sh .graphium_ipu
-```
-
 ## Build the documentation
 
 You can build and serve the documentation locally with:

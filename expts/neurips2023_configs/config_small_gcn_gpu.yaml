@@ -51,7 +51,7 @@ architecture:
 
 predictor:
   loss_fun:
-    tox21: bce_logits_ipu
+    tox21: bce_logits
 
   torch_scheduler_kwargs:
     max_num_epochs: &max_epochs 300

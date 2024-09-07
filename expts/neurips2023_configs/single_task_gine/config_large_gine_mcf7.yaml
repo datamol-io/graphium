@@ -204,7 +204,7 @@ predictor:
     l1000_mcf7: []
   loss_fun:
     l1000_mcf7:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 5
   random_seed: *seed
   optim_kwargs:
@@ -226,13 +226,13 @@ predictor:
 metrics:
   l1000_mcf7: &classif_metrics
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       num_classes: 5
       task: multiclass
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: average_precision
       num_classes: 5
       task: multiclass
       target_to_int: True

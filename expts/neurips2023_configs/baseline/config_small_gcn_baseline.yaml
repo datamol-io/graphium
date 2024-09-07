@@ -247,9 +247,9 @@ predictor:
     tox21: ["auroc"]
     zinc: ["mae"]
   loss_fun:
-    qm9: mae_ipu
-    tox21: bce_ipu
-    zinc: mae_ipu
+    qm9: mae
+    tox21: bce
+    zinc: mae
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -270,28 +270,28 @@ predictor:
 metrics:
   qm9: &qm9_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
     - name: r2_score
-      metric: r2_score_ipu
+      metric: r2_score
       target_nan_mask: null
       multitask_handling: mean-per-label
       threshold_kwargs: null
   tox21:
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: average_precision
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null

@@ -1,0 +1,424 @@
+constants:
+  wandb:
+    entity: valencelabs
+    project: graphium3.0
+    name: ${constants.scale}/mpnn/large-no_l1000
+    tags:
+    - mpnn
+    - large
+    - no-l1000
+    - ${constants.scale}
+  data_dir: /home/domix/Gitx/graphium/graphium/data/largemix
+  datacache_path: /home/domix/Gitx/graphium/datacache/largemix
+  scale: 10M
+  max_epochs: 50
+  name: scale_mpnn
+  raise_train_error: true
+  seed: 42
+  variants:
+    1M:
+      mup_scale_factor: 0.27
+      epochs: 50
+      batch_size: 1024
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    3M:
+      mup_scale_factor: 0.505
+      epochs: 50
+      batch_size: 1024
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    10M:
+      mup_scale_factor: null
+      epochs: 50
+      batch_size: 1024
+      accumulate_grad_batches: 1
+      depth: 16
+      mup_base_path: null
+      train_frac: 1.0
+    30M:
+      mup_scale_factor: 1.798
+      epochs: 50
+      batch_size: 1024
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    100M:
+      mup_scale_factor: 3.38
+      epochs: 30
+      batch_size: 512
+      accumulate_grad_batches: 2
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    300M:
+      mup_scale_factor: 5.91
+      epochs: 30
+      batch_size: 256
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    1B:
+      mup_scale_factor: 11.0
+      epochs: 20
+      batch_size: 256
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    3B:
+      mup_scale_factor: 18.8
+      epochs: 20
+      batch_size: 128
+      accumulate_grad_batches: 1
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 1.0
+    125Mol:
+      mup_scale_factor: 3.38
+      epochs: 30
+      batch_size: 512
+      accumulate_grad_batches: 2
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 0.125
+    250Mol:
+      mup_scale_factor: 3.38
+      epochs: 30
+      batch_size: 512
+      accumulate_grad_batches: 2
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 0.25
+    500Mol:
+      mup_scale_factor: 3.38
+      epochs: 30
+      batch_size: 512
+      accumulate_grad_batches: 2
+      depth: 16
+      # mup_base_path: /rxrx/data/user/frederik.wenkel/outgoing/mup/large-no_l1000/mpnn.yaml
+      train_frac: 0.5
+  dataset_fraction: 1.0
+accelerator:
+  float32_matmul_precision: medium
+  type: gpu
+architecture:
+  mup_scale_factor: ${constants.variants.${constants.scale}.mup_scale_factor}
+  mup_base_path:  ${constants.variants.${constants.scale}.mup_base_path}
+  pre_nn:
+    activation: relu
+    depth: 2
+    dropout: 0.1
+    hidden_dims: 4
+    last_activation: none
+    last_normalization: layer_norm
+    normalization: layer_norm
+    out_dim: 64
+    residual_type: none
+  pre_nn_edges:
+    activation: relu
+    depth: 2
+    dropout: 0.1
+    hidden_dims: 4
+    last_activation: none
+    last_normalization: layer_norm
+    normalization: layer_norm
+    out_dim: 32
+    residual_type: none
+  gnn:
+    activation: gelu
+    depth: ${constants.variants.${constants.scale}.depth}
+    dropout: 0.1
+    hidden_dims: 4
+    hidden_dims_edges: 2
+    out_dim_edges: 2
+    in_dim: 64
+    last_activation: none
+    last_normalization: layer_norm
+    layer_kwargs:
+      mlp_expansion_ratio: 1
+    layer_type: pyg:mpnnplus
+    normalization: layer_norm
+    out_dim: 4
+    residual_type: simple
+    virtual_node: none
+  graph_output_nn:
+    graph:
+      activation: relu
+      depth: 2
+      dropout: 0.1
+      hidden_dims: 4
+      last_activation: none
+      last_normalization: none
+      normalization: layer_norm
+      out_dim: 653
+      pooling:
+      - sum
+      residual_type: none
+    node:
+      activation: relu
+      depth: 2
+      dropout: 0.1
+      hidden_dims: 4
+      last_activation: none
+      last_normalization: none
+      normalization: layer_norm
+      out_dim: 84
+      pooling:
+      - sum
+      residual_type: none
+  model_type: FullGraphMultiTaskNetwork
+  pe_encoders:
+    encoders:
+      la_pos:
+        dropout: 0.1
+        encoder_type: laplacian_pe
+        first_normalization: none
+        hidden_dim: 2
+        input_keys:
+        - laplacian_eigvec
+        - laplacian_eigval
+        model_type: DeepSet
+        num_layers: 2
+        num_layers_post: 1
+        out_dim: 32
+        output_keys:
+        - feat
+      rw_pos:
+        dropout: 0.1
+        encoder_type: mlp
+        first_normalization: layer_norm
+        hidden_dim: 2
+        input_keys:
+        - rw_return_probs
+        normalization: layer_norm
+        num_layers: 2
+        out_dim: 32
+        output_keys:
+        - feat
+    last_norm: None
+    out_dim: 32
+    pool: sum
+  task_heads:
+    pcba_1328:
+      activation: relu
+      depth: 2
+      dropout: 0.1
+      hidden_dims: 4
+      last_activation: none
+      last_normalization: none
+      normalization: layer_norm
+      out_dim: 448
+      residual_type: none
+      task_level: graph
+    pcqm4m_g25:
+      activation: relu
+      depth: 2
+      dropout: 0.1
+      hidden_dims: 4
+      last_activation: none
+      last_normalization: none
+      normalization: layer_norm
+      out_dim: 25
+      residual_type: none
+      task_level: graph
+    pcqm4m_n4:
+      activation: relu
+      depth: 2
+      dropout: 0.1
+      hidden_dims: 4
+      last_activation: none
+      last_normalization: none
+      normalization: layer_norm
+      out_dim: 4
+      residual_type: none
+      task_level: node
+datamodule:
+  args:
+    batch_size_inference: 1024
+    batch_size_training: ${constants.variants.${constants.scale}.batch_size}
+    train_frac: ${constants.variants.${constants.scale}.train_frac}
+    featurization:
+      add_self_loop: false
+      atom_property_list_float:
+      - degree
+      - formal-charge
+      - radical-electron
+      - aromatic
+      - in-ring
+      atom_property_list_onehot:
+      - atomic-number
+      - group
+      - period
+      - total-valence
+      edge_property_list:
+      - bond-type-onehot
+      - stereo
+      - in-ring
+      explicit_H: false
+      max_num_atoms: 50
+      pos_encoding_as_features:
+        pos_types:
+          lap_eigval:
+            disconnected_comp: true
+            normalization: none
+            num_pos: 8
+            pos_level: node
+            pos_type: laplacian_eigval
+          lap_eigvec:
+            disconnected_comp: true
+            normalization: none
+            num_pos: 8
+            pos_level: node
+            pos_type: laplacian_eigvec
+          rw_pos:
+            ksteps: 16
+            pos_level: node
+            pos_type: rw_return_probs
+      use_bonds_weights: false
+    multiprocessing_context: spawn
+    num_workers: 4
+    persistent_workers: true
+    processed_graph_data_path: ${constants.datacache_path}
+    task_specific_args:
+      pcba_1328:
+        df: null
+        df_path: ${constants.data_dir}/PCBA_1328_1564k.parquet
+        epoch_sampling_fraction: 1
+        sample_size: ${constants.dataset_fraction} # use sample_size for test
+        label_cols: 'assayID-1*'
+        smiles_col: SMILES
+        splits_path: ${constants.data_dir}/pcba_1328_random_splits.pt
+        task_level: graph
+      pcqm4m_g25:
+        df: null
+        df_path: ${constants.data_dir}/PCQM4M_G25_N4.parquet
+        epoch_sampling_fraction: 1
+        sample_size: ${constants.dataset_fraction} # use sample_size for test
+        label_cols: graph_*
+        label_normalization:
+          method: normal
+          normalize_val_test: true
+        smiles_col: ordered_smiles
+        splits_path: ${constants.data_dir}/pcqm4m_g25_n4_random_splits.pt
+        task_level: graph
+      pcqm4m_n4:
+        df: null
+        df_path: ${constants.data_dir}/PCQM4M_G25_N4.parquet
+        epoch_sampling_fraction: 1
+        sample_size: ${constants.dataset_fraction} # use sample_size for test
+        label_cols: node_*
+        label_normalization:
+          method: normal
+          normalize_val_test: true
+        seed: 42
+        smiles_col: ordered_smiles
+        splits_path: ${constants.data_dir}/pcqm4m_g25_n4_random_splits.pt
+        task_level: node
+  module_type: MultitaskFromSmilesDataModule
+metrics:
+  # pcba_1328: []
+  # pcqm4m_g25: []
+  # pcqm4m_n4: []
+  pcba_1328:
+  - metric: auroc
+    multitask_handling: mean-per-label
+    name: auroc
+    target_nan_mask: ignore
+    task: binary
+    threshold_kwargs: null
+    target_to_int: true
+  - metric: averageprecision
+    multitask_handling: mean-per-label
+    name: avpr
+    target_nan_mask: 0
+    task: binary
+    threshold_kwargs: null
+    target_to_int: true
+  pcqm4m_g25:
+  - metric: mae
+    multitask_handling: mean-per-label
+    name: mae
+    target_nan_mask: ignore
+    threshold_kwargs: null
+  - metric: pearsonr
+    multitask_handling: mean-per-label
+    name: pearsonr
+    target_nan_mask: ignore
+    threshold_kwargs: null
+  - metric: r2_score
+    multitask_handling: mean-per-label
+    name: r2
+    target_nan_mask: ignore
+    threshold_kwargs: null
+  pcqm4m_n4:
+  - metric: mae
+    multitask_handling: mean-per-label
+    name: mae
+    target_nan_mask: ignore
+    threshold_kwargs: null
+  - metric: pearsonr
+    multitask_handling: mean-per-label
+    name: pearsonr
+    target_nan_mask: ignore
+    threshold_kwargs: null
+  - metric: r2_score
+    multitask_handling: mean-per-label
+    name: r2
+    target_nan_mask: ignore
+    threshold_kwargs: null
+predictor:
+  loss_fun:
+    pcba_1328: bce_logits
+    pcqm4m_g25: mae
+    pcqm4m_n4: mae
+  metrics_every_n_train_steps: 5
+  metrics_on_progress_bar:
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: []
+  metrics_on_training_set:
+    pcba_1328: []
+    pcqm4m_g25: [pearsonr]
+    pcqm4m_n4: [pearsonr]
+  multitask_handling: flatten
+  optim_kwargs:
+    lr: ${eval:"0.003/(((${architecture.gnn.depth}+8)/24)**0.5)"}
+  random_seed: 42
+  scheduler_kwargs: null
+  target_nan_mask: null
+  torch_scheduler_kwargs:
+    max_num_epochs: ${constants.max_epochs}
+    module_type: WarmUpLinearLR
+    verbose: false
+    warmup_epochs: 5
+tasks: {}
+trainer:
+  logger:
+    name: ${constants.scale}/mpnn/large-no_l1000
+    project: molgps-pretraining
+    save_dir: logs/molgps-pretraining/large-no_l1000/
+  model_checkpoint:
+    save_last: false
+    save_top_k: -1
+    dirpath: model_checkpoints/graphium3/large-no_l1000/${constants.scale}/mpnn/${constants.seed}/
+    every_n_epochs: 5
+    filename: '{epoch}'
+  seed: ${constants.seed}
+  trainer:
+    check_val_every_n_epoch: 1
+    max_epochs: 50
+    min_epochs: 1
+    precision: 32
+    accumulate_grad_batches: ${constants.variants.${constants.scale}.accumulate_grad_batches}
+    num_sanity_val_steps: 2
+    devices: 1
+    strategy: ddp_find_unused_parameters_true
+    limit_train_batches: 20
+    limit_val_batches: 20

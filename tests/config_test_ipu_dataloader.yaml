@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name test_ipu #qm9_full
+  name: &name test #qm9_full
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
@@ -266,8 +266,8 @@ predictor:
     homo: ["mae"]
     alpha: ["mae"]
   loss_fun:
-    homo: mse_ipu
-    alpha: mse_ipu
+    homo: mse
+    alpha: mse
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-3

@@ -21,7 +21,6 @@ os.chdir(MAIN_DIR)
 # CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
 CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
 # CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
-# CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
 
 
 def benchmark(fn, *args, message="", log2wandb=False, **kwargs):

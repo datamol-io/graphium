@@ -251,8 +251,8 @@ predictor:
     pcqm20k_g13: []
     pcqm20k_n4: []
   loss_fun:
-    pcqm20k_g13: mae_ipu
-    pcqm20k_n4: mae_ipu
+    pcqm20k_g13: mae
+    pcqm20k_n4: mae
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
@@ -273,12 +273,12 @@ predictor:
 metrics:
   pcqm20k_g13: &pcqm_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label

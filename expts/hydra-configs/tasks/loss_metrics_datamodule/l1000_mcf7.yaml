@@ -7,7 +7,7 @@ predictor:
     l1000_mcf7: []
   loss_fun:
     l1000_mcf7:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 3
       alpha: 0.5
 

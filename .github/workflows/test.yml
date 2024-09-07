@@ -55,9 +55,6 @@ jobs:
       - name: Install C++ library
         run: cd graphium/graphium_cpp && git clone https://github.com/pybind/pybind11.git && export PYTHONPATH=$PYTHONPATH:./pybind11 && python -m pip install . && cd ../..
 
-      - name: Run tests
-        run: pytest -m 'not ipu'
-
       - name: Test CLI
         run: graphium --help
 

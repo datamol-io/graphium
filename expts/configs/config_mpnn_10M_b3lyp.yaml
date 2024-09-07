@@ -244,8 +244,8 @@ predictor:
     alphagap: ["mae", "pearsonr"]
     betagap: ["mae", "pearsonr"]
   loss_fun:
-    alphagap: mse_ipu
-    betagap: mse_ipu
+    alphagap: mse
+    betagap: mse
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -268,12 +268,12 @@ predictor:
 metrics:
   alphagap: &alpha_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
