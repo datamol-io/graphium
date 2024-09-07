@@ -155,7 +155,6 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         query: Tensor,
         key: Tensor,
         value: Tensor,
-        key_padding_mask: Optional[Tensor] = None,
         attn_bias: Optional[Tensor] = None,
         precision: Optional[str] = "32",
         *args,
@@ -185,15 +184,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         attn_weights = q @ k.transpose(-1, -2)
         # [batch, num_heads, nodes, nodes]
         attn_weights += attn_bias
-        key_padding_mask_value = float("-inf") if precision == "32" else -10000
-        # key_padding_mask: [batch, 1, 1, nodes]
-        if key_padding_mask is not None:
-            masked_attn_weights = attn_weights.masked_fill(
-                key_padding_mask.unsqueeze(1).unsqueeze(2).bool(), # The mask is cast to float somewhere in TransformerEncoder
-                key_padding_mask_value,
-            )
-        else:
-            masked_attn_weights = attn_weights
+        masked_attn_weights = attn_weights
         masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
         attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
         # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]

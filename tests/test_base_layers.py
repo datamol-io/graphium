@@ -19,7 +19,7 @@ Unit tests for the different layers of graphium/nn/base_layers
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
-from torch_geometric.utils import to_dense_batch
+from torch_geometric.utils import to_dense_batch, dense_to_sparse
 from copy import deepcopy
 
 from graphium.nn.base_layers import DropPath, TransformerEncoderLayerMup
@@ -84,11 +84,13 @@ class test_Base_Layers(ut.TestCase):
             batch_size=self.batch_size,
             max_num_nodes=self.max_num_nodes_per_graph,
         )
-        attn_mask = None
+
         key_padding_mask = ~key_padding_mask
-
         h_out_dense = layer.forward(feat_dense)
-
-        h_out = h_out_dense[key_padding_mask]
+        h_out = h_out_dense[~key_padding_mask]
 
         self.assertEqual(h_out.shape, feat_in.shape)
+
+
+if __name__ == "__main__":
+    ut.main()

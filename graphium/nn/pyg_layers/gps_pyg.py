@@ -375,7 +375,6 @@ class GPSLayerPyg(BaseGraphModule):
         Convert the batch of graphs to a dense batch.
         """
 
-        attn_mask = None
         h_dense, key_padding_mask = to_dense_batch(
             h,
             batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
@@ -383,7 +382,7 @@ class GPSLayerPyg(BaseGraphModule):
             max_num_nodes=max_num_nodes,
         )
         key_padding_mask = ~key_padding_mask
-        return h_dense, attn_mask, key_padding_mask
+        return h_dense, key_padding_mask
 
     def _to_sparse_batch(self, batch: Batch, h_dense: Tensor, mask: torch.BoolTensor) -> Tensor:
         """
@@ -407,7 +406,7 @@ class GPSLayerPyg(BaseGraphModule):
         batch_size = None
 
         # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
-        feat_dense, attn_mask, key_padding_mask = self._to_dense_batch(
+        feat_dense, attn_mask = self._to_dense_batch(
             feat,
             batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
@@ -420,7 +419,7 @@ class GPSLayerPyg(BaseGraphModule):
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
         feat_attn = self._sa_block(
-            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask
+            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask
         )
 
         # feat_attn[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_nodes, hidden_dim]
