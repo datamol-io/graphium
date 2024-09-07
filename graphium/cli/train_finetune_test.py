@@ -52,41 +52,6 @@ def cli(cfg: DictConfig) -> None:
     return run_training_finetuning_testing(cfg)
 
 
-def get_training_batch_size(cfg):
-    """
-    WARNING: This MUST be called after accelerator overrides have been applied
-    (i.e. after `load_accelerator` has been called)
-    """
-    try:
-        # Navigate through the nested dictionaries and get the training batch size
-        batch_size_training = cfg.get("datamodule", {}).get("args", {}).get("batch_size_training", 1)
-
-        # Ensure that the extracted value is an integer
-        return int(batch_size_training)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if an error occurred
-    return 1
-
-
-def get_training_device_iterations(cfg):
-    try:
-        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
-        for item in ipu_config:
-            if "deviceIterations" in item:
-                # Extract the number between parentheses
-                start = item.find("(") + 1
-                end = item.find(")")
-                if start != 0 and end != -1:
-                    return int(item[start:end])
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if deviceIterations is not found or an error occurred
-    return 1
-
-
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
     """
     The main (pre-)training and fine-tuning loop.
