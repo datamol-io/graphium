@@ -40,7 +40,6 @@ from graphium.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 from graphium.nn.utils import MupMixin
-from graphium.ipu.ipu_utils import import_poptorch, is_running_on_ipu
 
 poptorch = import_poptorch(raise_error=False)
 
@@ -1476,8 +1475,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         if accelerator_kwargs is not None:
             accelerator = accelerator_kwargs["_accelerator"]
-            if accelerator == "ipu":
-                self._apply_ipu_options(accelerator_kwargs)
 
         self._check_bad_arguments()
 
@@ -1529,45 +1526,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                     f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
                 )
 
-    def _apply_ipu_options(self, ipu_kwargs):
-        gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
-        self._apply_ipu_pipeline_split(gnn_layers_per_ipu)
-
-    def _apply_ipu_pipeline_split(self, gnn_layers_per_ipu):
-        r"""
-        Apply pipeline split from accelerator options if applicable
-        """
-
-        if gnn_layers_per_ipu is None:
-            return
-
-        if not isinstance(gnn_layers_per_ipu, collections.abc.Sequence):
-            raise ValueError("gnn_layers_per_ipu must be a Sequence (e.g. a list)")
-
-        valid_ipu_pipeline_lengths = [1, 2, 4, 8, 16]
-        pipeline_length = len(gnn_layers_per_ipu)
-
-        if pipeline_length not in valid_ipu_pipeline_lengths:
-            raise ValueError(
-                f"Length of gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
-                f"got {gnn_layers_per_ipu} of length {pipeline_length} instead"
-            )
-
-        model_depth = len(self.gnn.layers)
-
-        if sum(gnn_layers_per_ipu) != model_depth:
-            raise ValueError(
-                f"The values in gnn_layers_per_ipu must add up to the depth of the model, "
-                f"got {gnn_layers_per_ipu} with total {sum(gnn_layers_per_ipu)} vs model depth "
-                f"of {model_depth}"
-            )
-
-        begin_block_layer_indices = [sum(gnn_layers_per_ipu[:i]) for i in range(1, pipeline_length)]
-
-        for begin_block_layer_index, ipu_id in zip(begin_block_layer_indices, range(1, pipeline_length)):
-            self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
-                self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
-            )
 
     def _enable_readout_cache(self, module_filter: Optional[Union[str, List[str]]]):
         """
@@ -1934,7 +1892,7 @@ class GraphOutputNN(nn.Module, MupMixin):
                 node_feats=g["feat"],
                 batch=g.batch,
                 max_num_nodes=self.max_num_nodes_per_graph,
-                drop_nodes_last_graph=is_running_on_ipu(),
+                drop_nodes_last_graph=False,
             )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":

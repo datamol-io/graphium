@@ -26,7 +26,6 @@ import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 from torch.nn.functional import linear
 
-from graphium.ipu.ipu_utils import is_running_on_ipu
 
 SUPPORTED_ACTIVATION_MAP = {
     "ReLU",
@@ -243,9 +242,7 @@ class MuReadoutGraphium(MuReadout):
     Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
     `base_width`.
 
-    Set `base_width` to width of base model passed to `mup.set_base_shapes`
-    to get same results on IPU and CPU. Should still "work" with any other
-    value, but won't give the same results as CPU
+    Set `base_width` to width of base model passed to `mup.set_base_shapes`.
     """
 
     def __init__(self, in_features, *args, **kwargs):
@@ -725,32 +722,23 @@ class DropPath(nn.Module):
         Parameters:
             input:  `torch.Tensor[total_num_nodes, hidden]`
             batch: batch attribute of the batch object, batch.batch
-            batch_size: The batch size. Must be provided when working on IPU
+            batch_size: The batch size.
 
         Returns:
             torch.Tensor: `torch.Tensor[total_num_nodes, hidde]`
 
         """
-        on_ipu = is_running_on_ipu()
 
         if self.drop_rate > 0:
             keep_prob = 1 - self.drop_rate
 
             # Parse the batch size
             if batch_size is None:
-                if on_ipu:
-                    raise ValueError(
-                        "When using the IPU the batch size must be "
-                        "provided during compilation instead of determined at runtime"
-                    )
-                else:
-                    batch_size = int(batch_idx.max()) + 1
+                batch_size = int(batch_idx.max()) + 1
 
             # mask shape: [num_graphs, 1]
             mask = input.new_empty(batch_size, 1).bernoulli_(keep_prob)
-            # if on_ipu, the last graph is a padded fake graph
-            if on_ipu:
-                mask[-1] = 0
+
             # using gather to extend mask to [total_num_nodes, 1]
             node_mask = mask[batch_idx]
             if keep_prob == 0:

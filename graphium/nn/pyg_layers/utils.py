@@ -74,7 +74,7 @@ class PreprocessPositions(nn.Module):
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
     def forward(
-        self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str
+        self, batch: Batch, max_num_nodes_per_graph: int, positions_3d_key: str
     ) -> Tuple[Tensor, Tensor]:
         r"""
         Inputs:
@@ -82,8 +82,6 @@ class PreprocessPositions(nn.Module):
                 Batch object.
             max_num_nodes_per_graph:
                 Maximum number of nodes per graph.
-            on_ipu:
-                If model rus on IPU.
             positions_3d_key:
                 The key of the pyg graph object that contains the 3D positions.
 
@@ -92,8 +90,7 @@ class PreprocessPositions(nn.Module):
         pos = batch[positions_3d_key]
         if self.first_normalization is not None:
             pos = self.first_normalization(pos)
-        batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
-        # batch_size = None if batch.feat.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.feat is only available after passing through layers, not a good attribute to check
+        batch_size = None
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]
@@ -102,7 +99,7 @@ class PreprocessPositions(nn.Module):
             batch=batch.batch,
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
-            drop_nodes_last_graph=on_ipu,
+            drop_nodes_last_graph=False,
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.

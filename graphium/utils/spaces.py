@@ -22,7 +22,6 @@ import graphium.nn.ensemble_layers as EnsembleLayers
 import graphium.nn.architectures as Architectures
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
-import graphium.ipu.ipu_losses as IPULosses
 import graphium.nn.pyg_layers as PygLayers
 import graphium.nn.residual_connections as Residuals
 import graphium.nn.encoders as Encoders
@@ -78,12 +77,6 @@ LOSS_DICT = {
     "l1": torch.nn.L1Loss,
     "mae": torch.nn.L1Loss,
     "hybrid_ce": Losses.HybridCELoss,
-    "bce_ipu": IPULosses.BCELossIPU,
-    "bce_logits_ipu": IPULosses.BCEWithLogitsLossIPU,
-    "mse_ipu": IPULosses.MSELossIPU,
-    "mae_ipu": IPULosses.L1LossIPU,
-    "l1_ipu": IPULosses.L1LossIPU,
-    "hybrid_ce_ipu": IPULosses.HybridCELossIPU,
 }
 
 
