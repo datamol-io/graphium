@@ -29,6 +29,7 @@ draft/
 scripts-expts/
 sweeps/
 mup/
+loc-*
 
 # Data and predictions
 graphium/data/ZINC_bench_gnn/

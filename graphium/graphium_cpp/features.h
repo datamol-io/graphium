@@ -274,4 +274,4 @@ std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
 std::unique_ptr<RDKit::RWMol> parse_mol(
     const std::string& smiles_string,
     bool explicit_H,
-    bool ordered = false);
+    bool ordered = true);

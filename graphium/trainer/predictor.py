@@ -563,7 +563,6 @@ class PredictorModule(lightning.LightningModule):
 
         return step_dict  # Returning the metrics_logs with the loss
 
-
     def validation_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val")
 
@@ -575,6 +574,12 @@ class PredictorModule(lightning.LightningModule):
         self.epoch_start_time[step_name] = time.time()
         self.mean_time_tracker.reset()
         self.mean_tput_tracker.reset()
+    
+    def predict_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
+        preds = self.forward(batch)  # The dictionary of predictions
+        targets_dict = batch.get("labels")
+
+        return preds, targets_dict
 
 
     def _general_epoch_end(self, step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
@@ -628,12 +633,12 @@ class PredictorModule(lightning.LightningModule):
         self._general_epoch_end(step_name="val")
         return super().on_validation_epoch_end()
 
-
     def on_test_epoch_start(self) -> None:
         self._general_epoch_start(step_name="test")
         return super().on_test_epoch_start()
 
     def on_test_epoch_end(self) -> None:
+
         self._general_epoch_end(step_name="test")
         return super().on_test_epoch_end()
     
