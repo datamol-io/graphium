@@ -11,6 +11,9 @@
 #include "features.h"
 #include <ATen/ops/linalg_eig.h>
 
+// Finds all connected components of the graph, assigning nodes to components,
+// outputting to `components` and returning the number of components.
+// See the declaration in spectral.h for more details.
 size_t find_components(
     const uint32_t n,
     const uint32_t* row_starts,
@@ -49,6 +52,8 @@ size_t find_components(
     return size_t(num_components);
 }
 
+// Computes the eigendecomposition of the graph Laplacian matrix for a single
+// connected component of the graph.  Called from compute_laplacian_eigendecomp.
 template<typename T>
 void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& data, Normalization normalization) {
     T* matrix = data.matrix_temp.data();
@@ -155,6 +160,9 @@ void compute_laplacian_eigendecomp_single(const uint32_t n, LaplacianData<T>& da
     }
 }
 
+// Computes the eigendecomposition of the graph Laplacian matrix, outputting to
+// data.eigenvalues and data.vectors.
+// See the declaration in spectral.h for more details.
 template<typename T>
 void compute_laplacian_eigendecomp(
     const uint32_t n,
@@ -163,7 +171,7 @@ void compute_laplacian_eigendecomp(
     Normalization normalization,
     LaplacianData<T>& data,
     size_t num_components,
-    const std::vector<int32_t>* components,
+    const int32_t* components,
     const T* weights) {
 
     // Compute the weight row sums, if applicable, for the diagonal of the laplacian
@@ -239,7 +247,7 @@ void compute_laplacian_eigendecomp(
         }
     }
 
-    if (num_components == 1) {
+    if (num_components == 1 || components == nullptr) {
         compute_laplacian_eigendecomp_single(n, data, normalization);
         return;
     }
@@ -261,7 +269,7 @@ void compute_laplacian_eigendecomp(
         // Reuse queue for the indices
         queue.resize(0);
         for (uint32_t i = 0; i < n; ++i) {
-            if ((*components)[i] == component) {
+            if (components[i] == component) {
                 queue.push_back(i);
             }
         }
@@ -313,5 +321,22 @@ void compute_laplacian_eigendecomp(
     }
 }
 
-template void compute_laplacian_eigendecomp<float>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<float>& data, size_t num_components, const std::vector<int32_t>* components, const float* weights);
-template void compute_laplacian_eigendecomp<double>(const uint32_t n, const uint32_t* row_starts, const uint32_t* neighbors, Normalization normalization, LaplacianData<double>& data, size_t num_components, const std::vector<int32_t>* components, const double* weights);
+// Explicit instantiations of `compute_laplacian_eigendecomp` for `float` and `double`
+template void compute_laplacian_eigendecomp<float>(
+    const uint32_t n,
+    const uint32_t* row_starts,
+    const uint32_t* neighbors,
+    Normalization normalization,
+    LaplacianData<float>& data,
+    size_t num_components,
+    const int32_t* components,
+    const float* weights);
+template void compute_laplacian_eigendecomp<double>(
+    const uint32_t n,
+    const uint32_t* row_starts,
+    const uint32_t* neighbors,
+    Normalization normalization,
+    LaplacianData<double>& data,
+    size_t num_components,
+    const int32_t* components,
+    const double* weights);

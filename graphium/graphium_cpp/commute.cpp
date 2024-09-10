@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <vector>
 
+// Computes the "commute distance" between each pair of nodes, outputting to `matrix`.
+// See the declaration in commute.h for more details.
 template<typename T>
 void compute_commute_distances(
     const uint32_t n,
@@ -35,8 +37,10 @@ void compute_commute_distances(
         full_sum = T(row_starts[n]);
     }
 
+    // Allocate the memory for the output
     matrix.resize(n * n);
 
+    // Compute the distances from the pseudoinverse
     for (size_t row = 0, row_diag_index = 0, i = 0; row < n; ++row, row_diag_index += (n + 1)) {
         for (size_t col = 0, col_diag_index = 0; col < n; ++col, ++i, col_diag_index += (n + 1)) {
             matrix[i] = full_sum * (
@@ -47,8 +51,8 @@ void compute_commute_distances(
     }
 }
 
-template
-void compute_commute_distances<float>(
+// Explicit instantiations of `compute_commute_distances` for `float` and `double`
+template void compute_commute_distances<float>(
     const uint32_t n,
     const uint32_t* row_starts,
     const uint32_t* neighbors,
@@ -56,8 +60,7 @@ void compute_commute_distances<float>(
     std::vector<float>& laplacian_pseudoinverse,
     std::vector<float>& matrix,
     const float* weights);
-template
-void compute_commute_distances<double>(
+template void compute_commute_distances<double>(
     const uint32_t n,
     const uint32_t* row_starts,
     const uint32_t* neighbors,

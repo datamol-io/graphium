@@ -8,6 +8,9 @@
 #include <utility>
 #include <vector>
 
+// Computes  the shortest path distance, along edges, between all pairs of nodes,
+// outputting to `all_pairs_distances`.
+// See the declaration in graphormer.h for more details.
 template<typename T>
 void compute_graphormer_distances(
     const uint32_t n,
@@ -53,16 +56,14 @@ void compute_graphormer_distances(
     }
 }
 
-// Explicit instantiations for float and double
-template
-void compute_graphormer_distances<float>(
+// Explicit instantiations of `compute_graphormer_distances` for `float` and `double`
+template void compute_graphormer_distances<float>(
     const uint32_t n,
     const uint32_t* neighbor_starts,
     const uint32_t* neighbors,
     std::vector<std::pair<uint32_t, uint32_t>>& queue,
     std::vector<float>& all_pairs_distances);
-template
-void compute_graphormer_distances<double>(
+template void compute_graphormer_distances<double>(
     const uint32_t n,
     const uint32_t* neighbor_starts,
     const uint32_t* neighbors,

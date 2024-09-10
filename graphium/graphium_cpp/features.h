@@ -94,6 +94,10 @@ enum class PositionalFeature {
     GRAPHORMER
 };
 
+//! Options for normalization of graph Laplacian matrix in positional features.
+//! `NONE` leaves the matrix unnormalized: `L = D - adj`
+//! `SYMMETRIC` corresponds with: `L_s = (D^-0.5) L (D^-0.5)`.
+//! `INVERSE` corresponds with: `L_i = (D^-1) L`.
 enum class Normalization {
     NONE,
     SYMMETRIC,

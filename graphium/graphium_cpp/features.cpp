@@ -1110,7 +1110,7 @@ void create_positional_features(
                     normalization,
                     current_data,
                     multiple_components ? num_components : 1,
-                    &components);
+                    components.data());
             }
 
             const bool isVec = (property == int64_t(PositionalFeature::LAPLACIAN_EIGENVEC));
