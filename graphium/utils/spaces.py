@@ -15,7 +15,7 @@ Refer to the LICENSE file for the full terms and conditions.
 from copy import deepcopy
 import torch
 import torch.optim.lr_scheduler as sc
-import torchmetrics.functional as TorchMetrics
+import torchmetrics as TorchMetrics
 
 import graphium.nn.base_layers as BaseLayers
 import graphium.nn.ensemble_layers as EnsembleLayers
@@ -23,7 +23,6 @@ import graphium.nn.architectures as Architectures
 import graphium.utils.custom_lr as CustomLR
 import graphium.data.datamodule as Datamodules
 import graphium.ipu.ipu_losses as IPULosses
-import graphium.ipu.ipu_metrics as Metrics
 import graphium.nn.pyg_layers as PygLayers
 import graphium.nn.residual_connections as Residuals
 import graphium.nn.encoders as Encoders
@@ -102,39 +101,27 @@ SCHEDULER_DICT = {
 }
 
 METRICS_CLASSIFICATION = {
-    "accuracy": TorchMetrics.accuracy,
-    "averageprecision": TorchMetrics.average_precision,
-    "auroc": TorchMetrics.auroc,
-    "confusionmatrix": TorchMetrics.confusion_matrix,
-    "f1": TorchMetrics.f1_score,
-    "fbeta": TorchMetrics.fbeta_score,
-    "precisionrecallcurve": TorchMetrics.precision_recall_curve,
-    "precision": TorchMetrics.precision,
-    "recall": TorchMetrics.recall,
-    "mcc": TorchMetrics.matthews_corrcoef,
-    "auroc_ipu": Metrics.auroc_ipu,
-    "accuracy_ipu": Metrics.accuracy_ipu,
-    "average_precision_ipu": Metrics.average_precision_ipu,
-    "f1_ipu": Metrics.f1_score_ipu,
-    "fbeta_ipu": Metrics.fbeta_score_ipu,
-    "precision_ipu": Metrics.precision_ipu,
-    "recall_ipu": Metrics.recall_ipu,
+    "accuracy": TorchMetrics.Accuracy,
+    "averageprecision": TorchMetrics.functional.average_precision,  # Not using a class to better handle concatenation of preds and targets
+    "auroc": TorchMetrics.functional.auroc,  # Not using a class to better handle concatenation of preds and targets
+    "confusionmatrix": TorchMetrics.ConfusionMatrix,
+    "f1": TorchMetrics.F1Score,
+    "fbeta": TorchMetrics.FBetaScore,
+    "precisionrecallcurve": TorchMetrics.PrecisionRecallCurve,
+    "precision": TorchMetrics.Precision,
+    "recall": TorchMetrics.Recall,
+    "mcc": TorchMetrics.MatthewsCorrCoef,
 }
 
 METRICS_REGRESSION = {
-    "mae": TorchMetrics.mean_absolute_error,
-    "mape": TorchMetrics.mean_absolute_percentage_error,
-    "mse": TorchMetrics.mean_squared_error,
-    "msle": TorchMetrics.mean_squared_log_error,
-    "pearsonr": TorchMetrics.pearson_corrcoef,
-    "spearmanr": TorchMetrics.spearman_corrcoef,
-    "r2_score": TorchMetrics.r2_score,
-    "cosine": TorchMetrics.cosine_similarity,
-    "pearsonr_ipu": Metrics.pearson_ipu,
-    "spearmanr_ipu": Metrics.spearman_ipu,
-    "r2_score_ipu": Metrics.r2_score_ipu,
-    "mae_ipu": Metrics.mean_absolute_error_ipu,
-    "mse_ipu": Metrics.mean_squared_error_ipu,
+    "mae": TorchMetrics.MeanAbsoluteError,
+    "mape": TorchMetrics.MeanAbsolutePercentageError,
+    "mse": TorchMetrics.MeanSquaredError,
+    "msle": TorchMetrics.MeanSquaredLogError,
+    "pearsonr": TorchMetrics.PearsonCorrCoef,
+    "spearmanr": TorchMetrics.SpearmanCorrCoef,
+    "r2_score": TorchMetrics.R2Score,
+    "cosine": TorchMetrics.CosineSimilarity,
 }
 
 METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)

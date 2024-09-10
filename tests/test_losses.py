@@ -26,7 +26,8 @@ from graphium.trainer.predictor_options import EvalOptions
 
 def _parse(loss_fun):
     eval_options = EvalOptions(loss_fun=loss_fun, metrics_on_progress_bar=None)
-    return eval_options.parse_loss_fun(loss_fun)
+    loss_name, loss_fun = eval_options.parse_loss_fun(loss_fun)
+    return loss_fun
 
 
 class test_HybridCELoss(ut.TestCase):

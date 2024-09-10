@@ -845,6 +845,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
         IPUDataModuleModifier.__init__(self, **kwargs)
 
+        self._len = None
         self.task_specific_args = task_specific_args
 
         self.task_dataset_processing_params = {}
@@ -929,6 +930,30 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if self._ready_to_load_all_from_file():
             self._data_is_prepared = True
+            self._len = self._get_len_from_cached_file()
+
+    def _get_len_from_cached_file(self):
+        if self._ready_to_load_all_from_file():
+            self._data_is_prepared = True
+            train_metadata = graphium_cpp.load_metadata_tensors(
+                        self.processed_graph_data_path, "train", self.data_hash
+                    )
+            val_metadata = graphium_cpp.load_metadata_tensors(
+                    self.processed_graph_data_path, "val", self.data_hash
+                )
+            test_metadata = graphium_cpp.load_metadata_tensors(
+                    self.processed_graph_data_path, "test", self.data_hash
+                )
+            length = 0
+            if len(train_metadata) > 0:
+                length += len(train_metadata[2])
+            if len(val_metadata) > 0:
+                length += len(val_metadata[2])
+            if len(test_metadata) > 0:
+                length += len(test_metadata[2])
+        else:
+            raise ValueError("Data is not prepared. Please call prepare_data() first.")
+        return length
 
     def _parse_caching_args(self, processed_graph_data_path):
         """
@@ -1102,6 +1127,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 num_molecules,
                 split_val=self.task_dataset_processing_params[task].split_val,
                 split_test=self.task_dataset_processing_params[task].split_test,
+                sample_idx=sample_idx,
                 split_seed=self.task_dataset_processing_params[task].seed,
                 splits_path=self.task_dataset_processing_params[task].splits_path,
                 split_names=self.task_dataset_processing_params[task].split_names,
@@ -1138,6 +1164,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.explicit_H,
             self.preprocessing_n_jobs,
         )
+        self._len = self._get_len_from_cached_file()
 
         for task, stats in all_stats.items():
             if len(stats) < 4:
@@ -1718,18 +1745,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def __len__(self) -> int:
         r"""
-        Returns the number of elements of the current DataModule, which is the combined size of all single-task datasets given.
+        Returns the number of smiles of the current DataModule, which depends on all the smiles from all tasks.
+        If `prepare_data` is not called, the length is unknown and will raise an error.
         Returns:
             num_elements: Number of elements in the current DataModule
         """
-        num_elements = 0
-        for task, args in self.task_dataset_processing_params.items():
-            if args.df is None:
-                df = self._read_table(args.df_path, usecols=[args.smiles_col])
-                num_elements += len(df)
-            else:
-                num_elements += len(args.df)
-        return num_elements
+        if self._len is None:
+            raise ValueError("The length of the dataset is unknown. Please call `prepare_data` first.")
+        return self._len
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -2074,6 +2097,12 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             t: self._get_task_specific_arguments(t, tdc_train_val_seed, tdc_cache_dir)
             for t in tdc_benchmark_names
         }
+
+        # Create a temporary `processed_graph_data_path` to store the processed graphs and labels
+        if processed_graph_data_path is None:
+            processed_graph_data_path = fs.join(tdc_cache_dir, "processed_graph_data")
+            if not fs.exists(processed_graph_data_path):
+                fs.mkdir(processed_graph_data_path)
 
         super().__init__(
             task_specific_args=task_specific_args,

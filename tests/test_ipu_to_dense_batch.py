@@ -24,7 +24,7 @@ from graphium.config._loader import load_datamodule, load_metrics, load_architec
 
 
 @pytest.mark.ipu
-class TestIPUBatch:
+class test_IPUBatch:
     @pytest.fixture(autouse=True)
     def setup_class(self):
         self.in_dim = 12

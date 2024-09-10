@@ -14,14 +14,18 @@ Refer to the LICENSE file for the full terms and conditions.
 
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, Literal, Iterable, Set
 from loguru import logger
+from copy import deepcopy
+import inspect
 
 import numpy as np
 import torch
 from torch import Tensor
+from torchmetrics import MeanMetric, Metric
+from torchmetrics.aggregation import BaseAggregator
 
-from graphium.utils.tensor import nan_mean, nan_std, nan_median, tensor_fp16_to_fp32
+from graphium.trainer.metrics import MetricToConcatenatedTorchMetrics
 
 
 class SummaryInterface(object):
@@ -29,37 +33,30 @@ class SummaryInterface(object):
     An interface to define the functions implemented by summary classes that implement SummaryInterface.
     """
 
-    def set_results(self, **kwargs):
+    def update(self, preds: Tensor, targets: Tensor) -> None:
         raise NotImplementedError()
 
-    def get_dict_summary(self):
+    def compute(self, **kwargs) -> Tensor:
         raise NotImplementedError()
-
-    def update_predictor_state(self, **kwargs):
-        raise NotImplementedError()
-
-    def get_metrics_logs(self, **kwargs):
+    
+    def reset(self) -> None:
         raise NotImplementedError()
 
 
-class Summary(SummaryInterface):
-    # TODO (Gabriela): Default argument cannot be []
+class SingleTaskSummary(SummaryInterface):
     def __init__(
         self,
-        loss_fun: Union[str, Callable],
-        metrics: Dict[str, Callable],
-        metrics_on_training_set: List[str] = [],
-        metrics_on_progress_bar: List[str] = [],
-        monitor: str = "loss",
-        mode: str = "min",
+        metrics: Dict[str, Union[Metric, "MetricWrapper"]],
+        step_name: str,
+        metrics_on_training_set: Optional[List[str]] = None,
+        metrics_on_progress_bar: Optional[List[str]] = None,
         task_name: Optional[str] = None,
+        compute_mean: bool = True,
+        compute_std: bool = True,
     ):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
         Parameters:
-            loss_fun:
-            Loss function used during training. Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
-            Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
 
             metrics:
             A dictionnary of metrics to compute on the prediction, other than the loss function.
@@ -67,393 +64,292 @@ class Summary(SummaryInterface):
 
             metrics_on_training_set:
             The metrics names from `metrics` to be computed on the training set for each iteration.
-            If `None`, all the metrics are computed. Using less metrics can significantly improve
-            performance, depending on the number of readouts.
+            If `None`, no metrics are computed.
 
             metrics_on_progress_bar:
-            The metrics names from `metrics` to display also on the progress bar of the training
-
-            monitor:
-            `str` metric to track (Default=`"loss/val"`)
+            The metrics names from `metrics` to display also on the progress bar of the training.
+            If `None`, no metrics are displayed.
 
             task_name:
             name of the task (Default=`None`)
 
-        """
-        self.loss_fun = loss_fun
-        self.metrics = metrics
-        self.metrics_on_training_set = metrics_on_training_set
-        self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.monitor = monitor
-        self.mode = mode
+            compute_mean:
+            whether to compute the mean of the predictions and targets
 
-        self.summaries = {}
-        self.best_summaries = {}
+            compute_std:
+            whether to compute the standard deviation of the predictions and targets
+
+        """
+        self.step_name = step_name
+        self.compute_mean = compute_mean
+        self.compute_std = compute_std
+
+        if not isinstance(metrics, dict):
+            raise ValueError(f"metrics must be a dictionary. Got {type(metrics)}")
+        self.metrics = deepcopy(metrics)
 
         # Current predictor state
         # self.predictor_outputs = None
-        self.step_name: str = None
-        self.targets: Tensor = None
-        self.preds: Tensor = None
-        self.loss = None  # What type?
-        self.n_epochs: int = None
-
         self.task_name = task_name
-        self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
+        self.logged_metrics_exceptions: List[str] = []  # Track which metric exceptions have been logged
+        self.last_metrics_exceptions: List[str] = []  # Track which metric exceptions have been logged
 
-    def update_predictor_state(
-        self, step_name: str, targets: Tensor, preds: Tensor, loss: Tensor, n_epochs: int
-    ):
-        r"""
-        update the state of the predictor
-        Parameters:
-            step_name: which stage you are in, e.g. "train"
-            targets: the targets tensor
-            predictions: the predictions tensor
-            loss: the loss tensor
-            n_epochs: the number of epochs
-        """
-        self.step_name = step_name
-        self.targets = targets
-        self.preds = preds
-        self.loss = loss
-        self.n_epochs = n_epochs
+        # Add default metrics
+        if ("mean_preds" not in self.metrics) and compute_mean:
+            self.metrics["mean_preds"] = MeanMetric(nan_strategy="ignore")
+        if ("mean_target" not in self.metrics) and compute_mean:
+            self.metrics["mean_target"] = MeanMetric(nan_strategy="ignore")
+        if ("std_preds" not in self.metrics) and compute_std:
+            self.metrics["std_preds"] = STDMetric(nan_strategy="ignore")
+        if ("std_target" not in self.metrics) and compute_std:
+            self.metrics["std_target"] = STDMetric(nan_strategy="ignore")
 
-    def set_results(
-        self,
-        metrics: Dict[str, Tensor],
-    ):
-        r"""
-        set the reults from the metrics
-        [!] This function requires that self.update_predictor_state() be called before it.
-        Parameters:
-            metrics: a dictionary of metrics
-        """
+        # Parse the metrics filters
+        self.metrics_on_training_set = self._parse_metrics_filter(metrics_on_training_set)
+        self.metrics_on_progress_bar = self._parse_metrics_filter(metrics_on_progress_bar)
 
-        # Include the task_name in the loss for logging, and similarly for other metrics
-        metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = self.loss
-        self.summaries[self.step_name] = Summary.Results(
-            targets=self.targets,
-            preds=self.preds,
-            loss=self.loss,
-            metrics=metrics,  # Should include task name from get_metrics_logs()
-            monitored_metric=f"{self.monitor}/{self.step_name}",  # Include task name?
-            n_epochs=self.n_epochs,
-        )
-        if self.is_best_epoch(self.step_name, self.loss, metrics):
-            self.best_summaries[self.step_name] = self.summaries[self.step_name]
+        # Update the metrics to compute on the training set
+        if self.compute_mean:
+            self.metrics_on_training_set.update(["mean_preds", "mean_target"])
+        if self.compute_std:
+            self.metrics_on_training_set.update(["std_preds", "std_target"])
 
-    def is_best_epoch(self, step_name: str, loss: Tensor, metrics: Dict[str, Tensor]) -> bool:
-        r"""
-        check if the current epoch is the best epoch based on self.mode criteria
-        Parameters:
-            step_name: which stage you are in, e.g. "train"
-            loss: the loss tensor
-            metrics: a dictionary of metrics
-        """
+        self._cached_metrics: Dict[str, Tensor] = {}
+        self._logged_warnings: Set[str] = set() # Set to track which metrics have been logged
+        self._device: torch.device = None
 
-        # TODO (Gabriela): Check for bugs related to monitor_name
-        if not (step_name in self.best_summaries.keys()):
-            return True
+    @property
+    def get_cached_metrics(self) -> Dict[str, Tensor]:
+        return deepcopy(self._cached_metrics)
 
-        # Include the task_name in the loss for logging, and similarly for other metrics
-        metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = loss
-        monitor_name = f"{self.monitor}/{step_name}"  # Include task_name?
-        if (
-            not monitor_name in self.best_summaries.keys()
-        ):  # Feels like there's a bug here. What is this trying to do???
-            return True
-
-        if self.mode == "max":
-            return metrics[monitor_name] > self.best_summaries[step_name].monitored
-        elif self.mode == "min":
-            return metrics[monitor_name] < self.best_summaries[step_name].monitored
+    def _parse_metrics_filter(self, filter: Optional[Union[List[str], Dict[str, Any]]]) -> List[str]:
+        if filter is None:
+            filter = []
+        elif isinstance(filter, dict):
+            filter = list(filter.keys())
+        elif isinstance(filter, (list, tuple, set)):
+            filter = list(filter)
+        elif isinstance(filter, str):
+            filter = [filter]
         else:
-            ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
+            raise ValueError(f"metrics_to_use must be a list or a dictionary. Got {type(filter)}")
 
-    def get_results(
-        self,
-        step_name: str,
-    ):
+        # Ensure that the filter is a subset of the metrics
+        all_metrics = set(self.metrics.keys())
+        filter = set(filter)
+        if not filter.issubset(all_metrics):
+            raise ValueError(f"metrics_to_use must be a subset of the metrics. Got {filter - all_metrics}, available {all_metrics}")
+
+        return filter
+
+    @property
+    def metrics_to_use(self) -> Dict[str, Callable]:
         r"""
-        retrieve the results for a given step
-        Parameters:
-            step_name: which stage you are in, e.g. "train"
-        Returns:
-            the results for the given step
-        """
-        return self.summaries[step_name]
-
-    def get_best_results(
-        self,
-        step_name: str,
-    ):
-        r"""
-        retrieve the best results for a given step
-        Parameters:
-            step_name: which stage you are in, e.g. "train"
-        Returns:
-            the best results for the given step
-        """
-        return self.best_summaries[step_name]
-
-    def get_results_on_progress_bar(
-        self,
-        step_name: str,
-    ) -> Dict[str, Tensor]:
-        r"""
-        retrieve the results to be displayed on the progress bar for a given step
-        Parameters:
-            step_name: which stage you are in, e.g. "train"
-        Returns:
-            the results to be displayed on the progress bar for the given step
-        """
-        results = self.summaries[step_name]
-        results_prog = {
-            # f"{kk}/{step_name}": results.metrics[f"{kk}/{step_name}"] for kk in self.metrics_on_progress_bar
-            self.metric_log_name(self.task_name, kk, step_name): results.metrics[
-                self.metric_log_name(self.task_name, kk, step_name)
-            ]
-            for kk in self.metrics_on_progress_bar
-        }
-        return results_prog
-
-    def get_dict_summary(self) -> Dict[str, Any]:
-        r"""
-        retrieve the full summary in a dictionary
-        Returns:
-            the full summary in a dictionary
-        """
-        full_dict = {}
-        # Get metric summaries
-        full_dict["metric_summaries"] = {}
-        for key, val in self.summaries.items():
-            full_dict["metric_summaries"][key] = {k: v for k, v in val.metrics.items()}
-            full_dict["metric_summaries"][key]["n_epochs"] = val.n_epochs
-
-        # Get metric summaries at best epoch
-        full_dict["best_epoch_metric_summaries"] = {}
-        for key, val in self.best_summaries.items():
-            full_dict["best_epoch_metric_summaries"][key] = val.metrics
-            full_dict["best_epoch_metric_summaries"][key]["n_epochs"] = val.n_epochs
-
-        return full_dict
-
-    def get_metrics_logs(self) -> Dict[str, Any]:
-        r"""
-        Get the data about metrics to log.
-        Note: This function requires that self.update_predictor_state() be called before it.
-        Returns:
-            A dictionary of metrics to log.
+        return the metrics to use by filtering the metrics dictionary if it is the training step. Otherwise, return all metrics.
         """
 
-        targets = tensor_fp16_to_fp32(self.targets)
-        preds = tensor_fp16_to_fp32(self.preds)
-
-        targets = targets.to(dtype=preds.dtype, device=preds.device)
-
-        # Compute the metrics always used in regression tasks
-        metric_logs = {}
-        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(preds)
-        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(preds)
-        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(preds)
-        metric_logs[self.metric_log_name(self.task_name, "mean_target", self.step_name)] = nan_mean(targets)
-        metric_logs[self.metric_log_name(self.task_name, "std_target", self.step_name)] = nan_std(targets)
-        metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(
-            targets
-        )
-
-        # Specify which metrics to use
-        metrics_to_use = self.metrics
         if self.step_name == "train":
             metrics_to_use = {
-                key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
+                key: metric for key, metric in self.metrics.items() if key in self.metrics_on_training_set
             }
-        # Compute the additional metrics
-        for key, metric in metrics_to_use.items():
-            metric_name = self.metric_log_name(
-                self.task_name, key, self.step_name
-            )  # f"{key}/{self.step_name}"
+
+            return metrics_to_use
+        return self.metrics
+    
+    @staticmethod
+    def _update(metric_key:str, metric_obj, preds: Tensor, targets: Tensor) -> None:
+        r"""
+        update the state of the metrics
+        Parameters:
+            targets: the targets tensor
+            predictions: the predictions tensor
+        """
+
+        # Check the `metric_obj.update` signature to know if it takes `preds` and `targets` or only one of them
+        varnames = [val.name for val in inspect.signature(metric_obj.update).parameters.values()]
+        if ("preds" == varnames[0]) and ("target" == varnames[1]):
+            # The typical case of `torchmetrics`
+            metric_obj.update(preds, targets)
+        elif ("preds" == varnames[1]) and ("target" == varnames[0]):
+            # Unusual case where the order of the arguments is reversed
+            metric_obj.update(targets, preds)
+        elif ("value" == varnames[0]) and ("preds" in metric_key):
+            # The case where the metric takes only one value, and it is the prediction
+            metric_obj.update(preds)
+        elif ("value" == varnames[0]) and ("target" in metric_key):
+            # The case where the metric takes only one value, and it is the target
+            metric_obj.update(targets)
+        else:
+            raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
+
+
+    def update(self, preds: Tensor, targets: Tensor) -> None:
+        r"""
+        update the state of the metrics
+        Parameters:
+            targets: the targets tensor
+            predictions: the predictions tensor
+        """
+
+        self._device = preds.device
+
+        for metric_key, metric_obj in self.metrics_to_use.items():
+            metric_obj.to(self.device)
             try:
-                metric_logs[metric_name] = metric(preds, targets)
+                self._update(metric_key, metric_obj, preds, targets)
+            except Exception as err:
+                err_msg = f"Error for metric {metric_key} on task {self.task_name} and step {self.step_name}. Exception: {err}"
+                # Check if the error is due to the device mismatch, cast to the device, and retry
+
+                if err_msg not in self._logged_warnings:
+                    logger.warning(err_msg)
+                    self._logged_warnings.add(err_msg)
+                
+
+    def _compute(self, metrics_to_use: Optional[Union[List[str], Dict[str, Any]]] = None) -> Dict[str, Tensor]:
+
+        # Parse the metrics to use
+        if metrics_to_use is None:
+            metrics_to_use = list(self.metrics.keys())
+        elif isinstance(metrics_to_use, dict):
+            metrics_to_use = list(metrics_to_use.keys())
+        else:
+            raise ValueError(f"metrics_to_use must be a list or a dictionary. Got {type(metrics_to_use)}")
+        
+        self.last_metrics_exceptions = []  # Reset the exceptions for this step
+
+        # Compute the metrics
+        computed_metrics = {}
+        for metric_key in metrics_to_use:
+            metric_name = self.metric_log_name(metric_key)
+            metric_obj = self.metrics[metric_key]
+            try:
+                computed_metrics[f"{metric_name}"] = metric_obj.compute()
             except Exception as e:
-                metric_logs[metric_name] = torch.as_tensor(float("nan"))
+                # If the metric computation fails, return NaN and log a warning only once
+                computed_metrics[f"{metric_name}"] = torch.tensor(torch.nan, device=self.device)
                 # Warn only if it's the first warning for that metric
                 if metric_name not in self.logged_metrics_exceptions:
                     self.logged_metrics_exceptions.append(metric_name)
                     logger.warning(f"Error for metric {metric_name}. NaN is returned. Exception: {e}")
+                self.last_metrics_exceptions.append(metric_name)
 
-        # Convert all metrics to CPU, except for the loss
-        # metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
-        metric_logs[
-            self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)
-        ] = self.loss.detach().cpu()
-        # print("Metrics logs keys: ", metric_logs.keys())
-        metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
+        return computed_metrics
 
-        return metric_logs
+    def compute(self) -> Dict[str, Tensor]:
+        r"""
+        compute the metrics
+        Returns:
+            the computed metrics
+        """
+        computed_metrics = self._compute(metrics_to_use=self.metrics_to_use)
+        self._cached_metrics = computed_metrics
 
-    def metric_log_name(self, task_name, metric_name, step_name):
-        if task_name is None:
-            return f"{metric_name}/{step_name}"
+        return computed_metrics
+    
+    def reset(self) -> None:
+        r"""
+        reset the state of the metrics
+        """
+        for metric_key, metric in self.metrics.items():
+            try:
+                metric.reset()
+            except AttributeError as e:
+                metric_name = self.metric_log_name(metric_key)
+                # Skip error if the message is `AttributeError: 'Tensor' object has no attribute 'clear'. Did you mean: 'char'?`
+                # This error happens when there's nothing to reset, usually because the metric failed.
+                if (metric_name not in self.last_metrics_exceptions) or ("'Tensor' object has no attribute 'clear'" not in str(e)):
+                    raise e
+
+    def get_results_on_progress_bar(
+        self,
+    ) -> Dict[str, Tensor]:
+        r"""
+        retrieve the results to be displayed on the progress bar for a given step
+
+        Returns:
+            the results to be displayed on the progress bar for the given step
+        """
+        cached_metrics = self.get_cached_metrics
+        if cached_metrics is None:
+            results_prog = self._compute(metrics_to_use=self.metrics_on_progress_bar)
         else:
-            return f"{task_name}/{metric_name}/{step_name}"
+            results_prog = {}
+            for metric_key in self.metrics_on_progress_bar:
+                metric_name = self.metric_log_name(metric_key)
+                results_prog[metric_name] = cached_metrics[metric_name]
 
-    class Results:
-        def __init__(
-            self,
-            targets: Tensor = None,
-            preds: Tensor = None,
-            loss: float = None,  # Is this supposed to be a Tensor or float?
-            metrics: dict = None,
-            monitored_metric: str = None,
-            n_epochs: int = None,
-        ):
-            r"""
-            This inner class is used as a container for storing the results of the summary.
-            Parameters:
-                targets: the targets
-                preds: the prediction tensor
-                loss: the loss, float or tensor
-                metrics: the metrics
-                monitored_metric: the monitored metric
-                n_epochs: the number of epochs
-            """
-            self.targets = targets.detach().cpu()
-            self.preds = preds.detach().cpu()
-            self.loss = loss.item() if isinstance(loss, Tensor) else loss
-            self.monitored_metric = monitored_metric
-            if monitored_metric in metrics.keys():
-                self.monitored = metrics[monitored_metric].detach().cpu()
-            self.metrics = {
-                key: value.tolist() if isinstance(value, (Tensor, np.ndarray)) else value
-                for key, value in metrics.items()
-            }
-            self.n_epochs = n_epochs
+        return results_prog
+
+    def metric_log_name(self, metric_name):
+        if self.task_name is None:
+            return f"{metric_name}/{self.step_name}"
+        else:
+            return f"{self.task_name}/{metric_name}/{self.step_name}"
+        
+    @property
+    def device(self) -> Optional[torch.device]:
+        return self._device
 
 
-class TaskSummaries(SummaryInterface):
+class MultiTaskSummary(SummaryInterface):
     def __init__(
         self,
-        task_loss_fun: Callable,
-        task_metrics: Dict[str, Callable],
-        task_metrics_on_training_set: List[str],
-        task_metrics_on_progress_bar: List[str],
-        monitor: str = "loss",
-        mode: str = "min",
+        task_metrics: Dict[str, Dict[str, Union[Metric, "MetricWrapper"]]],
+        step_name: str,
+        task_metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
+        task_metrics_on_progress_bar: Optional[Dict[str, List[str]]] = None,
+        compute_mean: bool = True,
+        compute_std: bool = True,
     ):
         r"""
         class to store the summaries of the tasks
         Parameters:
-            task_loss_fun: the loss function for each task
-            task_metrics: the metrics for each task
-            task_metrics_on_training_set: the metrics to use on the training set
-            task_metrics_on_progress_bar: the metrics to use on the progress bar
-            monitor: the metric to monitor
-            mode: the mode of the metric to monitor
+
+        
+            compute_mean:
+            whether to compute the mean of the predictions and targets
+
+            compute_std:
+            whether to compute the standard deviation of the predictions and targets
+
         """
-        self.task_loss_fun = task_loss_fun
         self.task_metrics = task_metrics
-        self.task_metrics_on_progress_bar = task_metrics_on_progress_bar
-        self.task_metrics_on_training_set = task_metrics_on_training_set
-        self.monitor = monitor
-        self.mode = mode
+        self.task_metrics_on_progress_bar = task_metrics_on_progress_bar if task_metrics_on_progress_bar is not None else {}
+        self.task_metrics_on_training_set = task_metrics_on_training_set if task_metrics_on_training_set is not None else {}
 
-        self.task_summaries: Dict[str, Summary] = {}
-        self.task_best_summaries: Dict[str, Summary] = {}
-        self.tasks = list(task_loss_fun.keys())
-
+        # Initialize all the single-task summaries
+        self.tasks = list(task_metrics.keys())
+        self.task_summaries: Dict[str, SingleTaskSummary] = {}
         for task in self.tasks:
-            self.task_summaries[task] = Summary(
-                self.task_loss_fun[task],
-                self.task_metrics[task],
-                self.task_metrics_on_training_set[task],
-                self.task_metrics_on_progress_bar[task],
-                self.monitor,
-                self.mode,
-                task_name=task,
+            self.task_summaries[task] = SingleTaskSummary(
+                metrics = self.task_metrics[task],
+                step_name = step_name,
+                metrics_on_training_set = self.task_metrics_on_training_set[task] if task in self.task_metrics_on_training_set else None,
+                metrics_on_progress_bar = self.task_metrics_on_progress_bar[task] if task in self.task_metrics_on_progress_bar else None,
+                task_name = task,
+                compute_mean = compute_mean,
+                compute_std = compute_std,
             )
 
-        # Current predictor state
-        self.weighted_loss = None
-        self.step_name = None
+    def __getitem__(self, task: str) -> SingleTaskSummary:
+        return self.task_summaries[task]
+    
+    def keys(self) -> List[str]:
+        return self.tasks
 
-    def update_predictor_state(
-        self,
-        step_name: str,
-        targets: Dict[str, Tensor],
-        preds: Dict[str, Tensor],
-        loss: Tensor,
-        task_losses: Dict[str, Tensor],
-        n_epochs: int,
-    ):
+    def update(self, preds: Dict[str, Tensor], targets: Dict[str, Tensor]) -> None:
         r"""
         update the state for all predictors
         Parameters:
-            step_name: the name of the step
             targets: the target tensors
             preds: the prediction tensors
-            loss: the loss tensor
-            task_losses: the task losses
-            n_epochs: the number of epochs
         """
-        self.weighted_loss = loss
-        self.step_name = step_name
         for task in self.tasks:
-            self.task_summaries[task].update_predictor_state(
-                step_name,
-                targets[task],
+            self.task_summaries[task].update(
                 preds[task].detach(),
-                task_losses[task].detach(),
-                n_epochs,
+                targets[task],
             )
-
-    def set_results(self, task_metrics: Dict[str, Dict[str, Tensor]]):
-        """
-        set the results for all tasks
-        Parameters:
-            task_metrics: the metrics for each task
-        """
-        for task in self.tasks:
-            self.task_summaries[task].set_results(task_metrics[task])
-            step_name = self.task_summaries[task].step_name
-            loss = self.task_summaries[task].loss
-            if self.task_summaries[task].is_best_epoch(step_name, loss, task_metrics[task]):
-                self.task_summaries[task].best_summaries[step_name] = self.task_summaries[task].summaries[
-                    step_name
-                ]
-
-    def get_results(
-        self,
-        step_name: str,
-    ) -> Dict[str, Dict[str, Any]]:
-        """
-        retrieve the results
-        Parameters:
-            step_name: the name of the step, i.e. "train"
-        Returns:
-            the results
-        """
-        results = {}
-        for task in self.tasks:
-            results[task] = self.task_summaries[task].get_results(step_name)
-        return results
-
-    def get_best_results(
-        self,
-        step_name: str,
-    ) -> Dict[str, Dict[str, Any]]:
-        """
-        retrieve the best results
-        Parameters:
-            step_name: the name of the step, i.e. "train"
-        Returns:
-            the best results
-        """
-        results = {}
-        for task in self.tasks:
-            results[task] = self.task_summaries[task].get_best_results(step_name)
-        return results
 
     def get_results_on_progress_bar(
         self,
@@ -469,78 +365,112 @@ class TaskSummaries(SummaryInterface):
         """
         task_results_prog = {}
         for task in self.tasks:
-            # task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
             task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
 
-    def get_dict_summary(
-        self,
-    ) -> Dict[str, Dict[str, Any]]:
+    def compute(self) -> Dict[str, Tensor]:
         r"""
-        get task summaries in a dictionary
+        compute the metrics for all tasks
         Returns:
-            the task summaries
+            the computed metrics for all tasks
         """
-        task_full_dict = {}
+        computed_metrics = {}
         for task in self.tasks:
-            task_full_dict[task] = self.task_summaries[task].get_dict_summary()
-        return task_full_dict
-
-    def get_metrics_logs(
-        self,
-    ) -> Dict[str, Dict[str, Tensor]]:
+            computed_metrics.update(self.task_summaries[task].compute())
+        return computed_metrics
+    
+    def reset(self) -> None:
         r"""
-        get the logs for the metrics
-        Returns:
-            the task logs for the metrics
+        reset the state of the metrics
         """
-        task_metrics_logs = {}
         for task in self.tasks:
-            task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
-            # average metrics
-            for key in task_metrics_logs[task]:
-                if isinstance(task_metrics_logs[task][key], torch.Tensor):
-                    if task_metrics_logs[task][key].numel() > 1:
-                        task_metrics_logs[task][key] = task_metrics_logs[task][key][
-                            task_metrics_logs[task][key] != 0
-                        ].mean()
+            self.task_summaries[task].reset()
 
-        # Include global (weighted loss)
-        task_metrics_logs["_global"] = {}
-        task_metrics_logs["_global"][f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
-        return task_metrics_logs
 
-    # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
-    def concatenate_metrics_logs(
-        self,
-        metrics_logs: Dict[str, Dict[str, Tensor]],
-        device: str,
-    ) -> Dict[str, Tensor]:
-        r"""
-        concatenate the metrics logs
-        Parameters:
-            metrics_logs: the metrics logs
-        Returns:
-            the concatenated metrics logs
-        """
-        concatenated_metrics_logs = {}
-        for task in list(self.tasks) + ["_global"]:
-            concatenated_metrics_logs.update(metrics_logs[task])
-        concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().to(device)
-        return concatenated_metrics_logs
+class STDMetric(BaseAggregator):
+    """
+    A metric to compute the standard deviation of the predictions or targets.
+    Based on `torchmetrics.Metric`, with a similar implementation to `torchmetric.MeanMetric`.
 
-    def metric_log_name(
-        self,
-        task_name: str,
-        metric_name: str,
-        step_name: str,
-    ) -> str:
-        r"""
-        print the metric name, task name and step name
-        Returns:
-            the metric name, task name and step name
-        """
-        if task_name is None:
-            return f"{metric_name}/{step_name}"
+    Parameters:
+        correction: 
+            The correction to apply to the standard deviation. Instead of dividing by number of samples `N`,
+            we divide by `N-correction`.
+
+        nan_strategy: options:
+            - ``'error'``: if any `nan` values are encountered will give a RuntimeError
+            - ``'warn'``: if any `nan` values are encountered will give a warning and continue
+            - ``'ignore'``: all `nan` values are silently removed
+            - a float: if a float is provided will impute any `nan` values with this value
+
+    """
+    def __init__(self, nan_strategy: Union[Literal["error", "warn", "ignore"], float]="warn", correction:int=0, **kwargs):
+        super().__init__(
+            "sum",
+            default_value=torch.tensor(0.0, dtype=torch.get_default_dtype()),
+            nan_strategy=nan_strategy,
+            state_name="mean_value",
+            **kwargs,
+        )
+        self.add_state("sum", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("sum_of_squares", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_weight", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.correction = correction
+
+    def update(self, value: Union[float, Tensor], weight: Union[float, Tensor] = 1.0) -> None:
+        if not isinstance(value, Tensor):
+            value = torch.as_tensor(value, dtype=torch.float32, device=value.device)
+        if not isinstance(weight, Tensor):
+            weight = torch.as_tensor(weight, dtype=torch.float32, device=value.device)
+
+        weight = torch.broadcast_to(weight, value.shape).clone()
+        # Check whether `_cast_and_nan_check_input` takes in `weight`
+        if "weight" in inspect.signature(self._cast_and_nan_check_input).parameters:
+            value, weight = self._cast_and_nan_check_input(value, weight)
         else:
-            return f"{task_name}/{metric_name}/{step_name}"
+            weight[value.isnan()] = torch.nan
+            value = self._cast_and_nan_check_input(value)
+            weight = self._cast_and_nan_check_input(weight)
+
+        if value.numel() == 0:
+            return
+
+        self.sum += (value * weight).sum()
+        self.sum_of_squares += (value * value * weight).sum()
+        self.total_weight += weight.sum()
+
+    def compute(self) -> Tensor:
+        dividor = max(0, self.total_weight - self.correction)
+        mean = self.sum / self.total_weight
+        mean_of_squares = self.sum_of_squares / self.total_weight
+        variance = mean_of_squares - mean ** 2
+        variance_corr = variance * (self.total_weight / dividor)
+        return torch.sqrt(variance_corr)
+
+class GradientNormMetric(Metric):
+    """
+    A metric to compute the norm of the gradient.
+    Based on `torchmetrics.Metric`.
+
+    Warning:
+        This metric is not compatible with other metrics since it doesn't take
+        the predictions and targets as input. It takes the model as input.
+        It also doesn't work per task, but for the full model
+    """
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.add_state("gradient_norm_sq", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_steps", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, model: torch.nn.Module) -> None:
+        total_norm = torch.tensor(0.0, device=self.device)
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.detach().data.norm(2)
+                total_norm += param_norm.detach() ** 2
+        self.gradient_norm_sq += total_norm
+        self.total_steps += 1
+
+    def compute(self) -> Tensor:
+        return (self.gradient_norm_sq / self.total_steps).sqrt()
+

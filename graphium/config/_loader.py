@@ -15,7 +15,7 @@ Refer to the LICENSE file for the full terms and conditions.
 # Misc
 import os
 from copy import deepcopy
-from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union, Iterable
 
 import joblib
 import mup
@@ -40,10 +40,10 @@ from graphium.nn.utils import MupMixin
 from graphium.trainer.metrics import MetricWrapper
 from graphium.trainer.predictor import PredictorModule
 from graphium.utils.command_line_utils import get_anchors_and_aliases, update_config
+from graphium.trainer.progress_bar import ProgressBarMetrics
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
-from graphium.utils.spaces import DATAMODULE_DICT, GRAPHIUM_PRETRAINED_MODELS_DICT
 from graphium.utils import fs
 
 
@@ -110,6 +110,8 @@ def load_datamodule(
     Returns:
         datamodule: The datamodule used to process and load the data
     """
+
+    from graphium.utils.spaces import DATAMODULE_DICT # Avoid circular imports with `spaces.py`
 
     cfg_data = config["datamodule"]["args"]
 
@@ -298,9 +300,6 @@ def load_predictor(
     accelerator_type: str,
     featurization: Dict[str, str] = None,
     task_norms: Optional[Dict[Callable, Any]] = None,
-    replicas: int = 1,
-    gradient_acc: int = 1,
-    global_bs: int = 1,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `lightning.LighningModule`
@@ -326,9 +325,6 @@ def load_predictor(
         task_levels=task_levels,
         featurization=featurization,
         task_norms=task_norms,
-        replicas=replicas,
-        gradient_acc=gradient_acc,
-        global_bs=global_bs,
         **cfg_pred,
     )
 
@@ -345,9 +341,6 @@ def load_predictor(
             task_levels=task_levels,
             featurization=featurization,
             task_norms=task_norms,
-            replicas=replicas,
-            gradient_acc=gradient_acc,
-            global_bs=global_bs,
             **cfg_pred,
         )
 
@@ -384,6 +377,7 @@ def load_trainer(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     accelerator_type: str,
     date_time_suffix: str = "",
+    metrics_on_progress_bar: Optional[Iterable[str]] = None,
 ) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
@@ -449,12 +443,15 @@ def load_trainer(
             name += f"_{date_time_suffix}"
         trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
 
-    trainer_kwargs["callbacks"] = callbacks
+    progress_bar_callback = ProgressBarMetrics(metrics_on_progress_bar = metrics_on_progress_bar)
+    callbacks.append(progress_bar_callback)
+
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
         accelerator=accelerator_type,
         devices=devices,
+        callbacks=callbacks,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
@@ -624,6 +621,8 @@ def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> 
     If the path is a valid name or a valid path, return it.
     Otherwise, assume it refers to a file in the checkpointing dir.
     """
+
+    from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT # Avoid circular imports with `spaces.py`
 
     cfg_trainer = config["trainer"]
 
