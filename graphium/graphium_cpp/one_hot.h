@@ -35,7 +35,7 @@ template<typename T>
 size_t get_one_hot_atom_feature(const GraphData& graph, T* data, AtomOneHotFeature feature, size_t stride);
 
 // Instantiation declarations of `get_one_hot_atom_feature` for `int16_t` (FP16),
-// `float`, and `double`. The explicit instantiations are in one_hot.cpp
+// `float` (FP32), and `double` (FP64). The explicit instantiations are in one_hot.cpp
 extern template size_t get_one_hot_atom_feature<int16_t>(const GraphData& graph, int16_t* data, AtomOneHotFeature feature, size_t stride);
 extern template size_t get_one_hot_atom_feature<float>(const GraphData& graph, float* data, AtomOneHotFeature feature, size_t stride);
 extern template size_t get_one_hot_atom_feature<double>(const GraphData& graph, double* data, AtomOneHotFeature feature, size_t stride);
@@ -65,7 +65,7 @@ template<typename T>
 size_t get_one_hot_bond_feature(const GraphData& graph, T* data, BondFeature feature, size_t stride);
 
 // Instantiation declarations of `get_one_hot_bond_feature` for `int16_t` (FP16),
-// `float`, and `double`. The explicit instantiations are in one_hot.cpp
+// `float` (FP32), and `double` (FP64). The explicit instantiations are in one_hot.cpp
 extern template size_t get_one_hot_bond_feature<int16_t>(const GraphData& graph, int16_t* data, BondFeature feature, size_t stride);
 extern template size_t get_one_hot_bond_feature<float>(const GraphData& graph, float* data, BondFeature feature, size_t stride);
 extern template size_t get_one_hot_bond_feature<double>(const GraphData& graph, double* data, BondFeature feature, size_t stride);
