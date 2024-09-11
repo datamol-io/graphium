@@ -59,29 +59,35 @@ enum class AtomFloatFeature {
     UNKNOWN
 };
 
+//! Features for use by `get_one_hot_atom_feature` in one_hot.cpp
 enum class AtomOneHotFeature {
-    ATOMIC_NUM,
-    DEGREE,
-    VALENCE,
-    IMPLICIT_VALENCE,
-    HYBRIDIZATION,
-    CHIRALITY,
-    PHASE,
-    TYPE,
-    GROUP,
-    PERIOD,
-    UNKNOWN
+    ATOMIC_NUM,         //!< Selected atomic numbers specified in `atomicNumList` in one_hot.cpp
+    DEGREE,             //!< Number of explicit neighboring atoms
+    VALENCE,            //!< Total valence of the atom
+    IMPLICIT_VALENCE,   //!< Implicit valence of the atom
+    HYBRIDIZATION,      //!< Hybridizations specified in `hybridizationList` in one_hot.cpp
+    CHIRALITY,          //!< "R", anything other value ("S") or no value, and an extra
+                        //!< chirality-related value (independent of the other two, so can
+                        //!< have a 2nd one value)
+    PHASE,              //!< Specified by `ElementPhase` and `atomicNumToPhase` in one_hot.cpp
+    TYPE,               //!< Specified by `ElementType` and `atomicNumToType` in one_hot.cpp
+    GROUP,              //!< Specified by `atomicNumToGroupTable` in float_features.h
+    PERIOD,             //!< Specified by `atomicNumToPeriodTable` in float_features.h
+    UNKNOWN             //!< Sentinel value.  Do not use.
 };
 
+//! Features for use by `get_one_hot_bond_feature` in one_hot.cpp (if ends in `ONE_HOT`), and
+//! `get_bond_float_feature` in float_features.cpp
 enum class BondFeature {
-    TYPE_FLOAT,
-    TYPE_ONE_HOT,
-    IN_RING,
-    CONJUGATED,
-    STEREO_ONE_HOT,
-    CONFORMER_BOND_LENGTH,
-    ESTIMATED_BOND_LENGTH,
-    UNKNOWN
+    TYPE_FLOAT,         //!< Bond type as a float, e.g. 2.0 for double, 1.5 for aromatic
+    TYPE_ONE_HOT,       //!< Selected bond types specified in `bondTypeList` in one_hot.cpp
+    IN_RING,            //!< 1.0 if the bond is in at least one ring, else 0.0
+    CONJUGATED,         //!< 1.0 if the bond is conjugated, else 0.0
+    STEREO_ONE_HOT,     //!< Selected bond stereo values specified in `bondStereoList` in
+                        //!< one_hot.cpp
+    CONFORMER_BOND_LENGTH,//!< Length of the bond from a conformer (either first or computed)
+    ESTIMATED_BOND_LENGTH,//!< Length of the bond estimated with a fast heuristic
+    UNKNOWN             //!< Sentinel value.  Do not use.
 };
 
 enum class PositionalFeature {

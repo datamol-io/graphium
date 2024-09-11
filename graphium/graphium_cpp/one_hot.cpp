@@ -13,6 +13,9 @@
 #include <string.h>
 #include <type_traits>
 
+// Helper class to automatically generates a reverse lookup table at compile time,
+// with `MAX_OUT` used as a sentinel to indicate that a value wasn't present
+// in the original list.
 template<size_t NUM_IN, size_t MAX_OUT>
 class OneHotLookup {
     size_t indices[NUM_IN];
@@ -164,6 +167,8 @@ constexpr size_t bondStereoList[] = {
 constexpr size_t bondStereoCount = std::extent<decltype(bondStereoList)>::value;
 constexpr OneHotLookup<6, bondStereoCount> bondStereoLookup(bondStereoList);
 
+// Returns the number of values per atom, required by `feature` in `get_one_hot_atom_feature`'s
+// `data` argument.
 size_t get_one_hot_atom_feature_size(AtomOneHotFeature feature) {
     switch (feature) {
     case AtomOneHotFeature::ATOMIC_NUM:       return atomicNumCount + 1;
@@ -184,6 +189,8 @@ size_t get_one_hot_atom_feature_size(AtomOneHotFeature feature) {
     }
 }
 
+// Fills in a particular atom `feature`'s one-hot encoding into `data`, for all atoms.
+// See the declaration in one_hot.h for more details.
 template<typename T>
 size_t get_one_hot_atom_feature(const GraphData& graph, T* data, AtomOneHotFeature feature, size_t stride) {
     const size_t num_atoms = graph.num_atoms;
@@ -307,6 +314,8 @@ template size_t get_one_hot_atom_feature<float>(const GraphData& graph, float* d
 template size_t get_one_hot_atom_feature<double>(const GraphData& graph, double* data, AtomOneHotFeature feature, size_t stride);
 
 
+// Returns the number of values per bond, required by `feature` in `get_one_hot_bond_feature`'s
+// `data` argument.
 size_t get_one_hot_bond_feature_size(BondFeature feature) {
     switch (feature) {
     case BondFeature::TYPE_ONE_HOT:   return bondTypeCount + 1;
@@ -319,6 +328,8 @@ size_t get_one_hot_bond_feature_size(BondFeature feature) {
     return 0;
 }
 
+// Fills in a particular bond `feature`'s one-hot encoding into `data`, for all bonds.
+// See the declaration in one_hot.h for more details.
 template<typename T>
 size_t get_one_hot_bond_feature(const GraphData& graph, T* data, BondFeature feature, size_t stride) {
     const size_t num_bonds = graph.num_bonds;
