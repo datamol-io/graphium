@@ -33,8 +33,8 @@
 #include <pybind11/stl.h>
 #include <torch/extension.h>
 
-// RDKit::SmilesToMol uses std::string, so until we replace it, lets use std::string here.
-// ("const char*" could avoid an extra allocation, if we do eventually replace use of SmilesToMol.)
+// Creates an RWMol from a SMILES string.
+// See the declaration in features.h for more details.
 std::unique_ptr<RDKit::RWMol> parse_mol(
     const std::string& smiles_string,
     bool explicit_H,
@@ -106,6 +106,8 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
     return mol;
 }
 
+// Determines a canonical ordering of the atoms in `mol`
+// See the declaration in features.h for more details.
 void get_canonical_atom_order(const RDKit::ROMol& mol, std::vector<unsigned int>& atom_order) {
     RDKit::Canon::rankMolAtoms(mol, atom_order);
     assert(atom_order.size() == mol->getNumAtoms());
@@ -125,8 +127,8 @@ PYBIND11_MODULE(graphium_cpp, m) {
     m.def("extract_string", &extract_string, "Extracts a single string from a Tensor of contatenated strings.");
 
     // Functions in features.cpp
-    m.def("atom_float_feature_names_to_tensor", &atom_float_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("atom_onehot_feature_names_to_tensor", &atom_onehot_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
+    m.def("atom_float_feature_names_to_tensor", &atom_float_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("bond_feature_names_to_tensor", &bond_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("positional_feature_options_to_tensor", &positional_feature_options_to_tensor, "Accepts feature names, levels, and options, and returns a tensor representing them as integers");
     m.def("featurize_smiles", &featurize_smiles, "Accepts a SMILES string and returns tensors representing the features");

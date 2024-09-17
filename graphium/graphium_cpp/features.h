@@ -381,6 +381,8 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
     bool ordered = true);
 
 //! Determines a canonical ordering of the atoms in `mol`
+//!
+//! This is implemented in graphium_cpp.cpp, to keep it near `parse_mol`
 void get_canonical_atom_order(
     const RDKit::ROMol& mol,
     std::vector<unsigned int>& atom_order);
