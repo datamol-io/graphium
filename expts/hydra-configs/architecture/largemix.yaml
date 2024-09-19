@@ -85,7 +85,7 @@ datamodule:
   args:
     processed_graph_data_path: ${constants.datacache_path}
     num_workers: 20 # -1 to use all
-    persistent_workers: True
+    persistent_workers: False
     featurization:
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]

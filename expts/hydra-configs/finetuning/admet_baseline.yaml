@@ -20,7 +20,7 @@ constants:
 datamodule:
   args:
     batch_size_training: 32
-    persistent_workers: true
+    persistent_workers: false
     num_workers: 4
   
 trainer:
