@@ -18,6 +18,7 @@ from typing import Callable, Union, Optional, Dict, Any
 from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
+from torch_geometric.utils import to_dense_batch
 from graphium.nn.base_graph_layer import BaseGraphModule
 from graphium.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
 from graphium.nn.pyg_layers import (
@@ -29,13 +30,6 @@ from graphium.nn.pyg_layers import (
 )
 from graphium.data.utils import get_keys
 from graphium.utils.decorators import classproperty
-from graphium.ipu.to_dense_batch import (
-    to_dense_batch,
-    to_sparse_batch,
-    to_packed_dense_batch,
-    to_sparse_batch_from_packed,
-)
-from graphium.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -286,7 +280,7 @@ class GPSLayerPyg(BaseGraphModule):
         # MLP block, with skip connection
         feat_mlp = self.mlp(feat)
         # Add the droppath to the output of the MLP
-        batch_size = None if feat.device.type != "ipu" else batch.graph_is_true.shape[0]
+        batch_size = None
         if self.droppath_ffn is not None:
             feat_mlp = self.droppath_ffn(feat_mlp, batch.batch, batch_size)
         feat = feat + feat_mlp
@@ -375,50 +369,27 @@ class GPSLayerPyg(BaseGraphModule):
         h: Tensor,
         batch: Batch,
         batch_size: Optional[int] = None,
-        max_num_nodes_per_graph: Optional[int] = None,
-        on_ipu: bool = False,
+        max_num_nodes: Optional[int] = None,
     ) -> Tensor:
         """
         Convert the batch of graphs to a dense batch.
         """
 
-        if self._use_packing(batch):
-            attn_mask = batch.pack_attn_mask
-            key_padding_mask = None
-            idx = batch.pack_from_node_idx
-            h_dense = to_packed_dense_batch(
-                h,
-                pack_from_node_idx=idx,
-                pack_attn_mask=attn_mask,
-                max_num_nodes_per_pack=100,  # TODO: This should be a parameter
-            )
-        else:
-            attn_mask = None
-            h_dense, key_padding_mask, idx = to_dense_batch(
-                h,
-                batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
-                batch_size=batch_size,
-                max_num_nodes_per_graph=max_num_nodes_per_graph,
-                drop_nodes_last_graph=on_ipu,
-            )
-            key_padding_mask = ~key_padding_mask
-        return h_dense, attn_mask, key_padding_mask, idx
+        h_dense, key_padding_mask = to_dense_batch(
+            h,
+            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch_size=batch_size,
+            max_num_nodes=max_num_nodes,
+        )
+        key_padding_mask = ~key_padding_mask
+        return h_dense, key_padding_mask
 
-    def _to_sparse_batch(self, batch: Batch, h_dense: Tensor, idx: Tensor) -> Tensor:
+    def _to_sparse_batch(self, batch: Batch, h_dense: Tensor, mask: torch.BoolTensor) -> Tensor:
         """
         Convert the dense batch back to a sparse batch.
         """
-        if self._use_packing(batch):
-            h = to_sparse_batch_from_packed(
-                h_dense,
-                pack_from_node_idx=idx,
-            )
-        else:
-            h = to_sparse_batch(
-                h_dense,
-                mask_idx=idx,
-            )
-        return h
+        
+        return h_dense[mask]
 
     def _self_attention_block(self, feat: Tensor, feat_in: Tensor, batch: Batch) -> Tensor:
         """
@@ -429,21 +400,17 @@ class GPSLayerPyg(BaseGraphModule):
         """
 
         # Multi-head attention.
-        on_ipu = is_running_on_ipu()
         max_num_nodes_per_graph = None
-        if on_ipu:
-            max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
         # Convert the tensor to a dense batch, then back to a sparse batch
-        batch_size = None if feat.device.type != "ipu" else batch.graph_is_true.shape[0]
+        batch_size = None
 
         # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
-        feat_dense, attn_mask, key_padding_mask, idx = self._to_dense_batch(
+        feat_dense, attn_mask = self._to_dense_batch(
             feat,
             batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
-            on_ipu=on_ipu,
+            max_num_nodes=max_num_nodes_per_graph,
         )
 
         attn_bias = None
@@ -452,11 +419,11 @@ class GPSLayerPyg(BaseGraphModule):
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
         feat_attn = self._sa_block(
-            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask
+            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask
         )
 
         # feat_attn[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_nodes, hidden_dim]
-        feat_attn = self._to_sparse_batch(batch, feat_attn, idx)
+        feat_attn = self._to_sparse_batch(batch, feat_attn, attn_mask)
 
         # Dropout, residual, norm
         if self.dropout_attn is not None:

@@ -231,7 +231,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.feat.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_feat == self.bg.edge_feat).all)
 
-    @pytest.mark.skip_ipu
     def test_dimenetlayer(self):
         from graphium.nn.encoders.bessel_pos_encoder import BesselSphericalPosEncoder
 
@@ -311,7 +310,7 @@ class test_Pyg_Layers(ut.TestCase):
         # bias: [batch, num_heads, nodes, nodes]
         # node_feature: [total_nodes, embed_dim]
         bias, node_feature = layer.forward(
-            bg, max_num_nodes_per_graph=4, on_ipu=False, positions_3d_key="positions_3d"
+            bg, max_num_nodes_per_graph=4, positions_3d_key="positions_3d"
         )
         self.assertEqual(bias.size(), torch.Size([2, num_heads, 4, 4]))
         self.assertFalse(np.isnan(bias.detach().numpy()).any())

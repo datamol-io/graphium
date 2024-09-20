@@ -7,18 +7,11 @@ constants:
   datacache_path: "/localdata/neurips2023-large/"
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 100
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 100
+
         # Data handling-related
         batch_size_training: 30
         batch_size_inference: 30
@@ -30,35 +23,6 @@ accelerator:
       trainer:
         precision: 16-true
         accumulate_grad_batches: 2
-
-  ipu_config:
-    - deviceIterations(30) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 96)
-    - Precision.enableStochasticRounding(True)
-    # - Precision.enableFloatingPointExceptions(True)
-
-  ipu_inference_config:
-  # set device iteration and replication factor to 1 during inference
-  # gradient accumulation was set to 1 in the code
-    - deviceIterations(1)
-    - replicationFactor(1)
-    - Precision.enableStochasticRounding(False)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       args:
-#         batch_size_training: 64
-#         batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -324,16 +288,16 @@ predictor:
     pcqm4m_n4: []
   loss_fun:
     # l1000_vcap:
-    #   name: hybrid_ce_ipu
+    #   name: hybrid_ce
     #   n_brackets: 3
     #   alpha: 0.5
     # l1000_mcf7:
-    #   name: hybrid_ce_ipu
+    #   name: hybrid_ce
     #   n_brackets: 3
     #   alpha: ${predictor.loss_fun.l1000_vcap.alpha}
-    # pcba_1328: bce_logits_ipu
-    # pcqm4m_g25: mae_ipu
-    pcqm4m_n4: mae_ipu
+    # pcba_1328: bce_logits
+    # pcqm4m_g25: mae
+    pcqm4m_n4: mae
   random_seed: ${constants.seed}
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -373,7 +337,7 @@ metrics:
   #     threshold_kwargs: null
   # l1000_mcf7: *classif_metrics
   # pcba_1328:
-  # # use auroc and averageprecision (non_ipu version) so tha nans are handled correctly
+  # 
   #   - name: auroc
   #     metric: auroc
   #     task: binary
@@ -388,17 +352,17 @@ metrics:
   #     threshold_kwargs: null
   pcqm4m_n4: &pcqm_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
     - name: r2
-      metric: r2_score_ipu
+      metric: r2_score
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label

@@ -1,4 +1,4 @@
-# Running the gine model with the largemix dataset on IPU.
+# Running the gine model with the largemix dataset.
 
 defaults:
   - base_config: large

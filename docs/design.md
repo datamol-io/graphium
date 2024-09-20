@@ -42,7 +42,6 @@ Below are a list of directory and their respective documentations:
 - [data](https://github.com/datamol-io/graphium/blob/main/graphium/data/README.md)
 - [features](https://github.com/datamol-io/graphium/tree/main/graphium/features/README.md)
 - finetuning
-- [ipu](https://github.com/datamol-io/graphium/tree/main/graphium/ipu/README.md)
 - [nn](https://github.com/datamol-io/graphium/tree/main/graphium/nn/README.md)
 - [trainer](https://github.com/datamol-io/graphium/tree/main/graphium/trainer/README.md)
 - [utils](https://github.com/datamol-io/graphium/tree/main/graphium/features/README.md)
@@ -56,7 +55,7 @@ Hence, we use [hydra](https://hydra.cc/docs/intro/) to enable splitting the conf
 
 Examples of possibilities include:
 
-- Switching between accelerators (CPU, GPU and IPU)
+- Switching between accelerators (CPU, GPU)
 - Benchmarking different models on the same dataset
 - Fine-tuning a pre-trained model on a new dataset
 

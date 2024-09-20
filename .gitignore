@@ -55,15 +55,6 @@ debug/
 change_commits.sh
 graphium/features/test_new_pes.ipynb
 
-# IPU related ignores and profiler outputs
-*.a
-*.cbor
-*.capnp
-*.pop
-*.popart
-*.pop_cache
-*.popef
-*.pvti*
 
 ############ END graphium Custom GitIgnore ##############
 

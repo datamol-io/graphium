@@ -1,4 +1,4 @@
-# Testing the gcn model with the toymix dataset on IPU.
+# Testing the gcn model with the toymix dataset.
 
 defaults:
   - base_config: small
