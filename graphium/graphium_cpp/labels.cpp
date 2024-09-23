@@ -29,6 +29,8 @@
 using FileType = HANDLE;
 const auto INVALID_FILE = INVALID_HANDLE_VALUE;
 
+// Opens a file for reading on Windows, working around an issue with non-ASCII
+// file paths in fopen on Windows.
 static FileType fopen_read_wrapper(const std::filesystem::path& file_path) {
     return CreateFileW(
         file_path.wstring().c_str(),
@@ -40,6 +42,8 @@ static FileType fopen_read_wrapper(const std::filesystem::path& file_path) {
         nullptr);
 }
 
+// Opens a file for writing on Windows, working around an issue with non-ASCII
+// file paths in fopen on Windows.
 static FileType fopen_write_wrapper(const std::filesystem::path& file_path) {
     return CreateFileW(
         file_path.wstring().c_str(),
@@ -51,6 +55,7 @@ static FileType fopen_write_wrapper(const std::filesystem::path& file_path) {
         nullptr);
 }
 
+// Reads from a file on Windows
 static size_t fread_wrapper(void* buffer, size_t bytes, FileType file) {
     size_t total_bytes_read = 0;
     while (bytes > 0) {
@@ -70,6 +75,7 @@ static size_t fread_wrapper(void* buffer, size_t bytes, FileType file) {
     return total_bytes_read;
 }
 
+// Writes to a file on Windows
 static size_t fwrite_wrapper(const void* buffer, size_t bytes, FileType file) {
     size_t total_bytes_written = 0;
     while (bytes > 0) {
@@ -89,6 +95,7 @@ static size_t fwrite_wrapper(const void* buffer, size_t bytes, FileType file) {
     return total_bytes_written;
 }
 
+// Seeks to a 64-bit absolute position in a file on Windows.
 static int fseek_wrapper(FileType file, int64_t file_pointer) {
     LARGE_INTEGER file_pointer_union;
     file_pointer_union.QuadPart = (LONGLONG)file_pointer;
@@ -96,6 +103,7 @@ static int fseek_wrapper(FileType file, int64_t file_pointer) {
     return (success == 0);
 }
 
+// Closes a file on Windows
 static void fclose_wrapper(FileType file) {
     CloseHandle(file);
 }
@@ -107,28 +115,35 @@ static void fclose_wrapper(FileType file) {
 using FileType = FILE*;
 const auto INVALID_FILE = (FILE*)nullptr;
 
+// Opens a file for reading on non-Windows platforms, where fopen supports UTF-8 file paths.
 static FileType fopen_read_wrapper(const std::filesystem::path& file_path) {
     return fopen(file_path.string().c_str(), "rb");
 }
 
+// Opens a file for writing on non-Windows platforms, where fopen supports UTF-8 file paths.
 static FileType fopen_write_wrapper(const std::filesystem::path& file_path) {
     return fopen(file_path.string().c_str(), "wb");
 }
 
+// Reads from a file on non-Windows platforms
 static size_t fread_wrapper(void* buffer, size_t bytes, FileType file) {
     return fread(buffer, 1, bytes, file);
 }
 
+// Writes to a file on non-Windows platforms
 static size_t fwrite_wrapper(const void* buffer, size_t bytes, FileType file) {
     return fwrite(buffer, 1, bytes, file);
 }
 
+// Seeks to a 64-bit absolute position in a file on non-Windows platforms.
 static int fseek_wrapper(FileType file, int64_t file_pointer) {
     // NOTE: If these files could ever be larger than 2GB each, fseek won't
     // work on platforms where "long" is a 32-bit type (e.g. 32-bit Linux)
+    static_assert(sizeof(long) == sizeof(int64_t));
     return fseek(file, (long)file_pointer, SEEK_SET);
 }
 
+// Closes a file on non-Windows platforms
 static void fclose_wrapper(FileType file) {
     fclose(file);
 }
@@ -150,12 +165,18 @@ static void ensure_numpy_array_module_initialized() {
     static InitNumpyArrayModule numpy_initializer;
 }
 
+// Simple representation of the limited data needed for most molecules during label data
+// merging, and for the cached `num_nodes` and `num_edges` tensors.
 struct MolBriefData {
     uint64_t unique_id[2];
     uint32_t num_nodes;
     uint32_t num_edges;
 };
 
+// Computes `MolBriefData` from a molecule's SMILES string, optionally including
+// a compacted InChI key for the `unique_id` values.  InChI keys are very expensive to
+// compute, and only used for identifying equivalent molecules, so if not merging equivalent
+// molecules (e.g. for inference), it saves time to skip computing them.
 static MolBriefData smiles_to_brief_data(
     const std::string& smiles_string,
     bool add_self_loop,
@@ -209,19 +230,27 @@ static MolBriefData smiles_to_brief_data(
     };
 }
 
+//! Normalization methods for use in `prepare_and_save_data`.
+//! Not to be confused with the normalization of the graph Laplacian matrix in
+//! positional features.
 enum class NormalizationMethod {
-    NONE,
-    NORMAL,
-    UNIT
+    NONE,   //!< No normalization
+    NORMAL, //!< Subtract mean and divide by standard deviation
+    UNIT    //!< Subtract minimum and divide by range
 };
+//! Normalization options for use in `prepare_and_save_data`.
+//! All data will be clamped to be between `min_clipping` and `max_clipping`.
 struct NormalizationOptions {
     NormalizationMethod method = NormalizationMethod::NONE;
     double min_clipping = -std::numeric_limits<double>::infinity();
     double max_clipping = std::numeric_limits<double>::infinity();
 };
 
+//! To avoid having one gigantic label data file or millions of tiny label data files,
+//! store label data for 1024 molecules in each file.
 constexpr size_t num_mols_per_file = 1024;
 
+//! Quickly creates a filename of the format 0000000.tmp, with at least 7 digits.
 static void get_mol_label_filename(
     char filename[25],
     uint64_t file_num) {
@@ -285,7 +314,7 @@ static size_t torch_type_index(c10::ScalarType type) {
     return num_supported_types;
 };
 
-
+// Filenames for cached data other than label data
 constexpr const char*const label_metadata_filename = "label_metadata.tmp";
 constexpr const char*const file_data_offsets_filename = "file_data_offsets.tmp";
 constexpr const char*const concat_smiles_filename = "concat_smiles.tmp";
@@ -293,6 +322,8 @@ constexpr const char*const smiles_offsets_filename = "smiles_offsets.tmp";
 constexpr const char*const num_nodes_filename = "num_nodes.tmp";
 constexpr const char*const num_edges_filename = "num_edges.tmp";
 
+// Called by `prepare_and_save_data` to write out a file representing the number of
+// columns and data type for each task/label.
 static bool save_num_cols_and_dtypes(
     const std::filesystem::path& common_path,
     const std::vector<int64_t>& label_num_cols,
@@ -317,6 +348,9 @@ static bool save_num_cols_and_dtypes(
     return true;
 }
 
+// Reads the number of columns and data type for each task, from the common label
+// metadata file.
+// See the declaration in labels.h for more details.
 std::tuple<
     std::vector<int64_t>,
     std::vector<int32_t>
@@ -357,6 +391,10 @@ std::tuple<
     return std::make_tuple(std::move(label_num_cols), std::move(label_data_types));
 }
 
+// Helper function to save a file containing a 64-bit number of values,
+// followed by all of those values, e.g. for saving 1D tensors.
+// Does not save a representation of the data type, so callers must keep track.
+// Pairs with `load_array_from_file`.
 template<typename T>
 bool save_array_to_file(
     const std::filesystem::path& directory,
@@ -378,7 +416,10 @@ bool save_array_to_file(
     return true;
 }
 
-
+// Helper function to load values from a file containing a 64-bit number of values,
+// followed by all of those values, e.g. for loading 1D tensors.
+// The caller must know the correct data type.
+// Pairs with `save_array_to_file`.
 template<typename T>
 [[nodiscard]] uint64_t load_array_from_file(
     const std::filesystem::path& directory,
@@ -409,6 +450,8 @@ template<typename T>
     return n;
 }
 
+// Reads data from the stage-specific label metadata files.
+// See the declaration in labels.h for more details.
 std::vector<at::Tensor> load_metadata_tensors(
     const std::string processed_graph_data_path,
     const std::string stage,
@@ -480,6 +523,8 @@ std::vector<at::Tensor> load_metadata_tensors(
     return stage_return_data;
 }
 
+// Reads data from the task-specific stats file.
+// See the declaration in labels.h for more details.
 std::vector<at::Tensor> load_stats(
     const std::string processed_graph_data_path,
     const std::string data_hash,
@@ -512,6 +557,10 @@ std::vector<at::Tensor> load_stats(
     return return_stats;
 }
 
+// Accepts a Numpy array of strings or Python list of strings, and returns a PyTorch tensor
+// of all of the characters and another tensor containing indices into the other tensor
+// indicating where each string begins, plus one extra index indicating the end.
+// See the declaration in labels.h.
 std::pair<at::Tensor, at::Tensor> concatenate_strings(pybind11::handle handle) {
     using return_type = std::pair<at::Tensor, at::Tensor>;
     
@@ -608,7 +657,10 @@ std::pair<at::Tensor, at::Tensor> concatenate_strings(pybind11::handle handle) {
     return return_type(std::move(concatenated_strings), std::move(offsets));
 }
 
+// There are exactly 3 allowed stages.
 constexpr size_t num_stages = 3;
+
+// The names of the 3 allowed stages.
 // NOTE: Computing stats below depends on that "train" is stage 0.
 const std::string stages[num_stages] = {
     std::string("train"),
@@ -616,7 +668,7 @@ const std::string stages[num_stages] = {
     std::string("test")
 };
 
-
+// Called by `prepare_and_save_data` to get pointers to the relevant NumPy arrays for each task
 static void get_task_data(
     const pybind11::list& task_names,
     pybind11::dict& task_dataset_args,
@@ -810,6 +862,11 @@ static void get_task_data(
     }
 }
 
+// Called by `prepare_and_save_data` to get the indices and SMILES strings of all molecules
+// being kept, (could be subsampled, or could be all), from each dataset (task) for each stage
+// (train/val/test).  The indices (strings) are all added to `task_mol_indices`
+// (`smiles_strings`), with the beginnings of each of the `num_stages*num_tasks` ranges being
+// recorded in `task_mol_start`, plus one extra for the end.
 static void get_indices_and_strings(
     const pybind11::list& task_names,
     const pybind11::dict& task_train_indices,
@@ -908,6 +965,8 @@ static void get_indices_and_strings(
     task_mol_start[num_stages*num_tasks] = total_num_mols;
 }
 
+// Molecule data used for sorting in `prepare_and_save_data`, in order to quickly merge
+// equivalent molecules.
 struct MolKey {
     uint64_t id0;
     uint64_t id1;
@@ -917,6 +976,7 @@ struct MolKey {
     uint64_t task_mol_index;
     uint64_t mol_index;
 
+    // This is the comparison operator used for sorting
     bool operator<(const MolKey& other) const {
         if (id0 != other.id0) {
             return (id0 < other.id0);
@@ -943,6 +1003,10 @@ struct MolKey {
     }
 };
 
+// Called by `prepare_and_save_data` to fill in the `MolKey` structure for each molecule,
+// in parallel if needed, because the InChI key computation is very slow.  When not merging
+// equivalent molecules, e.g. for inference, the InChI keys are not needed, but the SMILES
+// parsing might as well still be parallelized.
 static void compute_mol_keys(
     MolKey*const keys,
     const size_t total_num_mols,
@@ -1031,6 +1095,9 @@ constexpr size_t stat_mean_offset = 2;
 constexpr size_t stat_std_offset = 3;
 constexpr size_t num_stats = 4;
 
+// Called by `prepare_and_save_data` to compute the minimum, maximum, mean, and standard
+// deviation of each column in each dataset (task), using only the molecules in the
+// training stage.  This does nothing if there is no label data, e.g. for inference.
 static auto compute_stats(
     const std::filesystem::path& common_path,
     const size_t total_num_cols,
@@ -1044,6 +1111,11 @@ static auto compute_stats(
     const MolKey*const keys,
     std::unique_ptr<double[]>& all_task_stats) {
 
+    std::unordered_map<std::string, std::vector<at::Tensor>> all_stats_return_data;
+    if (total_num_cols == 0) {
+        return all_stats_return_data;
+    }
+
     const size_t num_tasks = task_names.size();
 
     // Compute stats on the train stage only (stage 0), like how the python code did it.
@@ -1052,174 +1124,173 @@ static auto compute_stats(
     // that occur multiple times in the same dataset?
     size_t stats_floats = num_stats*total_num_cols;
     all_task_stats.reset((stats_floats > 0) ? new double[stats_floats] : nullptr);
-    std::unordered_map<std::string, std::vector<at::Tensor>> all_stats_return_data;
 
-    if (total_num_cols > 0) {
-        std::unique_ptr<intptr_t[]> all_task_num_non_nan(new intptr_t[total_num_cols]);
-        for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
-            const size_t task_num_mols = task_mol_start[task_index+1] - task_mol_start[task_index];
-            const size_t task_first_col = task_col_starts[task_index];
-            const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
-            if (task_num_mols == 0 || task_num_cols == 0) {
-                continue;
-            }
-            // Initialize stats for accumulation
-            double*const task_stats = all_task_stats.get() + num_stats*task_first_col;
-            intptr_t*const task_num_non_nan = all_task_num_non_nan.get() + task_first_col;
-            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
-                task_stats[num_stats*task_col_index + stat_min_offset] = std::numeric_limits<double>::infinity();
-                task_stats[num_stats*task_col_index + stat_max_offset] = -std::numeric_limits<double>::infinity();
-                task_stats[num_stats*task_col_index + stat_mean_offset] = 0.0;
-                task_stats[num_stats*task_col_index + stat_std_offset] = 0.0;
-                task_num_non_nan[task_col_index] = 0;
-            }
-            
-            const size_t bytes_per_float = task_bytes_per_float[task_index];
-
-            auto&& update_stats_single_row = [task_stats, task_num_non_nan](const char* col_data, const size_t task_num_cols, const size_t bytes_per_float, const intptr_t col_stride) {
-                double* stats = task_stats;
-                intptr_t* num_non_nan = task_num_non_nan;
-                for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index, col_data += col_stride, stats += num_stats, ++num_non_nan) {
-                    // TODO: Move the type check outside the loop if it's a bottleneck
-                    double value;
-                    if (bytes_per_float == sizeof(double)) {
-                        value = *(const double*)(col_data);
-                    }
-                    else if (bytes_per_float == sizeof(float)) {
-                        value = *(const float*)(col_data);
-                    }
-                    else {
-                        assert(bytes_per_float == sizeof(uint16_t));
-                        value = c10::detail::fp16_ieee_to_fp32_value(*(const uint16_t*)(col_data));
-                    }
-                    if (value != value) {
-                        // NaN value, so skip it
-                        continue;
-                    }
-                    stats[stat_min_offset] = std::min(stats[stat_min_offset], value);
-                    stats[stat_max_offset] = std::max(stats[stat_max_offset], value);
-                    stats[stat_mean_offset] += value;
-                    // TODO: If summing the squares isn't accurate enough for computing the variance,
-                    // consider other approaches.
-                    stats[stat_std_offset] += value*value;
-                    ++(*num_non_nan);
-                }
-            };
-
-            PyArrayObject*const labels_numpy_array = labels_numpy_arrays[task_index];
-            if (labels_numpy_array != nullptr) {
-                const char* raw_data = (const char*)PyArray_DATA(labels_numpy_array);
-                const intptr_t* strides = PyArray_STRIDES(labels_numpy_array);
-                const intptr_t num_label_rows = PyArray_DIM(labels_numpy_array, 0);
-                PyArrayObject*const label_offsets_numpy_array = label_offsets_numpy_arrays[task_index];
-                const char* offsets_raw_data = label_offsets_numpy_array ? (const char*)PyArray_DATA(label_offsets_numpy_array) : nullptr;
-                const intptr_t offsets_stride = label_offsets_numpy_array ? PyArray_STRIDES(label_offsets_numpy_array)[0] : 0;
-                // The -1 is because there's an extra entry at the end for the end offset.
-                const intptr_t num_mols = label_offsets_numpy_array ? PyArray_DIM(label_offsets_numpy_array, 0) - 1 : num_label_rows;
-                // The normalization is computed on the subsample being kept
-                for (size_t task_key_index = 0; task_key_index < task_num_mols; ++task_key_index) {
-                    const size_t task_mol_index = keys[task_mol_start[task_index] + task_key_index].task_mol_index;
-                    if (task_mol_index >= size_t(num_mols)) {
-                        printf("Error: In task %zu, mol index %zu is past limit of %zu\n", size_t(task_index), task_mol_index, size_t(num_mols));
-                        continue;
-                    }
-                    if (offsets_raw_data == nullptr) {
-                        const char* row_data = raw_data + strides[0]*task_mol_index;
-                        update_stats_single_row(row_data, task_num_cols, bytes_per_float, strides[1]);
-                    }
-                    else {
-                        size_t begin_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*task_mol_index);
-                        size_t end_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*(task_mol_index+1));
-                        const char* row_data = raw_data + strides[0]*begin_offset;
-                        for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
-                            update_stats_single_row(row_data, task_num_cols, bytes_per_float, strides[1]);
-                        }
-                    }
-                }
-            }
-
-#if GRAPHIUM_CPP_DEBUGGING
-            printf("Task %zu normalization method %zu\n", size_t(task_index), size_t(task_normalization_options[task_index].method));
-            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
-                printf("Task %zu col %zu, num non-nan = %zu, min = %e, max = %e\n",
-                       size_t(task_index), task_col_index,
-                       size_t(task_num_non_nan[task_col_index]),
-                       task_stats[num_stats*task_col_index + stat_min_offset],
-                       task_stats[num_stats*task_col_index + stat_max_offset]);
-            }
-#endif
+    std::unique_ptr<intptr_t[]> all_task_num_non_nan(new intptr_t[total_num_cols]);
+    for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
+        const size_t task_num_mols = task_mol_start[task_index+1] - task_mol_start[task_index];
+        const size_t task_first_col = task_col_starts[task_index];
+        const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
+        if (task_num_mols == 0 || task_num_cols == 0) {
+            continue;
         }
+        // Initialize stats for accumulation
+        double*const task_stats = all_task_stats.get() + num_stats*task_first_col;
+        intptr_t*const task_num_non_nan = all_task_num_non_nan.get() + task_first_col;
+        for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
+            task_stats[num_stats*task_col_index + stat_min_offset] = std::numeric_limits<double>::infinity();
+            task_stats[num_stats*task_col_index + stat_max_offset] = -std::numeric_limits<double>::infinity();
+            task_stats[num_stats*task_col_index + stat_mean_offset] = 0.0;
+            task_stats[num_stats*task_col_index + stat_std_offset] = 0.0;
+            task_num_non_nan[task_col_index] = 0;
+        }
+            
+        const size_t bytes_per_float = task_bytes_per_float[task_index];
 
-        for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
-            const size_t task_first_col = task_col_starts[task_index];
-            const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
-            if (task_num_cols == 0) {
-                continue;
-            }
-
-            // Finish accumulation
-            double*const task_stats = all_task_stats.get() + num_stats*task_first_col;
-            intptr_t*const task_num_non_nan = all_task_num_non_nan.get() + task_first_col;
-            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
-                if (task_num_non_nan[task_col_index] == 0) {
-                    task_stats[num_stats*task_col_index + stat_min_offset] = std::numeric_limits<double>::quiet_NaN();
-                    task_stats[num_stats*task_col_index + stat_max_offset] = std::numeric_limits<double>::quiet_NaN();
-                    task_stats[num_stats*task_col_index + stat_mean_offset] = std::numeric_limits<double>::quiet_NaN();
-                    task_stats[num_stats*task_col_index + stat_std_offset] = std::numeric_limits<double>::quiet_NaN();
+        auto&& update_stats_single_row = [task_stats, task_num_non_nan](const char* col_data, const size_t task_num_cols, const size_t bytes_per_float, const intptr_t col_stride) {
+            double* stats = task_stats;
+            intptr_t* num_non_nan = task_num_non_nan;
+            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index, col_data += col_stride, stats += num_stats, ++num_non_nan) {
+                // TODO: Move the type check outside the loop if it's a bottleneck
+                double value;
+                if (bytes_per_float == sizeof(double)) {
+                    value = *(const double*)(col_data);
+                }
+                else if (bytes_per_float == sizeof(float)) {
+                    value = *(const float*)(col_data);
                 }
                 else {
-                    if (task_normalization_options[task_index].min_clipping > task_stats[num_stats*task_col_index + stat_min_offset]) {
-                        task_stats[num_stats*task_col_index + stat_min_offset] = task_normalization_options[task_index].min_clipping;
+                    assert(bytes_per_float == sizeof(uint16_t));
+                    value = c10::detail::fp16_ieee_to_fp32_value(*(const uint16_t*)(col_data));
+                }
+                if (value != value) {
+                    // NaN value, so skip it
+                    continue;
+                }
+                stats[stat_min_offset] = std::min(stats[stat_min_offset], value);
+                stats[stat_max_offset] = std::max(stats[stat_max_offset], value);
+                stats[stat_mean_offset] += value;
+                // TODO: If summing the squares isn't accurate enough for computing the variance,
+                // consider other approaches.
+                stats[stat_std_offset] += value*value;
+                ++(*num_non_nan);
+            }
+        };
+
+        PyArrayObject*const labels_numpy_array = labels_numpy_arrays[task_index];
+        if (labels_numpy_array != nullptr) {
+            const char* raw_data = (const char*)PyArray_DATA(labels_numpy_array);
+            const intptr_t* strides = PyArray_STRIDES(labels_numpy_array);
+            const intptr_t num_label_rows = PyArray_DIM(labels_numpy_array, 0);
+            PyArrayObject*const label_offsets_numpy_array = label_offsets_numpy_arrays[task_index];
+            const char* offsets_raw_data = label_offsets_numpy_array ? (const char*)PyArray_DATA(label_offsets_numpy_array) : nullptr;
+            const intptr_t offsets_stride = label_offsets_numpy_array ? PyArray_STRIDES(label_offsets_numpy_array)[0] : 0;
+            // The -1 is because there's an extra entry at the end for the end offset.
+            const intptr_t num_mols = label_offsets_numpy_array ? PyArray_DIM(label_offsets_numpy_array, 0) - 1 : num_label_rows;
+            // The normalization is computed on the subsample being kept
+            for (size_t task_key_index = 0; task_key_index < task_num_mols; ++task_key_index) {
+                const size_t task_mol_index = keys[task_mol_start[task_index] + task_key_index].task_mol_index;
+                if (task_mol_index >= size_t(num_mols)) {
+                    printf("Error: In task %zu, mol index %zu is past limit of %zu\n", size_t(task_index), task_mol_index, size_t(num_mols));
+                    continue;
+                }
+                if (offsets_raw_data == nullptr) {
+                    const char* row_data = raw_data + strides[0]*task_mol_index;
+                    update_stats_single_row(row_data, task_num_cols, bytes_per_float, strides[1]);
+                }
+                else {
+                    size_t begin_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*task_mol_index);
+                    size_t end_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*(task_mol_index+1));
+                    const char* row_data = raw_data + strides[0]*begin_offset;
+                    for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
+                        update_stats_single_row(row_data, task_num_cols, bytes_per_float, strides[1]);
                     }
-                    if (task_normalization_options[task_index].max_clipping < task_stats[num_stats*task_col_index + stat_max_offset]) {
-                        task_stats[num_stats*task_col_index + stat_max_offset] = task_normalization_options[task_index].max_clipping;
-                    }
-                    const double n = double(task_num_non_nan[task_col_index]);
-                    const double mean = task_stats[num_stats*task_col_index + stat_mean_offset] / n;
-                    task_stats[num_stats*task_col_index + stat_mean_offset] = mean;
-                    //   sum((x[i] - m)^2)/(n-1)
-                    // = sum(x[i]^2 -2mx[i] + m^2)/(n-1)
-                    // = (sum(x[i]^2) - 2nm^2 + nm^2)/(n-1)
-                    // = (sum(x[i]^2) - nm^2)/(n-1)
-                    // except, for compatibility with numpy.nanstd, use n instead of n-1
-                    const double sum_sqaures = task_stats[num_stats*task_col_index + stat_std_offset];
-                    const double stdev = std::sqrt((sum_sqaures - n*mean*mean)/n);
-                    task_stats[num_stats*task_col_index + stat_std_offset] = stdev;
                 }
             }
-
-            const std::string task_name{ pybind11::str(task_names[task_index]) };
-#if GRAPHIUM_CPP_DEBUGGING
-            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
-                printf("%s %zu %lld %e %e %e %e\n",
-                    task_name.c_str(), task_col_index, (long long)task_num_non_nan[task_col_index],
-                    task_stats[num_stats*task_col_index + stat_min_offset],
-                    task_stats[num_stats*task_col_index + stat_max_offset],
-                    task_stats[num_stats*task_col_index + stat_mean_offset],
-                    task_stats[num_stats*task_col_index + stat_std_offset]);
-            }
-#endif
-            const std::string stats_filename = task_name + "_stats.tmp";
-            save_array_to_file(common_path, stats_filename.c_str(), task_stats, num_stats*task_num_cols);
-
-            // Make copies for returning in a format similar to the load_stats function.
-            std::vector<at::Tensor> task_stats_out;
-            for (size_t stat_index = 0; stat_index < num_stats; ++stat_index) {
-                const int64_t task_stats_dims[1] = { int64_t(task_num_cols) };
-                std::unique_ptr<double[]> task_stats_copy(new double[task_num_cols]);
-                for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
-                    task_stats_copy[task_col_index] = task_stats[num_stats*task_col_index + stat_index];
-                }
-                at::Tensor task_stats_tensor = torch_tensor_from_array(std::move(task_stats_copy), task_stats_dims, 1, c10::ScalarType::Double);
-                task_stats_out.push_back(std::move(task_stats_tensor));
-            }
-            all_stats_return_data.insert(std::make_pair(std::move(task_name), std::move(task_stats_out)));
         }
+
+#if GRAPHIUM_CPP_DEBUGGING
+        printf("Task %zu normalization method %zu\n", size_t(task_index), size_t(task_normalization_options[task_index].method));
+        for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
+            printf("Task %zu col %zu, num non-nan = %zu, min = %e, max = %e\n",
+                    size_t(task_index), task_col_index,
+                    size_t(task_num_non_nan[task_col_index]),
+                    task_stats[num_stats*task_col_index + stat_min_offset],
+                    task_stats[num_stats*task_col_index + stat_max_offset]);
+        }
+#endif
     }
-    
+
+    for (size_t task_index = 0; task_index < num_tasks; ++task_index) {
+        const size_t task_first_col = task_col_starts[task_index];
+        const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
+        if (task_num_cols == 0) {
+            continue;
+        }
+
+        // Finish accumulation
+        double*const task_stats = all_task_stats.get() + num_stats*task_first_col;
+        intptr_t*const task_num_non_nan = all_task_num_non_nan.get() + task_first_col;
+        for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
+            if (task_num_non_nan[task_col_index] == 0) {
+                task_stats[num_stats*task_col_index + stat_min_offset] = std::numeric_limits<double>::quiet_NaN();
+                task_stats[num_stats*task_col_index + stat_max_offset] = std::numeric_limits<double>::quiet_NaN();
+                task_stats[num_stats*task_col_index + stat_mean_offset] = std::numeric_limits<double>::quiet_NaN();
+                task_stats[num_stats*task_col_index + stat_std_offset] = std::numeric_limits<double>::quiet_NaN();
+            }
+            else {
+                if (task_normalization_options[task_index].min_clipping > task_stats[num_stats*task_col_index + stat_min_offset]) {
+                    task_stats[num_stats*task_col_index + stat_min_offset] = task_normalization_options[task_index].min_clipping;
+                }
+                if (task_normalization_options[task_index].max_clipping < task_stats[num_stats*task_col_index + stat_max_offset]) {
+                    task_stats[num_stats*task_col_index + stat_max_offset] = task_normalization_options[task_index].max_clipping;
+                }
+                const double n = double(task_num_non_nan[task_col_index]);
+                const double mean = task_stats[num_stats*task_col_index + stat_mean_offset] / n;
+                task_stats[num_stats*task_col_index + stat_mean_offset] = mean;
+                //   sum((x[i] - m)^2)/(n-1)
+                // = sum(x[i]^2 -2mx[i] + m^2)/(n-1)
+                // = (sum(x[i]^2) - 2nm^2 + nm^2)/(n-1)
+                // = (sum(x[i]^2) - nm^2)/(n-1)
+                // except, for compatibility with numpy.nanstd, use n instead of n-1
+                const double sum_sqaures = task_stats[num_stats*task_col_index + stat_std_offset];
+                const double stdev = std::sqrt((sum_sqaures - n*mean*mean)/n);
+                task_stats[num_stats*task_col_index + stat_std_offset] = stdev;
+            }
+        }
+
+        const std::string task_name{ pybind11::str(task_names[task_index]) };
+#if GRAPHIUM_CPP_DEBUGGING
+        for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
+            printf("%s %zu %lld %e %e %e %e\n",
+                task_name.c_str(), task_col_index, (long long)task_num_non_nan[task_col_index],
+                task_stats[num_stats*task_col_index + stat_min_offset],
+                task_stats[num_stats*task_col_index + stat_max_offset],
+                task_stats[num_stats*task_col_index + stat_mean_offset],
+                task_stats[num_stats*task_col_index + stat_std_offset]);
+        }
+#endif
+        const std::string stats_filename = task_name + "_stats.tmp";
+        save_array_to_file(common_path, stats_filename.c_str(), task_stats, num_stats*task_num_cols);
+
+        // Make copies for returning in a format similar to the load_stats function.
+        std::vector<at::Tensor> task_stats_out;
+        for (size_t stat_index = 0; stat_index < num_stats; ++stat_index) {
+            const int64_t task_stats_dims[1] = { int64_t(task_num_cols) };
+            std::unique_ptr<double[]> task_stats_copy(new double[task_num_cols]);
+            for (size_t task_col_index = 0; task_col_index < task_num_cols; ++task_col_index) {
+                task_stats_copy[task_col_index] = task_stats[num_stats*task_col_index + stat_index];
+            }
+            at::Tensor task_stats_tensor = torch_tensor_from_array(std::move(task_stats_copy), task_stats_dims, 1, c10::ScalarType::Double);
+            task_stats_out.push_back(std::move(task_stats_tensor));
+        }
+        all_stats_return_data.insert(std::make_pair(std::move(task_name), std::move(task_stats_out)));
+    }
+
     return all_stats_return_data;
 }
 
+// Called by `prepare_and_save_data` to save the SMILES string data, numbers of nodes,
+// and numbers of edges, to cache files for each stage (train/val/test.)
 static auto save_non_label_data(
     const std::filesystem::path* stage_paths,
     const size_t num_tasks,
@@ -1317,6 +1388,11 @@ static auto save_non_label_data(
     return per_stage_return_data;
 }
 
+// Called by `prepare_and_save_data` to save the label data to cache files for each stage
+// (train/val/test.)  Each file will contain the label data for `num_mols_per_file` molecules.
+// In the case of equivalent molecules, this also reorders node-level, edge-level, and
+// node-pair-level label data to be consistent with the node or edge order in the first
+// encountered equivalent molecule, as well as normalizing the data as specified.
 static void save_label_data(
     std::unordered_map<std::string, std::vector<at::Tensor>>& per_stage_return_data,
     const std::filesystem::path* stage_paths,
@@ -1736,6 +1812,9 @@ static void save_label_data(
     }
 }
 
+// Merges label data for equivalent molecules from separate datasets,
+// computes statistics, and caches the label data to files for efficient loading later.
+//
 // Returns:
 // stage -> [
 //      unique mol smiles strings all concatenated,
@@ -1747,6 +1826,8 @@ static void save_label_data(
 // task -> 4 stats tensors each
 // task index -> label num columns
 // task index -> label torch data type enum
+//
+// See the declaration in labels.h for more details.
 std::tuple<
     std::unordered_map<std::string, std::vector<at::Tensor>>,
     std::unordered_map<std::string, std::vector<at::Tensor>>,
@@ -1907,6 +1988,9 @@ std::tuple<
         std::move(return_label_data_types));
 }
 
+// Loads label data associated with the molecule with index `mol_index` from the corresponding
+// file in the directory `stage_directory`.
+// See the declaration in labels.h for more details.
 void load_labels_from_index(
     const std::string stage_directory,
     const int64_t mol_index,
@@ -2067,6 +2151,9 @@ void load_labels_from_index(
     }
 }
 
+// Extracts a single string from `concat_strings`, a Tensor of contatenated strings,
+// using offsets at the specified `index` in `string_offsets`.
+// See the declaration in labels.h.
 std::string extract_string(
     const at::Tensor& concat_strings,
     const at::Tensor& string_offsets,

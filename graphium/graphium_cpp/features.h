@@ -109,6 +109,7 @@ enum class PositionalFeature {
 };
 
 //! Options for normalization of graph Laplacian matrix in positional features.
+//! Not to be confused with the normalization of label data in `prepare_and_save_data`.
 //! String names are in `normalization_to_enum` in features.cpp
 enum class Normalization {
     NONE,       //!< Leaves the matrix unnormalized: `L = D - adj`
