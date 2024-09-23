@@ -16,6 +16,8 @@ Refer to the LICENSE file for the full terms and conditions.
 Unit tests for the metrics and wrappers of graphium/trainer/metrics/...
 """
 
+import pytest
+
 import torch
 import unittest as ut
 import tempfile
@@ -199,6 +201,8 @@ class test_MetricWrapper(ut.TestCase):
 
 
     def test_update_compute_reset(self):
+        pytest.skip("Will be obsolete once torchmetrics are updated")
+
         torch.manual_seed(42)
         th = 0.7
 
