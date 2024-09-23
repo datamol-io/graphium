@@ -983,7 +983,7 @@ void node_pair_to_node_helper(
             stat_accum<op>(accum, input[(row * n + node_index) * floats_per_pair + float_index]);
         }
         output[0] = FeatureValues<OUT_T>::convertToFeatureType(stat_accum_finish<op>(accum, n));
-        accum = stat_init_accum<op>(input[node_index * n * floats_per_pair + float_index]);
+        accum = input[node_index * n * floats_per_pair + float_index];
         for (size_t col = 1; col < n; ++col) {
             stat_accum<op>(accum, input[(node_index * n + col) * floats_per_pair + float_index]);
         }
