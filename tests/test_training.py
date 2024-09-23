@@ -206,5 +206,6 @@ class test_TrainToymix(ut.TestCase):
 
 if __name__ == "__main__":
     config_dir = "../expts/hydra-configs/"  # Path to your config directory
+    test_CLITraining.setup_class()
 
     ut.main()
