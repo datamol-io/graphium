@@ -18,6 +18,8 @@
 
 #include <unordered_map>
 
+// This is called by `featurize_smiles` to parse the SMILES string into an RWMol and
+// cache some data about the atoms and bonds.
 static GraphData read_graph(const std::string& smiles_string, bool explicit_H) {
     std::unique_ptr<RDKit::RWMol> mol{ parse_mol(smiles_string, explicit_H) };
 
@@ -157,84 +159,85 @@ static GraphData read_graph(const std::string& smiles_string, bool explicit_H) {
     return GraphData{ num_atoms, std::move(atoms), num_bonds, std::move(bonds), std::move(mol) };
 }
 
-// This is a structure for managing the adjacency data (CSR format) for use by randomSubgraph.
-struct NeighbourData {
+// This is a structure for managing the adjacency data (CSR format)
+struct NeighborData {
     // This owns the data of all 3 arrays, which are actually a single, contiguous allocation.
     std::unique_ptr<uint32_t[]> deleter;
 
     // This is an array of indices into the other two arrays, indicating where
-    // each atom's neighbours start, including the first entry being 0 for the start of
+    // each atom's neighbors start, including the first entry being 0 for the start of
     // atom 0, and the num_atoms entry being 2*num_bonds (2x because each bond is on 2 atoms),
-    // so there are num_atoms+1 entries.  The number of neighbours of an atom i is
-    // neighbour_starts[i+1]-neighbour_starts[i]
-    const uint32_t* neighbour_starts;
+    // so there are num_atoms+1 entries.  The number of neighbors of an atom i is
+    // neighbor_starts[i+1]-neighbor_starts[i]
+    const uint32_t* neighbor_starts;
 
-    // The neighbour atom for each bond, with each atom having an entry for each of
-    // its neighbours, so each bond occurs twice.
-    const uint32_t* neighbours;
+    // The neighbor atom for each bond, with each atom having an entry for each of
+    // its neighbors, so each bond occurs twice.
+    const uint32_t* neighbors;
 
-    // This is in the same order as neighbours, but indicates the index of the bond.
+    // This is in the same order as neighbors, but indicates the index of the bond.
     // Each bond occurs twice, so each number occurs twice.
     const uint32_t* bond_indices;
 };
 
-// Construct a NeighbourData structure representing the molecule's graph in CSR format.
-static NeighbourData construct_neighbours(const GraphData& graph) {
+// Construct a NeighborData structure representing the molecule's graph in CSR format.
+static NeighborData construct_neighbors(const GraphData& graph) {
     const uint32_t num_atoms = graph.num_atoms;
     const uint32_t num_bonds = graph.num_bonds;
     // Do a single allocation for all 3 arrays.
     std::unique_ptr<uint32_t[]> deleter(new uint32_t[num_atoms + 1 + 4 * num_bonds]);
 
-    uint32_t* neighbour_starts = deleter.get();
+    uint32_t* neighbor_starts = deleter.get();
     for (uint32_t i = 0; i <= num_atoms; ++i) {
-        neighbour_starts[i] = 0;
+        neighbor_starts[i] = 0;
     }
 
-    // First, get atom neighbour counts
+    // First, get atom neighbor counts
     const CompactBond* const bonds = graph.bonds.get();
     for (uint32_t i = 0; i < num_bonds; ++i) {
         uint32_t a = bonds[i].beginAtomIdx;
         uint32_t b = bonds[i].endAtomIdx;
         // NOTE: +1 is because first entry will stay zero.
-        ++neighbour_starts[a + 1];
-        ++neighbour_starts[b + 1];
+        ++neighbor_starts[a + 1];
+        ++neighbor_starts[b + 1];
     }
 
-    // Find the starts by partial-summing the neighbour counts.
+    // Find the starts by partial-summing the neighbor counts.
     // NOTE: +1 is because first entry will stay zero.
-    std::partial_sum(neighbour_starts + 1, neighbour_starts + 1 + num_atoms, neighbour_starts + 1);
+    std::partial_sum(neighbor_starts + 1, neighbor_starts + 1 + num_atoms, neighbor_starts + 1);
 
-    // Fill in the neighbours and bond_indices arrays.
-    uint32_t* neighbours = neighbour_starts + num_atoms + 1;
-    uint32_t* bond_indices = neighbours + 2 * num_bonds;
+    // Fill in the neighbors and bond_indices arrays.
+    uint32_t* neighbors = neighbor_starts + num_atoms + 1;
+    uint32_t* bond_indices = neighbors + 2 * num_bonds;
     for (uint32_t i = 0; i < num_bonds; ++i) {
         uint32_t a = bonds[i].beginAtomIdx;
         uint32_t b = bonds[i].endAtomIdx;
 
-        uint32_t ai = neighbour_starts[a];
-        neighbours[ai] = b;
+        uint32_t ai = neighbor_starts[a];
+        neighbors[ai] = b;
         bond_indices[ai] = i;
-        ++neighbour_starts[a];
+        ++neighbor_starts[a];
 
-        uint32_t bi = neighbour_starts[b];
-        neighbours[bi] = a;
+        uint32_t bi = neighbor_starts[b];
+        neighbors[bi] = a;
         bond_indices[bi] = i;
-        ++neighbour_starts[b];
+        ++neighbor_starts[b];
     }
 
-    // Shift neighbour_starts forward one after incrementing it.
+    // Shift neighbor_starts forward one after incrementing it.
     uint32_t previous = 0;
     for (uint32_t i = 0; i < num_atoms; ++i) {
-        uint32_t next = neighbour_starts[i];
-        neighbour_starts[i] = previous;
+        uint32_t next = neighbor_starts[i];
+        neighbor_starts[i] = previous;
         previous = next;
     }
 
-    // NeighbourData takes ownership of the memory.
-    return NeighbourData{ std::move(deleter), neighbour_starts, neighbours, bond_indices };
+    // NeighborData takes ownership of the memory.
+    return NeighborData{ std::move(deleter), neighbor_starts, neighbors, bond_indices };
 }
 
-// This fills in 3 values for each atom
+// This is called by `create_all_features` to create a Torch tensor representing 3D atom
+// positions.  All atom positions are concatenated into a 1D tensor of length `3*num_atoms`.
 template<typename T>
 at::Tensor get_conformer_features(
     RDKit::ROMol &mol,
@@ -342,6 +345,7 @@ at::Tensor get_conformer_features(
     return torch_tensor_from_array<T>(std::move(conformer_data), dims, 1, dtype);
 }
 
+// Maps float atom feature name strings to `AtomFloatFeature` enum values
 static const std::unordered_map<std::string, int64_t> atom_float_name_to_enum{
     {std::string("atomic-number"), int64_t(AtomFloatFeature::ATOMIC_NUMBER)},
     {std::string("mass"), int64_t(AtomFloatFeature::MASS)},
@@ -376,6 +380,9 @@ static const std::unordered_map<std::string, int64_t> atom_float_name_to_enum{
     {std::string("is-carbon"), int64_t(AtomFloatFeature::IS_CARBON)},
 };
 
+// This is called from Python to list atom float features in a format that will be faster
+// to interpret inside `featurize_smiles`, passed in the `atom_property_list_float` parameter.
+// See the declaration in features.h for more details.
 at::Tensor atom_float_feature_names_to_tensor(const std::vector<std::string>& features) {
     const size_t num_features = features.size();
     std::unique_ptr<int64_t[]> feature_enum_values(new int64_t[num_features]);
@@ -392,6 +399,7 @@ at::Tensor atom_float_feature_names_to_tensor(const std::vector<std::string>& fe
     return torch_tensor_from_array<int64_t>(std::move(feature_enum_values), dims, 1, c10::ScalarType::Long);
 }
 
+// Maps one-hot atom feature name strings to `AtomOneHotFeature` enum values
 static const std::unordered_map<std::string, int64_t> atom_onehot_name_to_enum{
     {std::string("atomic-number"), int64_t(AtomOneHotFeature::ATOMIC_NUM)},
     {std::string("degree"), int64_t(AtomOneHotFeature::DEGREE)},
@@ -406,6 +414,9 @@ static const std::unordered_map<std::string, int64_t> atom_onehot_name_to_enum{
     {std::string("period"), int64_t(AtomOneHotFeature::PERIOD)},
 };
 
+// This is called from Python to list atom one-hot features in a format that will be faster
+// to interpret inside `featurize_smiles`, passed in the `atom_property_list_onehot` parameter.
+// See the declaration in features.h for more details.
 at::Tensor atom_onehot_feature_names_to_tensor(const std::vector<std::string>& features) {
     const size_t num_features = features.size();
     std::unique_ptr<int64_t[]> feature_enum_values(new int64_t[num_features]);
@@ -422,6 +433,7 @@ at::Tensor atom_onehot_feature_names_to_tensor(const std::vector<std::string>& f
     return torch_tensor_from_array<int64_t>(std::move(feature_enum_values), dims, 1, c10::ScalarType::Long);
 }
 
+// Maps bond feature name strings to `BondFeature` enum values
 static const std::unordered_map<std::string, int64_t> bond_name_to_enum{
     {std::string("bond-type-onehot"), int64_t(BondFeature::TYPE_ONE_HOT)},
     {std::string("bond-type-float"), int64_t(BondFeature::TYPE_FLOAT)},
@@ -432,6 +444,9 @@ static const std::unordered_map<std::string, int64_t> bond_name_to_enum{
     {std::string("estimated-bond-length"), int64_t(BondFeature::ESTIMATED_BOND_LENGTH)},
 };
 
+// This is called from Python to list bond features in a format that will be faster
+// to interpret inside `featurize_smiles`, passed in the `bond_property_list` parameter.
+// See the declaration in features.h for more details.
 at::Tensor bond_feature_names_to_tensor(const std::vector<std::string>& features) {
     const size_t num_features = features.size();
     std::unique_ptr<int64_t[]> feature_enum_values(new int64_t[num_features]);
@@ -448,6 +463,7 @@ at::Tensor bond_feature_names_to_tensor(const std::vector<std::string>& features
     return torch_tensor_from_array<int64_t>(std::move(feature_enum_values), dims, 1, c10::ScalarType::Long);
 }
 
+// Maps positional feature name strings to `PositionalFeature` enum values
 static const std::unordered_map<std::string, int64_t> positional_name_to_enum{
     {std::string("laplacian_eigvec"), int64_t(PositionalFeature::LAPLACIAN_EIGENVEC)},
     {std::string("laplacian_eigval"), int64_t(PositionalFeature::LAPLACIAN_EIGENVAL)},
@@ -458,6 +474,7 @@ static const std::unordered_map<std::string, int64_t> positional_name_to_enum{
     {std::string("graphormer"), int64_t(PositionalFeature::GRAPHORMER)},
 };
 
+// Maps feature level strings to `FeatureLevel` enum values
 static const std::unordered_map<std::string, int64_t> feature_level_to_enum{
     {std::string("node"), int64_t(FeatureLevel::NODE)},
     {std::string("edge"), int64_t(FeatureLevel::EDGE)},
@@ -465,12 +482,17 @@ static const std::unordered_map<std::string, int64_t> feature_level_to_enum{
     {std::string("graph"), int64_t(FeatureLevel::GRAPH)},
 };
 
+// Maps normalization type strings to `Normalization` enum values
 static const std::unordered_map<std::string, int64_t> normalization_to_enum{
     {std::string("none"), int64_t(Normalization::NONE)},
     {std::string("inv"), int64_t(Normalization::INVERSE)},
     {std::string("sym"), int64_t(Normalization::SYMMETRIC)},
 };
 
+// This is called from Python to list positional features and their options in a format that
+// will be faster to interpret inside `featurize_smiles`, passed in the `bond_property_list`
+// parameter.
+// See the declaration in features.h for more details.
 std::pair<std::vector<std::string>,at::Tensor> positional_feature_options_to_tensor(
     const pybind11::dict& dict) {
     size_t num_features = 0;
@@ -696,6 +718,8 @@ std::pair<std::vector<std::string>,at::Tensor> positional_feature_options_to_ten
         torch_tensor_from_array<int64_t>(std::move(values), dims, 1, c10::ScalarType::Long));
 }
 
+// This is called by `create_all_features` to create the edge weights Torch tensor,
+// including duplicating edges for both directions, and optionally adding self loops.
 template<typename T>
 at::Tensor create_edge_weights(
     const GraphData& graph,
@@ -718,6 +742,7 @@ at::Tensor create_edge_weights(
     return torch_tensor_from_array<T>(std::move(edge_weights), dims, 1, dtype);
 }
 
+// This is called by `create_all_features` to create the atom (node) features Torch tensor.
 template<typename T>
 at::Tensor create_atom_features(
     const GraphData& graph,
@@ -763,6 +788,7 @@ at::Tensor create_atom_features(
     return torch_tensor_from_array<T>(std::move(atom_data), dims, 2, dtype);
 }
 
+// This is called by `create_all_features` to create the bond (edge) features Torch tensor.
 template<typename T>
 at::Tensor create_bond_features(
     const GraphData& graph,
@@ -835,6 +861,10 @@ at::Tensor create_bond_features(
     return torch_tensor_from_array<T>(std::move(bond_data), dims, 2, dtype);
 }
 
+// This is called by `create_positional_features` to convert node-level feature data
+// to edge-level feature data.  Each edge has the average of the two nodes for all floats
+// of the feature, followed by the absolute difference of the two nodes for all floats of
+// the feature.
 template<typename OUT_T, typename IN_T>
 void node_to_edge(
     std::unique_ptr<OUT_T[]>& output_ptr,
@@ -873,6 +903,10 @@ void node_to_edge(
     }
 }
 
+// This is called by `create_positional_features` to convert node-level feature data
+// to node-pair-level feature data.  Each pair has the average of the two nodes for all floats
+// of the feature, followed by the absolute difference of the two nodes for all floats of
+// the feature.
 template<typename OUT_T, typename IN_T>
 void node_to_node_pair(
     std::unique_ptr<OUT_T[]>& output_ptr,
@@ -902,16 +936,13 @@ void node_to_node_pair(
     }
 }
 
+// Used by `node_pair_to_node_helper`
 enum class StatOperation {
     MINIMUM,
     MEAN
 };
 
-template<StatOperation op, typename T>
-T stat_init_accum(T v) {
-    return v;
-}
-
+// Used by `node_pair_to_node_helper`
 template<StatOperation op, typename T>
 void stat_accum(T& accum, T v) {
     switch (op) {
@@ -924,6 +955,7 @@ void stat_accum(T& accum, T v) {
     }
 }
 
+// Used by `node_pair_to_node_helper`
 template<StatOperation op, typename T>
 T stat_accum_finish(T accum, size_t n) {
     switch (op) {
@@ -934,6 +966,7 @@ T stat_accum_finish(T accum, size_t n) {
     }
 }
 
+// Used by `node_pair_to_node`
 template<StatOperation op, typename OUT_T, typename IN_T>
 void node_pair_to_node_helper(
     OUT_T* output,
@@ -945,12 +978,12 @@ void node_pair_to_node_helper(
     // for each float per pair
     for (size_t float_index = 0; float_index < floats_per_pair; ++float_index, output += 2) {
         // across all rows (axis 0) of column node_index, then across all columns (axis 1) of row node_index
-        IN_T accum = stat_init_accum<op>(input[node_index * floats_per_pair + float_index]);
+        IN_T accum = input[node_index * floats_per_pair + float_index];
         for (size_t row = 1; row < n; ++row) {
             stat_accum<op>(accum, input[(row * n + node_index) * floats_per_pair + float_index]);
         }
         output[0] = FeatureValues<OUT_T>::convertToFeatureType(stat_accum_finish<op>(accum, n));
-        accum = stat_init_accum<op>(input[node_index * n * floats_per_pair + float_index]);
+        accum = input[node_index * n * floats_per_pair + float_index];
         for (size_t col = 1; col < n; ++col) {
             stat_accum<op>(accum, input[(node_index * n + col) * floats_per_pair + float_index]);
         }
@@ -958,6 +991,7 @@ void node_pair_to_node_helper(
     }
 }
 
+// Used by `node_pair_to_node`
 template<typename OUT_T, typename IN_T>
 void node_pair_to_node_helper_stdev(
     OUT_T* output,
@@ -997,6 +1031,11 @@ void node_pair_to_node_helper_stdev(
     }
 }
 
+// This is called by `create_positional_features` to convert node-pair-level feature data
+// to node-level feature data.  Each node has the minimum of values in the column and the
+// minimum of values in the row, for each float of the feature, followed by the mean of the
+// values in the column and of values in the row, for each float, followed by the standard
+// deviation of the values in the column and of values in the row, for each float.
 template<typename OUT_T, typename IN_T>
 void node_pair_to_node(
     std::unique_ptr<OUT_T[]>& output_ptr,
@@ -1020,6 +1059,9 @@ void node_pair_to_node(
     }
 }
 
+// This is called by `create_positional_features` to convert node-pair-level feature data
+// to edge-level feature data.  Each edge has the upper triangular floats for the pair,
+// followed by the lower triangular floats for the pair.
 template<typename OUT_T, typename IN_T>
 void node_pair_to_edge(
     std::unique_ptr<OUT_T[]>& output_ptr,
@@ -1050,6 +1092,8 @@ void node_pair_to_edge(
     }
 }
 
+// This is called by `create_all_features` to create a Torch tensor for each
+// "positional" feature, (not to be confused with a conformer feature.)
 template<typename T>
 void create_positional_features(
     const GraphData& graph,
@@ -1067,7 +1111,7 @@ void create_positional_features(
     if (property_list == nullptr) {
         return;
     }
-    NeighbourData neighbours = construct_neighbours(graph);
+    NeighborData neighbors = construct_neighbors(graph);
 
     LaplacianData<double> laplacian_data;
     LaplacianData<double> laplacian_data_comp;
@@ -1097,7 +1141,7 @@ void create_positional_features(
             // The common case is that there's only 1 component, even if disconnected_comp is true,
             // so find the number of components, first.
             if (disconnected_comp && num_components == 0) {
-                num_components = find_components(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, components);
+                num_components = find_components(graph.num_atoms, neighbors.neighbor_starts, neighbors.neighbors, components);
             }
             const bool multiple_components = disconnected_comp && (num_components > 1);
 
@@ -1105,12 +1149,12 @@ void create_positional_features(
             if (current_data.eigenvalues.size() == 0 || current_data.normalization != normalization) {
                 compute_laplacian_eigendecomp(
                     graph.num_atoms,
-                    neighbours.neighbour_starts,
-                    neighbours.neighbours,
+                    neighbors.neighbor_starts,
+                    neighbors.neighbors,
                     normalization,
                     current_data,
                     multiple_components ? num_components : 1,
-                    &components);
+                    components.data());
             }
 
             const bool isVec = (property == int64_t(PositionalFeature::LAPLACIAN_EIGENVEC));
@@ -1170,7 +1214,7 @@ void create_positional_features(
             RandomWalkDataOption option = isProbs ? RandomWalkDataOption::PROBABILITIES : RandomWalkDataOption::MATRIX;
 
             std::vector<double> output;
-            compute_rwse(num_powers, powers, graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, option, output, space_dim);
+            compute_rwse(num_powers, powers, graph.num_atoms, neighbors.neighbor_starts, neighbors.neighbors, option, output, space_dim);
 
             base_level = isProbs ? FeatureLevel::NODE : FeatureLevel::NODEPAIR;
 
@@ -1183,7 +1227,7 @@ void create_positional_features(
         }
         else if (property == int64_t(PositionalFeature::ELECTROSTATIC) && current_size == 0) {
             const double* weights = nullptr;
-            compute_electrostatic_interactions(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, laplacian_data, laplacian_pseudoinverse, matrix, weights);
+            compute_electrostatic_interactions(graph.num_atoms, neighbors.neighbor_starts, neighbors.neighbors, laplacian_data, laplacian_pseudoinverse, matrix, weights);
 
             base_level = FeatureLevel::NODEPAIR;
             base_dims[0] = graph.num_atoms;
@@ -1195,7 +1239,7 @@ void create_positional_features(
         }
         else if (property == int64_t(PositionalFeature::COMMUTE) && current_size == 0) {
             const double* weights = nullptr;
-            compute_commute_distances(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, laplacian_data, laplacian_pseudoinverse, matrix, weights);
+            compute_commute_distances(graph.num_atoms, neighbors.neighbor_starts, neighbors.neighbors, laplacian_data, laplacian_pseudoinverse, matrix, weights);
 
             base_level = FeatureLevel::NODEPAIR;
             base_dims[0] = graph.num_atoms;
@@ -1208,7 +1252,7 @@ void create_positional_features(
         else if (property == int64_t(PositionalFeature::GRAPHORMER) && current_size == 0) {
             std::vector<std::pair<uint32_t, uint32_t>> queue;
             std::vector<double> all_pairs_distances;
-            compute_graphormer_distances(graph.num_atoms, neighbours.neighbour_starts, neighbours.neighbours, queue, all_pairs_distances);
+            compute_graphormer_distances(graph.num_atoms, neighbors.neighbor_starts, neighbors.neighbors, queue, all_pairs_distances);
 
             base_level = FeatureLevel::NODEPAIR;
             base_dims[0] = graph.num_atoms;
@@ -1295,6 +1339,7 @@ void create_positional_features(
     }
 }
 
+// This is called by `featurize_smiles` after checking the tensor data type to create.
 template<typename T>
 void create_all_features(
     const GraphData& graph,
@@ -1378,6 +1423,8 @@ void create_all_features(
         tensors);
 }
 
+// `featurize_smiles` is called from Python to get feature tensors for `smiles_string`.
+// See the declaration in features.h for more details.
 std::tuple<std::vector<at::Tensor>, int64_t, int64_t> featurize_smiles(
     const std::string& smiles_string,
     const at::Tensor& atom_property_list_onehot,

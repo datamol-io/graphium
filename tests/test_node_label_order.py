@@ -111,7 +111,6 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         #############################################################################################
         ### Test III: Merging two node-level tasks each with different ordering of ordered SMILES ###
-        ### TODO: Will currently fail                                                             ###
         #############################################################################################
 
         # Create input data
@@ -218,7 +217,6 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         #####################################################################################
         ### Test V: Merging node-level task on graph-level task with different node order ###
-        ### TODO: Will currently fail                                                     ###
         #####################################################################################
 
         # Create input data

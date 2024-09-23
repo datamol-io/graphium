@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <vector>
 
+// Computes the pseudoinverse of the graph Laplacian, outputting to `matrix`.
+// See the declaration in electrostatic.h for more details.
 template<typename T>
 void compute_laplacian_pseudoinverse(
     const uint32_t n,
@@ -24,6 +26,8 @@ void compute_laplacian_pseudoinverse(
         compute_laplacian_eigendecomp(n, row_starts, neighbors, Normalization::NONE, data, 1, nullptr, weights);
     }
 
+    // Allocate the space for the output and initialize to zero.
+    // The clear() call is so that resize() initializes all values to zero.
     matrix.clear();
     matrix.resize(size_t(n) * n, T(0));
     const T maxEigenvalue = data.eigenvalues.back();
@@ -49,6 +53,7 @@ void compute_laplacian_pseudoinverse(
     }
 }
 
+// Explicit instantiations of `compute_laplacian_pseudoinverse` for `float` and `double`
 template void compute_laplacian_pseudoinverse<float>(
     const uint32_t n,
     const uint32_t* row_starts,
@@ -64,6 +69,8 @@ template void compute_laplacian_pseudoinverse<double>(
     std::vector<double>& matrix,
     const double* weights);
 
+// Computes the "electrostatic interactions" between each pair of nodes, outputting to `matrix`.
+// See the declaration in electrostatic.h for more details.
 template<typename T>
 void compute_electrostatic_interactions(
     const uint32_t n,
@@ -78,6 +85,7 @@ void compute_electrostatic_interactions(
         compute_laplacian_pseudoinverse(n, row_starts, neighbors, data, laplacian_pseudoinverse, weights);
     }
 
+    // Allocate the memory for the output
     matrix.resize(n * n);
 
     // Subtract the diagonal value from each column
@@ -88,6 +96,7 @@ void compute_electrostatic_interactions(
     }
 }
 
+// Explicit instantiations of `compute_electrostatic_interactions` for `float` and `double`
 template void compute_electrostatic_interactions<float>(
     const uint32_t n,
     const uint32_t* row_starts,

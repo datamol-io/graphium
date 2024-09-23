@@ -18,11 +18,14 @@
 
 // RDKit headers
 #include <GraphMol/SmilesParse/SmilesParse.h>
+#include <GraphMol/Atom.h>
 #include <GraphMol/ROMol.h>
 #include <GraphMol/RWMol.h>
 #include <GraphMol/Canon.h>
 #include <GraphMol/new_canon.h>
 #include <GraphMol/MolOps.h>
+#include <RDGeneral/types.h>
+
 
 // PyBind and Torch headers for use by library to be imported by Python
 #include <pybind11/pybind11.h>
@@ -30,8 +33,8 @@
 #include <pybind11/stl.h>
 #include <torch/extension.h>
 
-// RDKit::SmilesToMol uses std::string, so until we replace it, lets use std::string here.
-// ("const char*" could avoid an extra allocation, if we do eventually replace use of SmilesToMol.)
+// Creates an RWMol from a SMILES string.
+// See the declaration in features.h for more details.
 std::unique_ptr<RDKit::RWMol> parse_mol(
     const std::string& smiles_string,
     bool explicit_H,
@@ -45,20 +48,52 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
     }
 
     if (ordered) {
-        // Determine a canonical ordering of the atoms
+        // Do not order atoms to the canonical order.
+        // Order them based only on the atom map, and only
+        // if they indicate a valid order.
         const unsigned int num_atoms = mol->getNumAtoms();
-        std::vector<unsigned int> atom_order;
-        RDKit::Canon::rankMolAtoms(*mol, atom_order);
-        assert(atom_order.size() == num_atoms);
-
-        // Invert the order
-        std::vector<unsigned int> inverse_order(num_atoms);
+        std::vector<unsigned int> atom_order(num_atoms);
         for (unsigned int i = 0; i < num_atoms; ++i) {
-            inverse_order[atom_order[i]] = i;
+            RDKit::Atom* atom = mol->getAtomWithIdx(i);
+            if (!atom->hasProp(RDKit::common_properties::molAtomMapNumber)) {
+                ordered = false;
+                // Don't break, because the property needs to be cleared
+                // from any following atoms that might have it.
+            }
+            else {
+                atom_order[i] = (unsigned int)atom->getAtomMapNum();
+                
+                // 0-based, and must be in range
+                if (atom_order[i] >= num_atoms) {
+                    ordered = false;
+                }
+
+                // Clear the property, so that any equivalent molecules will
+                // get the same canoncial order.
+                atom->clearProp(RDKit::common_properties::molAtomMapNumber);
+            }
         }
         
-        // Reorder the atoms to the canonical order
-        mol.reset(static_cast<RDKit::RWMol*>(RDKit::MolOps::renumberAtoms(*mol, inverse_order)));
+        if (ordered) {
+            // Invert the order
+            // Use max value as a "not found yet" value
+            constexpr unsigned int not_found_value = std::numeric_limits<unsigned int>::max();
+            std::vector<unsigned int> inverse_order(num_atoms, not_found_value);
+            for (unsigned int i = 0; i < num_atoms; ++i) {
+                unsigned int index = atom_order[i];
+                // Can't have the same index twice
+                if (inverse_order[index] != not_found_value) {
+                    ordered = false;
+                    break;
+                }
+                inverse_order[index] = i;
+            }
+            
+            if (ordered) {
+                // Reorder the atoms to the explicit order
+                mol.reset(static_cast<RDKit::RWMol*>(RDKit::MolOps::renumberAtoms(*mol, inverse_order)));
+            }
+        }
     }
     if (explicit_H) {
         RDKit::MolOps::addHs(*mol);
@@ -69,6 +104,13 @@ std::unique_ptr<RDKit::RWMol> parse_mol(
         //RDKit::MolOps::removeHs(*mol);
     }
     return mol;
+}
+
+// Determines a canonical ordering of the atoms in `mol`
+// See the declaration in features.h for more details.
+void get_canonical_atom_order(const RDKit::ROMol& mol, std::vector<unsigned int>& atom_order) {
+    RDKit::Canon::rankMolAtoms(mol, atom_order);
+    assert(atom_order.size() == mol->getNumAtoms());
 }
 
 // This is necessary to export Python functions in a Python module named graphium_cpp.
@@ -85,8 +127,8 @@ PYBIND11_MODULE(graphium_cpp, m) {
     m.def("extract_string", &extract_string, "Extracts a single string from a Tensor of contatenated strings.");
 
     // Functions in features.cpp
-    m.def("atom_float_feature_names_to_tensor", &atom_float_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("atom_onehot_feature_names_to_tensor", &atom_onehot_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
+    m.def("atom_float_feature_names_to_tensor", &atom_float_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("bond_feature_names_to_tensor", &bond_feature_names_to_tensor, "Accepts feature names and returns a tensor representing them as integers");
     m.def("positional_feature_options_to_tensor", &positional_feature_options_to_tensor, "Accepts feature names, levels, and options, and returns a tensor representing them as integers");
     m.def("featurize_smiles", &featurize_smiles, "Accepts a SMILES string and returns tensors representing the features");

@@ -9,6 +9,9 @@
 #include <utility>
 #include <vector>
 
+//! Multiplies the dense `n` by `n` matrix `in_matrix` by the sparse `n` by `n` matrix in CSC
+//! format (transpose of CSR format) represented by `neighbor_starts`, `neighbors`, and
+//! `col_major_weights`, writing the results into `out_matrix`.
 template<typename T>
 void multiply_dense_by_sparse(uint32_t n, T* out_matrix, const T* in_matrix, const uint32_t* neighbor_starts, const uint32_t* neighbors, const T* col_major_weights) {
     for (uint32_t row = 0; row < n; ++row) {
@@ -29,8 +32,9 @@ void multiply_dense_by_sparse(uint32_t n, T* out_matrix, const T* in_matrix, con
     }
 }
 
-// The adjacency (neighbor_starts and neighbors) must be symmetric.
-// powers must be in increasing sorted order.
+// Computes random walk data about the graph, either probabilities or transfer amounts
+// after certain numbers of steps, outputting the values to `output`.
+// See the declaration in random_walk.h for more details.
 template<typename T>
 void compute_rwse(
     const uint32_t num_powers,
@@ -118,9 +122,8 @@ void compute_rwse(
     }
 }
 
-// Explicit instantiations for float and double
-template
-void compute_rwse<float>(
+// Explicit instantiations of `compute_rwse` for `float` and `double`
+template void compute_rwse<float>(
     const uint32_t num_powers,
     const uint64_t* powers,
     const uint32_t n,
@@ -129,8 +132,7 @@ void compute_rwse<float>(
     RandomWalkDataOption option,
     std::vector<float>& output,
     int space_dim);
-template
-void compute_rwse<double>(
+template void compute_rwse<double>(
     const uint32_t num_powers,
     const uint64_t* powers,
     const uint32_t n,

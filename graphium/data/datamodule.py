@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
@@ -918,10 +917,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         explicit_H = featurization["explicit_H"] if "explicit_H" in featurization else False
         add_self_loop = featurization["add_self_loop"] if "add_self_loop" in featurization else False
+        merge_equivalent_mols = (
+            featurization["merge_equivalent_mols"] if "merge_equivalent_mols" in featurization else True
+        )
 
         # Save these for calling graphium_cpp.prepare_and_save_data later
         self.add_self_loop = add_self_loop
         self.explicit_H = explicit_H
+        self.merge_equivalent_mols = merge_equivalent_mols
 
         self.preprocessing_n_jobs = preprocessing_n_jobs
 
@@ -1163,6 +1166,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.add_self_loop,
             self.explicit_H,
             self.preprocessing_n_jobs,
+            self.merge_equivalent_mols,
         )
         self._len = self._get_len_from_cached_file()
 
@@ -1722,8 +1726,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         Get a hash specific to a dataset.
         Useful to cache the pre-processed data.
+        Don't include options only used at data loading time, such as
+        most featurization options, but include options used during
+        pre-processing, like merge_equivalent_mols.
         """
-        args = {}
+        args = {
+            "add_self_loop": self.add_self_loop,
+            "explicit_H": self.explicit_H,
+            "merge_equivalent_mols": self.merge_equivalent_mols,
+        }
         # pop epoch_sampling_fraction out when creating hash
         # so that the data cache does not need to be regenerated
         # when epoch_sampling_fraction has changed.

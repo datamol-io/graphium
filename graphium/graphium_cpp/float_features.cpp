@@ -81,6 +81,8 @@ const uint8_t metalTable[] = {
     2, 2, 2, 2, 2, 2, 2, 0, 0,
 };
 
+// Fills in a particular atom float `feature` into `data`, for all atoms.
+// See the declaration in float_features.h for more details.
 template<typename T>
 void get_atom_float_feature(const GraphData& graph, T* data, AtomFloatFeature feature, size_t stride, bool offset_carbon) {
     const uint32_t num_atoms = graph.num_atoms;
@@ -339,6 +341,8 @@ void get_atom_float_feature(const GraphData& graph, T* data, AtomFloatFeature fe
     }
 }
 
+// Explicit instantiations, so that the function can be templated
+// but still be used from other cpp files.
 template void get_atom_float_feature<int16_t>(const GraphData& graph, int16_t* data, AtomFloatFeature feature, size_t stride, bool offset_carbon);
 template void get_atom_float_feature<float>(const GraphData& graph, float* data, AtomFloatFeature feature, size_t stride, bool offset_carbon);
 template void get_atom_float_feature<double>(const GraphData& graph, double* data, AtomFloatFeature feature, size_t stride, bool offset_carbon);
@@ -389,6 +393,8 @@ const double triple_bond_lengths[] = {
     1.12, 1.18, 1.30, qNaN, qNaN, qNaN, qNaN, qNaN, qNaN,
 };
 
+// Fills in a particular bond float `feature` into `data`, for all bonds.
+// See the declaration in float_features.h for more details.
 template<typename T>
 void get_bond_float_feature(const GraphData& graph, T* data, BondFeature feature, size_t stride) {
     const uint32_t num_bonds = graph.num_bonds;
@@ -521,6 +527,8 @@ void get_bond_float_feature(const GraphData& graph, T* data, BondFeature feature
     }
 }
 
+// Explicit instantiations, so that the function can be templated
+// but still be used from other cpp files.
 template void get_bond_float_feature<int16_t>(const GraphData& graph, int16_t* data, BondFeature feature, size_t stride);
 template void get_bond_float_feature<float>(const GraphData& graph, float* data, BondFeature feature, size_t stride);
 template void get_bond_float_feature<double>(const GraphData& graph, double* data, BondFeature feature, size_t stride);

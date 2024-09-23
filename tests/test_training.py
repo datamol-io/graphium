@@ -145,6 +145,8 @@ def compose_task_config(config_dir, task_name):
 
 class test_TrainToymix(ut.TestCase):
     def test_train_toymix(self):
+        pytest.skip("Skipping for now because of necessity of download")
+
         # Load the main configuration for toymix
         CONFIG_DIR = "../expts/hydra-configs/"
         cfg = compose_main_config(CONFIG_DIR)
@@ -206,5 +208,6 @@ class test_TrainToymix(ut.TestCase):
 
 if __name__ == "__main__":
     config_dir = "../expts/hydra-configs/"  # Path to your config directory
+    test_CLITraining.setup_class()
 
     ut.main()
