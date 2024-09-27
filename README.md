@@ -95,7 +95,7 @@ wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-
 wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt
 ```
 
-`Largemix` uses datasets referenced in datamodule [here](https://github.com/datamol-io/graphium/blob/e887176f71ee95c3b82f8f6b56c706eaa9765bf1/expts/hydra-configs/tasks/loss_metrics_datamodule/largemix.yaml#L82C1-L155C37) datasets and their splits files can be downloaded from here:
+`Largemix` uses datasets referenced in datamodule [here](https://github.com/datamol-io/graphium/blob/e887176f71ee95c3b82f8f6b56c706eaa9765bf1/expts/hydra-configs/tasks/loss_metrics_datamodule/largemix.yaml#L82C1-L155C37). Its datasets and their splits files can be downloaded from here:
 
 
 ```bash
