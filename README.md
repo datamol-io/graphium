@@ -72,6 +72,60 @@ To learn how to train a model, we invite you to look at the documentation, or th
 If you are not familiar with [PyTorch](https://pytorch.org/docs) or [PyTorch-Lightning](https://pytorch-lightning.readthedocs.io/en/latest/), we highly recommend going through their tutorial first.
 
 ## Running an experiment
+
+### Datasets
+
+Graphium provides configs for 2 datasets: `toymix` and `largemix`. 
+`Toymix` uses 3 datasets, which are referenced in datamodule [here](https://github.com/datamol-io/graphium/blob/d12df7e06828fa7d7f8792141d058a60b2b2d258/expts/hydra-configs/tasks/loss_metrics_datamodule/toymix.yaml#L59-L102). Its datasets and their splits files can be downloaded from here:
+
+```bash
+# Change or make the directory to where the dataset is to be downloaded
+cd expts/data/neurips2023/small-dataset
+
+# QM9 
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt
+
+# Tox21
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.p
+
+# Zinc
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt
+```
+
+`Largemix` uses datasets referenced in datamodule [here](https://github.com/datamol-io/graphium/blob/e887176f71ee95c3b82f8f6b56c706eaa9765bf1/expts/hydra-configs/tasks/loss_metrics_datamodule/largemix.yaml#L82C1-L155C37) datasets and their splits files can be downloaded from here:
+
+
+```bash
+# Change or make the directory to where the dataset is to be downloaded
+cd ../data/graphium/large-dataset/
+
+# L1000_VCAP
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt
+
+# L1000_MCF7
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt
+
+# PCBA_1328
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt
+
+# PCQM4M_G25
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt
+
+#PCQM4M_N4
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt
+```
+These datasets can be used further for pretraining.
+
+### Pretraining 
+
 We have setup Graphium with `hydra` for managing config files. To run an experiment go to the `expts/` folder. For example, to benchmark a GCN on the ToyMix dataset run
 ```bash
 graphium-train architecture=toymix tasks=toymix training=toymix model=gcn
@@ -86,34 +140,13 @@ Integrating `hydra` also allows you to quickly switch between accelerators. E.g.
 graphium-train architecture=toymix tasks=toymix training=toymix model=gcn accelerator=gpu
 ```
 automatically selects the correct configs to run the experiment on GPU.
-Finally, you can also run a fine-tuning loop:
-```bash
-graphium-train +finetuning=admet
-```
+To use Largemix dataset instead, replace `toymix` to `largemix` in the above commmands.
 
 To use a config file you built from scratch you can run
 ```bash
 graphium-train --config-path [PATH] --config-name [CONFIG]
 ```
 Thanks to the modular nature of `hydra` you can reuse many of our config settings for your own experiments with Graphium.
-
-## Preparing the data in advance
-The data preparation including the featurization (e.g., of molecules from smiles to pyg-compatible format) is embedded in the pipeline and will be performed when executing `graphium-train [...]`.
-
-However, when working with larger datasets, it is recommended to perform data preparation in advance using a machine with sufficient allocated memory (e.g., ~400GB in the case of `LargeMix`). Preparing data in advance is also beneficial when running lots of concurrent jobs with identical molecular featurization, so that resources aren't wasted and processes don't conflict reading/writing in the same directory.
-
-The following command-line will prepare the data and cache it, then use it to train a model.
-```bash
-# First prepare the data and cache it in `path_to_cached_data`
-graphium data prepare ++datamodule.args.processed_graph_data_path=[path_to_cached_data]
-
-# Then train the model on the prepared data
-graphium-train [...] datamodule.args.processed_graph_data_path=[path_to_cached_data]
-```
-
-**Note** that `datamodule.args.processed_graph_data_path` can also be specified at `expts/hydra_configs/`.
-
-**Note** that, every time the configs of `datamodule.args.featurization` changes, you will need to run a new data preparation, which will automatically be saved in a separate directory that uses a hash unique to the configs.
 
 ## License
 
