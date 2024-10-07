@@ -36,7 +36,7 @@ dependencies = [
     "tqdm",
     "platformdirs",
     # scientific
-    "numpy",
+    "numpy>=2.0",
     "scipy >=1.4",
     "pandas >=1.0",
     "scikit-learn",
@@ -60,6 +60,7 @@ dependencies = [
     "torch_scatter >=2.0",
     # chemistry
     "datamol >=0.10",
+    "pybind11"
 ]
 
 [project.scripts]
