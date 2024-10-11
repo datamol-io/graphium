@@ -7,7 +7,9 @@ name = "graphium"
 description = "Graphium: Scaling molecular GNNs to infinity."
 dynamic = ["version"]
 authors = [
-    { name = "Dominique Beaini", email = "dominique@valencediscovery.com" },
+    { name = "Dominique Beaini", email = "dominique@valencelabs.com" },
+    { name = "Frederik Wenkel", email = "frederik@valencelabs.com" },
+    { name = "Nia Dickson", email = "ndickson@nvidia.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.8"
@@ -60,7 +62,12 @@ dependencies = [
     "torch_scatter >=2.0",
     # chemistry
     "datamol >=0.10",
-    "pybind11"
+    "hydra-core"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
 ]
 
 [project.scripts]
@@ -95,7 +102,7 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --durations=10 -n 1 --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
+addopts = "--verbose --durations=10"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",

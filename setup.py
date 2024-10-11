@@ -1,20 +1,89 @@
-from setuptools import setup
-from setuptools.command.install import install
-import subprocess
-import sys
+# SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
 
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        install.run(self)  # Run the default install process
-        
-        # Post-install logic here
-        print("Running post-install script...")
-        subprocess.check_call([sys.executable, './scripts/post_install.py'])  # Replace with your script or command
+"""
+Setup script that builds graphium_cpp.
 
-# Minimal setup
+It requires that a conda environment be created according to the 
+build_env.yml file. This file contains the build dependencies which
+are necessary to compile and build graphium_cpp for inclusion in the
+graphium package.
+"""
+
+import platform
+from distutils.core import setup
+from pybind11.setup_helpers import Pybind11Extension, build_ext
+import os
+import torch
+import numpy
+
+path_to_packages = os.getenv('CONDA_PREFIX')
+torch_dir = torch.__path__[0]
+
+system = platform.system()
+package_compile_args = [
+            "-O3",
+            "-Wall",
+            "-Wmissing-field-initializers",
+            "-Wmaybe-uninitialized",
+            "-Wuninitialized",
+        ]
+if system == "Darwin":
+    package_compile_args.append("-mmacosx-version-min=10.15")
+elif system == "Windows":
+    pass
+
+ext_modules = [
+    Pybind11Extension(
+        "graphium_cpp",
+        sources=[
+            "./graphium/graphium_cpp/graphium_cpp.cpp",
+            "./graphium/graphium_cpp/features.cpp",
+            "./graphium/graphium_cpp/labels.cpp",
+            "./graphium/graphium_cpp/commute.cpp",
+            "./graphium/graphium_cpp/electrostatic.cpp",
+            "./graphium/graphium_cpp/float_features.cpp",
+            "./graphium/graphium_cpp/graphormer.cpp",
+            "./graphium/graphium_cpp/one_hot.cpp",
+            "./graphium/graphium_cpp/random_walk.cpp",
+            "./graphium/graphium_cpp/spectral.cpp",
+        ],
+        language="c++",
+        cxx_std=20,
+        include_dirs=[
+            os.path.join(torch_dir, "include"),
+            os.path.join(torch_dir, "include/torch/csrc/api/include"),
+            os.path.join(path_to_packages, "include/rdkit"),
+            os.path.join(path_to_packages, "include/boost"),
+            numpy.get_include(),
+        ],
+        libraries=[
+            "RDKitAlignment",
+            "RDKitDataStructs",
+            "RDKitDistGeometry",
+            "RDKitDistGeomHelpers",
+            "RDKitEigenSolvers",
+            "RDKitForceField",
+            "RDKitForceFieldHelpers",
+            "RDKitGenericGroups",
+            "RDKitGraphMol",
+            "RDKitInchi",
+            "RDKitRDInchiLib",
+            "RDKitRDBoost",
+            "RDKitRDGeneral",
+            "RDKitRDGeometryLib",
+            "RDKitRingDecomposerLib",
+            "RDKitSmilesParse",
+            "RDKitSubstructMatch",
+            "torch_cpu",
+            "torch_python",
+        ],
+        library_dirs=[os.path.join(path_to_packages, "lib"), os.path.join(torch_dir, "lib")],
+        extra_compile_args=package_compile_args
+    )
+]
+
 setup(
-    cmdclass={
-        'install': PostInstallCommand,
-    }
+    ext_modules=ext_modules,
+    cmdclass={"build_ext": build_ext},
 )
