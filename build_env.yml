@@ -7,6 +7,7 @@ dependencies:
   - pybind11
   - librdkit-dev
   - pytorch
+  - numpy<2.0
 
   - pip:
       - setuptools-scm

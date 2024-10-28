@@ -12,13 +12,17 @@ graphium package.
 
 import platform
 from distutils.core import setup
+import site
+import sys
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 import os
-import torch
-import numpy
 
-path_to_packages = os.getenv('CONDA_PREFIX')
-torch_dir = torch.__path__[0]
+path_to_env = sys.prefix
+path_to_site_packages = site.getsitepackages()[0]
+
+numpy_include_dir = os.path.join(path_to_site_packages, "numpy/core/include")
+if not os.path.isdir(numpy_include_dir):
+    numpy_include_dir = os.path.join(path_to_site_packages, "numpy/_core/include")
 
 system = platform.system()
 package_compile_args = [
@@ -51,11 +55,11 @@ ext_modules = [
         language="c++",
         cxx_std=20,
         include_dirs=[
-            os.path.join(torch_dir, "include"),
-            os.path.join(torch_dir, "include/torch/csrc/api/include"),
-            os.path.join(path_to_packages, "include/rdkit"),
-            os.path.join(path_to_packages, "include/boost"),
-            numpy.get_include(),
+            os.path.join(path_to_site_packages, "torch/include"),
+            os.path.join(path_to_site_packages, "torch/include/torch/csrc/api/include"),
+            os.path.join(path_to_env, "include/rdkit"),
+            os.path.join(path_to_env, "include/boost"),
+            numpy_include_dir
         ],
         libraries=[
             "RDKitAlignment",
@@ -78,7 +82,7 @@ ext_modules = [
             "torch_cpu",
             "torch_python",
         ],
-        library_dirs=[os.path.join(path_to_packages, "lib"), os.path.join(torch_dir, "lib")],
+        library_dirs=[os.path.join(path_to_env, "lib"), os.path.join(path_to_site_packages, "torch/lib")],
         extra_compile_args=package_compile_args
     )
 ]
