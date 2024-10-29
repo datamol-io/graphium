@@ -219,7 +219,7 @@ constexpr int64_t mask_nans(T* data, size_t n, MaskNaNStyle style, T value) {
         return 0;
     }
 
-    assert(mask_nan_style == MaskNaNStyle::REPORT);
+    assert(style == MaskNaNStyle::REPORT);
     int64_t num_nans = 0;
     for (size_t i = 0; i < n; ++i) {
         num_nans += (!FeatureValues<T>::is_finite(data[i]));

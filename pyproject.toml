@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm", "pybind11"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -62,7 +62,8 @@ dependencies = [
     "torch_scatter >=2.0",
     # chemistry
     "datamol >=0.10",
-    "hydra-core"
+    "hydra-core",
+    "rdkit"
 ]
 
 [project.optional-dependencies]

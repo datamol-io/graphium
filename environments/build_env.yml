@@ -5,9 +5,10 @@ dependencies:
   - python=3.10
   - boost
   - pybind11
-  - librdkit-dev
+  - librdkit-dev # headers for rdkit only available on conda-forge
   - pytorch
-  - numpy<2.0
+  - numpy
+  - rdkit
 
   - pip:
       - setuptools-scm

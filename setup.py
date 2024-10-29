@@ -11,18 +11,15 @@ graphium package.
 """
 
 import platform
-from distutils.core import setup
-import site
 import sys
+from distutils.core import setup
 from pybind11.setup_helpers import Pybind11Extension, build_ext
-import os
+import torch, rdkit, os
+import numpy
 
-path_to_env = sys.prefix
-path_to_site_packages = site.getsitepackages()[0]
-
-numpy_include_dir = os.path.join(path_to_site_packages, "numpy/core/include")
-if not os.path.isdir(numpy_include_dir):
-    numpy_include_dir = os.path.join(path_to_site_packages, "numpy/_core/include")
+torch_dir = torch.__path__[0]
+rdkit_lib_index = rdkit.__path__[0].split("/").index("lib")
+rdkit_prefix = "/".join(rdkit.__path__[0].split("/")[:rdkit_lib_index])
 
 system = platform.system()
 package_compile_args = [
@@ -37,6 +34,8 @@ if system == "Darwin":
 elif system == "Windows":
     pass
 
+print(rdkit_prefix)
+sys.exit(0)
 ext_modules = [
     Pybind11Extension(
         "graphium_cpp",
@@ -55,11 +54,11 @@ ext_modules = [
         language="c++",
         cxx_std=20,
         include_dirs=[
-            os.path.join(path_to_site_packages, "torch/include"),
-            os.path.join(path_to_site_packages, "torch/include/torch/csrc/api/include"),
-            os.path.join(path_to_env, "include/rdkit"),
-            os.path.join(path_to_env, "include/boost"),
-            numpy_include_dir
+            os.path.join(torch_dir, "include"),
+            os.path.join(torch_dir, "include/torch/csrc/api/include"),
+            os.path.join(rdkit_prefix, "include/rdkit"),
+            os.path.join(rdkit_prefix, "include/boost"),
+            numpy.get_include()
         ],
         libraries=[
             "RDKitAlignment",
@@ -82,7 +81,7 @@ ext_modules = [
             "torch_cpu",
             "torch_python",
         ],
-        library_dirs=[os.path.join(path_to_env, "lib"), os.path.join(path_to_site_packages, "torch/lib")],
+        library_dirs=[os.path.join(rdkit_prefix, "lib"), os.path.join(torch_dir, "lib")],
         extra_compile_args=package_compile_args
     )
 ]
