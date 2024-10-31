@@ -3,7 +3,6 @@ from typing import List, Literal, Optional
 import fsspec
 import numpy as np
 import torch
-import tqdm
 import typer
 import yaml
 from datamol.utils import fs
@@ -13,7 +12,7 @@ from loguru import logger
 from omegaconf import OmegaConf
 
 from graphium.config._loader import load_accelerator, load_datamodule
-from graphium.finetuning.fingerprinting import Fingerprinter
+from graphium.fingerprinting.fingerprinter import Fingerprinter
 from graphium.utils import fs
 from graphium.trainer.predictor import PredictorModule
 

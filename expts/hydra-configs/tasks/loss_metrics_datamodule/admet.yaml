@@ -26,29 +26,29 @@ predictor:
     herg: ["auroc"]
     ames: ["auroc"]
     dili: ["auroc"]
-    ld50_zhu: ["auroc"]
+    ld50_zhu: ["mae"]
   loss_fun:
     caco2_wang: mae
-    hia_hou: bce
-    pgp_broccatelli: bce
-    bioavailability_ma: bce
+    hia_hou: bce_logits
+    pgp_broccatelli: bce_logits
+    bioavailability_ma: bce_logits
     lipophilicity_astrazeneca: mae
     solubility_aqsoldb: mae
-    bbb_martins: bce
+    bbb_martins: bce_logits
     ppbr_az: mae
     vdss_lombardo: mae
-    cyp2d6_veith: bce
-    cyp3a4_veith: bce
-    cyp2c9_veith: bce
-    cyp2d6_substrate_carbonmangels: bce
-    cyp3a4_substrate_carbonmangels: bce
-    cyp2c9_substrate_carbonmangels: bce
+    cyp2d6_veith: bce_logits
+    cyp3a4_veith: bce_logits
+    cyp2c9_veith: bce_logits
+    cyp2d6_substrate_carbonmangels: bce_logits
+    cyp3a4_substrate_carbonmangels: bce_logits
+    cyp2c9_substrate_carbonmangels: bce_logits
     half_life_obach: mae
     clearance_microsome_az: mae
     clearance_hepatocyte_az: mae
-    herg: bce
-    ames: bce
-    dili: bce
+    herg: bce_logits
+    ames: bce_logits
+    dili: bce_logits
     ld50_zhu: mae
   random_seed: ${constants.seed}
   optim_kwargs:

@@ -1,0 +1,15 @@
+pretrained_models:
+  dummy-pretrained-model:
+    - graph_output_nn-graph:0
+    - task_heads-zinc:0
+
+datamodule:
+  df_path: ./expts/data/finetuning_example-reg/raw.csv
+  benchmark: null
+  task: null
+  split_val: 0.0
+  split_test: 1.0
+  device: cpu     # cpu or cuda
+  num_workers: 0
+  fps_cache_dir: ./expts/data/finetuning_example-reg
+  mol_cache_dir: ${datamodule.fps_cache_dir}

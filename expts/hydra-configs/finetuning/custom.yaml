@@ -1,0 +1,105 @@
+# @package _global_
+
+defaults:
+  - override /tasks/loss_metrics_datamodule: finetune
+
+constants:
+  benchmark: custom
+  task: task
+  # task_type: reg
+  # task_name: adme-fang-HPPB-reg
+  task_type: cls
+  task_name: CYP2D6_Veith
+  wandb:
+    name: finetune_${constants.task_name}
+    project: finetuning
+    entity: valencelabs
+    tags:
+    - finetuning
+    - ${constants.task_name}
+    - ${finetuning.pretrained_model}
+  seed: 42
+  max_epochs: 20
+  raise_train_error: true
+  model_dropout: 0.
+
+datamodule:
+  args:
+    batch_size_training: 256
+    batch_size_inference: 256
+    dataloading_from: ram
+    persistent_workers: true
+    num_workers: 8
+    
+    task_specific_args:
+      finetune:
+        df: null
+        # df_path: expts/data/finetuning_example-reg/raw.csv
+        # splits_path: expts/data/finetuning_example-reg/split.csv
+        df_path: expts/data/finetuning_example-cls/raw.csv
+        splits_path: expts/data/finetuning_example-cls/split.csv
+        smiles_col: smiles
+        label_cols: target
+        task_level: graph
+        epoch_sampling_fraction: 1.0
+  
+trainer:
+  model_checkpoint:
+    save_top_k: 0
+    dirpath: ~/project/outgoing/finetuning/${constants.task}/${now:%Y-%m-%d_%H-%M-%S.%f}/
+    every_n_epochs: 200
+    save_last: false
+  trainer:
+    precision: 32
+    check_val_every_n_epoch: 1
+    accumulate_grad_batches: 1
+  
+predictor:
+  optim_kwargs:
+    lr: 0.000001
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: ${constants.max_epochs}
+    warmup_epochs: 3
+    verbose: False
+
+
+
+# == Fine-tuning config == 
+
+finetuning:
+  task: finetune
+  level: graph
+  pretrained_model: dummy-pretrained-model
+  finetuning_module: graph_output_nn  
+  sub_module_from_pretrained: graph
+  new_sub_module: graph
+  drop_depth: 1
+  added_depth: 1
+  new_out_dim: 1024 # TODO: infer automatically
+  # new_out_dim: 1024 # TODO: infer automatically
+
+  keep_modules_after_finetuning_module:
+    task_heads-pcba_1328:
+      new_sub_module: finetune
+      hidden_dims: 512
+      depth: 1
+      dropout: 0.
+      last_activation: none
+      out_dim: 1
+
+  # Optional finetuning head appended to model after finetuning_module
+  # finetuning_head:
+  #   task: ${constants.task}
+  #   previous_module: task_heads
+  #   incoming_level: graph
+  #   model_type: mlp
+  #   depth: 2
+  #   in_dim: 3707 # TODO: infer automatically
+  #   hidden_dims: 1024
+  #   out_dim: 1
+  #   dropout: 0.
+  #   last_layer_is_readout: true
+
+  epoch_unfreeze_all: 0
+  freeze_always: []

@@ -20,6 +20,7 @@ from omegaconf import DictConfig, OmegaConf
 from graphium.config._loader import (
     load_accelerator,
     load_architecture,
+    load_mup,
     load_datamodule,
     load_metrics,
     load_predictor,
@@ -152,6 +153,8 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         predictor = PredictorModule.load_pretrained_model(
             name_or_path=get_checkpoint_path(cfg), device=accelerator_type
         )
+        mup_base_path = cfg["architecture"].pop("mup_base_path", None)
+        predictor = load_mup(mup_base_path, predictor)
 
     else:
         ## Architecture
