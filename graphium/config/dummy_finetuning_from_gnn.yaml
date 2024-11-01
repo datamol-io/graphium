@@ -56,6 +56,7 @@ finetuning:
 constants:
   seed: 42
   max_epochs: 5
+  model_dropout: 0.
 
 accelerator:
   float32_matmul_precision: medium

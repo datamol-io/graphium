@@ -41,6 +41,7 @@ constants:
   max_epochs: 100
   data_dir: expts/data/admet/${constants.task}
   raise_train_error: true
+  model_dropout: 0.
 
 predictor:
   optim_kwargs:
