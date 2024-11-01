@@ -148,6 +148,26 @@ graphium-train --config-path [PATH] --config-name [CONFIG]
 ```
 Thanks to the modular nature of `hydra` you can reuse many of our config settings for your own experiments with Graphium.
 
+### Finetuning
+
+After pretraining a model and saving a model checkpoint, the model can be finetuned to a new task:
+```bash
+graphium-train +finetuning custom finetuning.pretrained_model=[model_identifier] constants.data_path=[path_to_data] constants.task=[name_of_task] constants.task_type=[cls OR reg]
+```
+
+The `[model_identifier]` serves to identify the pretrained model among those maintained in the `GRAPHIUM_PRETRAINED_MODELS_DICT` in `graphium/utils/spaces.py`, where the `[model_identifier]` maps to the location of the checkpoint of the pretrained model.
+
+The custom dataset to finetune from consists of two files `raw.csv` and `split.csv` that are provided in `[path_to_data]/[name_of_task]`. The `raw.csv` contains two columns, namely `smiles` with the smiles strings, and `target` with the corresponding targets. In `split.csv`, three columns `train`, `val`, `test` contain the indices of the rows in `raw.csv`. Examples can be found under `expts/data/finetuning_example-reg` (regression) and `expts/data/finetuning_example-cls` (binary classification).
+
+### Fingerprinting
+
+Alternatively, we can also obtain molecular embeddings (fingerprints) from a pretrained model:
+```bash
+graphium fps create custom pretrained.model=[model_identifier] pretrained.layers=[layer_identifiers] datamodelu.df_path=[path_to_data]
+```
+
+After specifiying the `[model_identifier]`, we need to provide a list of layers from that model where we want to read out embeddings via `[layer_identifiers]`. An example can be found in `expts/hydra-configs/fingerprinting/custom.yaml`. In addition, the location of the smiles to be embedded needs to be passed as `[path_to_data]`. The data can be passed as a csv file with a column `smiles`, similar to `expts/data/finetuning_example-reg/raw.csv`.
+
 ## License
 
 Under the Apache-2.0 license. See [LICENSE](LICENSE).

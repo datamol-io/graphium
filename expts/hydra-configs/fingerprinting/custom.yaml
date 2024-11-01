@@ -1,5 +1,6 @@
-pretrained_models:
-  dummy-pretrained-model:
+pretrained:
+  model: dummy-pretrained-model:
+  layers:
     - graph_output_nn-graph:0
     - task_heads-zinc:0
 

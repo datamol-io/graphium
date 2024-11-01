@@ -31,7 +31,7 @@ def smiles_to_fps(cfg_name: str, overrides: List[str]) -> Dict[str, Any]:
         project="graphium-fingerprints",
     )
 
-    pretrained_models = cfg.get("pretrained_models")
+    pretrained_models = cfg.get("pretrained")
 
     # Allow alternative definition of `pretrained_models` with the single model specifier and desired layers
     if "layers" in pretrained_models.keys():

@@ -5,18 +5,16 @@ defaults:
 
 constants:
   benchmark: custom
-  task: task
-  # task_type: reg
-  # task_name: adme-fang-HPPB-reg
-  task_type: cls
-  task_name: CYP2D6_Veith
+  task: finetuning_example-cls # finetuning_example-cls OR finetuning_example-reg
+  task_type: cls  # cls OR reg
+  data_path: expts/data
   wandb:
-    name: finetune_${constants.task_name}
+    name: finetune_${constants.task}
     project: finetuning
     entity: valencelabs
     tags:
     - finetuning
-    - ${constants.task_name}
+    - ${constants.task}
     - ${finetuning.pretrained_model}
   seed: 42
   max_epochs: 20
@@ -34,10 +32,8 @@ datamodule:
     task_specific_args:
       finetune:
         df: null
-        # df_path: expts/data/finetuning_example-reg/raw.csv
-        # splits_path: expts/data/finetuning_example-reg/split.csv
-        df_path: expts/data/finetuning_example-cls/raw.csv
-        splits_path: expts/data/finetuning_example-cls/split.csv
+        df_path: ${constants.data_path}/${constants.task}/raw.csv
+        splits_path: ${constants.data_path}/${constants.task}/split.csv
         smiles_col: smiles
         label_cols: target
         task_level: graph
@@ -90,7 +86,7 @@ finetuning:
 
   # Optional finetuning head appended to model after finetuning_module
   # finetuning_head:
-  #   task: ${constants.task}
+  #   task: finetune
   #   previous_module: task_heads
   #   incoming_level: graph
   #   model_type: mlp
