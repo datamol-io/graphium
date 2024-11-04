@@ -101,7 +101,6 @@ class BaseDataModule(lightning.LightningDataModule):
         self,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
-        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -124,15 +123,6 @@ class BaseDataModule(lightning.LightningDataModule):
 
         self.batch_size_training = batch_size_training
         self.batch_size_inference = batch_size_inference
-        self.batch_size_per_pack = batch_size_per_pack
-        if self.batch_size_per_pack is not None:
-            # Check that batch_size_per_pack is a divisor of batch_size_training and batch_size_inference
-            assert (
-                self.batch_size_training % self.batch_size_per_pack == 0
-            ), f"batch_size_training must be a multiple of batch_size_per_pack, provided batch_size_training={self.batch_size_training}, batch_size_per_pack={self.batch_size_per_pack}"
-            assert (
-                self.batch_size_inference % self.batch_size_per_pack == 0
-            ), f"batch_size_inference must be a multiple of batch_size_per_pack, provided batch_size_inference={self.batch_size_inference}, batch_size_per_pack={self.batch_size_per_pack}"
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -202,7 +192,7 @@ class BaseDataModule(lightning.LightningDataModule):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
             collate_fn = partial(
-                graphium_collate_fn, mask_nan=0, batch_size_per_pack=self.batch_size_per_pack
+                graphium_collate_fn, mask_nan=0,
             )
             collate_fn.__name__ = graphium_collate_fn.__name__
 
@@ -491,12 +481,12 @@ class BaseDataModule(lightning.LightningDataModule):
         """
         loader_kwargs = {}
 
-        # Get batch size and IPU options for training set
+        # Get batch size for training set
         # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
         if stage in [RunningStage.TRAINING]:
             loader_kwargs["batch_size"] = self.batch_size_training
 
-        # Get batch size and IPU options for validation / testing sets
+        # Get batch size for validation / testing sets
         elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
             loader_kwargs["batch_size"] = self.batch_size_inference
         else:
@@ -722,64 +712,7 @@ class DatasetProcessingParams:
         self.epoch_sampling_fraction = epoch_sampling_fraction
 
 
-class IPUDataModuleModifier:
-    def __init__(
-        self,
-        ipu_inference_opts: Optional["poptorch.Options"] = None,
-        ipu_training_opts: Optional["poptorch.Options"] = None,
-        ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
-        ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
-        *args,
-        **kwargs,
-    ) -> None:
-        r"""
-        wrapper functions from the a `DataModule` to support IPU and IPU options To be used in dual inheritance, for example:
-        ```
-        IPUDataModule(BaseDataModule, IPUDataModuleModifier):
-            def __init__(self, **kwargs):
-                BaseDataModule.__init__(self, **kwargs)
-                IPUDataModuleModifier.__init__(self, **kwargs)
-        ```
-
-        Parameters:
-            ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
-            ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
-            ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
-            ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
-            args: Arguments for the `DataModule`
-            kwargs: Keyword arguments for the `DataModule`
-        """
-        self.ipu_inference_opts = ipu_inference_opts
-        self.ipu_training_opts = ipu_training_opts
-        self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
-        self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
-
-    def _dataloader(self, dataset: Dataset, **kwargs) -> "poptorch.DataLoader":
-        """
-        Get a poptorch dataloader for a given dataset
-        Parameters:
-            dataset: The dataset to use
-            kwargs: Keyword arguments for the dataloader
-        Returns:
-            The poptorch dataloader
-        """
-
-        # Use regular Dataloader if no IPUs
-        if ("ipu_options" not in kwargs.keys()) or (kwargs["ipu_options"] is None):
-            raise ValueError(f"No IPU options provided.")
-
-        # Initialize the IPU dataloader
-        from graphium.ipu.ipu_dataloader import create_ipu_dataloader
-
-        loader = create_ipu_dataloader(
-            dataset=dataset,
-            **kwargs,
-        )
-
-        return loader
-
-
-class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
+class MultitaskFromSmilesDataModule(BaseDataModule):
     def __init__(
         self,
         task_specific_args: Union[Dict[str, DatasetProcessingParams], Dict[str, Any]],
@@ -787,7 +720,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
-        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -835,14 +767,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
-            batch_size_per_pack=batch_size_per_pack,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             multiprocessing_context=multiprocessing_context,
             collate_fn=collate_fn,
         )
-        IPUDataModuleModifier.__init__(self, **kwargs)
 
         self._len = None
         self.task_specific_args = task_specific_args
@@ -1308,41 +1238,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-    def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
-        """
-        Get the options for the dataloader depending on the current stage.
-
-        Parameters:
-            stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
-            shuffle: set to ``True`` to have the data reshuffled at every epoch.
-
-        Returns:
-            Arguments to pass to the `DataLoader` during initialization
-        """
-        loader_kwargs = super().get_dataloader_kwargs(stage=stage, shuffle=shuffle, **kwargs)
-
-        # Get batch size and IPU options for training set
-        # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
-        if stage in [RunningStage.TRAINING]:
-            loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_training_opts
-            loader_kwargs["ipu_options"] = self.ipu_training_opts
-
-        # Get batch size and IPU options for validation / testing sets
-        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
-            loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_inference_opts
-            loader_kwargs["ipu_options"] = self.ipu_inference_opts
-        else:
-            raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
-
-        # Remove the IPU options if not available
-        if loader_kwargs["ipu_options"] is None:
-            loader_kwargs.pop("ipu_options")
-            if loader_kwargs["ipu_dataloader_options"] is not None:
-                logger.warning(
-                    "`ipu_dataloader_options` will be ignored since it is provided without `ipu_options`."
-                )
-            loader_kwargs.pop("ipu_dataloader_options")
-        return loader_kwargs
 
     def get_dataloader(
         self, dataset: Dataset, shuffle: bool, stage: RunningStage
@@ -1369,11 +1264,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )
             # turn shuffle off when sampler is used as sampler option is mutually exclusive with shuffle
             kwargs["shuffle"] = False
-        is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
-        if is_ipu:
-            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
-        else:
-            loader = BaseDataModule._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
+
+        loader = BaseDataModule._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
 
         return loader
 
@@ -1384,7 +1276,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 graphium_collate_fn,
                 mask_nan=0,
                 do_not_collate_keys=["smiles", "mol_ids"],
-                batch_size_per_pack=self.batch_size_per_pack,
             )
             collate_fn.__name__ = graphium_collate_fn.__name__
         return collate_fn
@@ -1780,7 +1671,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         obj_repr["test_size"] = len(self.test_indices) if self.test_indices is not None else None
         obj_repr["batch_size_training"] = self.batch_size_training
         obj_repr["batch_size_inference"] = self.batch_size_inference
-        obj_repr["batch_size_per_pack"] = self.batch_size_per_pack
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_node_feats_with_positional_encoding"] = self.num_node_feats_with_positional_encoding
         obj_repr["num_edge_feats"] = self.num_edge_feats
@@ -1808,7 +1698,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
-        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -1879,7 +1768,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["featurization"] = featurization
         dm_args["batch_size_training"] = batch_size_training
         dm_args["batch_size_inference"] = batch_size_inference
-        dm_args["batch_size_per_pack"] = batch_size_per_pack
         dm_args["num_workers"] = num_workers
         dm_args["pin_memory"] = pin_memory
         dm_args["persistent_workers"] = persistent_workers
@@ -2060,7 +1948,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
-        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -2121,7 +2008,6 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             processed_graph_data_path=processed_graph_data_path,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
-            batch_size_per_pack=batch_size_per_pack,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,

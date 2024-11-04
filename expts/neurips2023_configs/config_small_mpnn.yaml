@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the mpnn only model with the PCQMv2 dataset.
 
 defaults:
  - base_config: small

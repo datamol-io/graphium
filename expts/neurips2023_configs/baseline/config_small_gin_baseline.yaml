@@ -1,4 +1,4 @@
-# Testing the gin model with the PCQMv2 dataset on IPU.
+# Testing the gin model with the PCQMv2 dataset.
 constants:
   name: &name neurips2023_small_data_gin
   config_override: "expts/neurips2023_configs/baseline/config_small_gcn_baseline.yaml"

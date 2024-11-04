@@ -13,7 +13,6 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/datamol-io/graphium)](https://github.com/datamol-io/graphium/stargazers)
 [![GitHub Repo stars](https://img.shields.io/github/forks/datamol-io/graphium)](https://github.com/datamol-io/graphium/network/members)
 [![test](https://github.com/datamol-io/graphium/actions/workflows/test.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
-[![test-ipu](https://github.com/datamol-io/graphium/actions/workflows/test_ipu.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test_ipu.yml)
 [![release](https://github.com/datamol-io/graphium/actions/workflows/release.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/release.yml)
 [![code-check](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml)
 [![doc](https://github.com/datamol-io/graphium/actions/workflows/doc.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/doc.yml)
@@ -51,18 +50,6 @@ mamba env create -f env.yml -n graphium
 # Install Graphium in dev mode
 mamba activate graphium
 pip install --no-deps -e .
-```
-
-### For IPU developers
-```bash
-# Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
-./install_ipu.sh .graphium_ipu
-```
-
-The above step needs to be done once. After that, enable the SDK and the environment as follows:
-
-```bash
-source enable_ipu.sh .graphium_ipu
 ```
 
 ## Training a model
