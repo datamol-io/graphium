@@ -394,7 +394,7 @@ class test_Multitask_DataModule(ut.TestCase):
             raise
 
         # Make sure we can initialize the module and run the main endpoints
-        data_module = graphium.data.ADMETBenchmarkDataModule()
+        data_module = graphium.data.TDCBenchmarkDataModule()
         data_module.prepare_data()
         data_module.setup()
 

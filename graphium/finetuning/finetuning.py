@@ -17,10 +17,10 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, 
 from collections import OrderedDict
 
 import torch.nn as nn
-import lightning.pytorch as pl
+import pytorch_lightning as pl
 
 from torch.optim.optimizer import Optimizer
-from lightning.pytorch.callbacks import BaseFinetuning
+from pytorch_lightning.callbacks import BaseFinetuning
 
 
 class GraphFinetuning(BaseFinetuning):
@@ -29,7 +29,8 @@ class GraphFinetuning(BaseFinetuning):
         finetuning_module: str,
         added_depth: int = 0,
         unfreeze_pretrained_depth: Optional[int] = None,
-        epoch_unfreeze_all: int = 0,
+        epoch_unfreeze_all: Optional[int] = 0,
+        always_freeze_modules: Optional[Union[List, str]] = None,
         train_bn: bool = False,
     ):
         """
@@ -41,6 +42,7 @@ class GraphFinetuning(BaseFinetuning):
             added_depth: Number of layers of finetuning module that have been modified rel. to pretrained model
             unfreeze_pretrained_depth: Number of additional layers to unfreeze before layers modified rel. to pretrained model
             epoch_unfreeze_all: Epoch to unfreeze entire model
+            always_freeze_modules: Module that always stay frozen while finetuning
             train_bn: Boolean value indicating if batchnorm layers stay in training mode
 
         """
@@ -51,6 +53,11 @@ class GraphFinetuning(BaseFinetuning):
         if unfreeze_pretrained_depth is not None:
             self.training_depth += unfreeze_pretrained_depth
         self.epoch_unfreeze_all = epoch_unfreeze_all
+        self.always_freeze_modules = always_freeze_modules
+        if self.always_freeze_modules == 'none':
+            self.always_freeze_modules = None
+        if isinstance(self.always_freeze_modules, str):
+            self.always_freeze_modules = [self.always_freeze_modules]
         self.train_bn = train_bn
 
     def freeze_before_training(self, pl_module: pl.LightningModule):
@@ -105,3 +112,7 @@ class GraphFinetuning(BaseFinetuning):
         """
         if epoch == self.epoch_unfreeze_all:
             self.unfreeze_and_add_param_group(modules=pl_module, optimizer=optimizer, train_bn=self.train_bn)
+
+            if self.always_freeze_modules is not None:
+                for module_name in self.always_freeze_modules:
+                    self.freeze_module(pl_module, module_name, pl_module.model.pretrained_model.net._module_map)

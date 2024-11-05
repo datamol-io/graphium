@@ -3,7 +3,6 @@ from typing import List, Literal, Optional
 import fsspec
 import numpy as np
 import torch
-import tqdm
 import typer
 import yaml
 from datamol.utils import fs
@@ -13,7 +12,7 @@ from loguru import logger
 from omegaconf import OmegaConf
 
 from graphium.config._loader import load_accelerator, load_datamodule
-from graphium.finetuning.fingerprinting import Fingerprinter
+from graphium.fingerprinting.fingerprinter import Fingerprinter
 from graphium.utils import fs
 from graphium.trainer.predictor import PredictorModule
 
@@ -24,7 +23,7 @@ finetune_app = typer.Typer(help="Utility CLI for extra fine-tuning utilities.")
 app.add_typer(finetune_app, name="finetune")
 
 
-@finetune_app.command(name="admet")
+@finetune_app.command(name="tdc")
 def benchmark_tdc_admet_cli(
     overrides: List[str],
     name: Optional[List[str]] = None,
@@ -52,7 +51,7 @@ def benchmark_tdc_admet_cli(
 
     # Use the Compose API to construct the config
     for n in name:
-        overrides += ["+finetuning=admet", f"constants.task={n}"]
+        overrides += ["+finetuning=tdc", f"constants.task={n}"]
 
         with initialize(version_base=None, config_path="../../expts/hydra-configs"):
             cfg = compose(
@@ -138,14 +137,14 @@ def get_fingerprints_from_model(
 
 def get_tdc_task_specific(task: str, output: Literal["name", "mode", "last_activation"]):
     if output == "last_activation":
-        config_arch_path = "expts/hydra-configs/tasks/task_heads/admet.yaml"
+        config_arch_path = "expts/hydra-configs/tasks/task_heads/tdc.yaml"
         with open(config_arch_path, "r") as yaml_file:
             config_tdc_arch = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
         return config_tdc_arch["architecture"]["task_heads"][task]["last_activation"]
 
     else:
-        config_metrics_path = "expts/hydra-configs/tasks/loss_metrics_datamodule/admet.yaml"
+        config_metrics_path = "expts/hydra-configs/tasks/loss_metrics_datamodule/tdc.yaml"
         with open(config_metrics_path, "r") as yaml_file:
             config_tdc_task_metric = yaml.load(yaml_file, Loader=yaml.FullLoader)
 

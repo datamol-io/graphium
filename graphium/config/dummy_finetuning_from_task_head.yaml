@@ -62,6 +62,7 @@ finetuning:
 constants:
   seed: 42
   max_epochs: 5
+  model_dropout: 0.
 
 accelerator:
   float32_matmul_precision: medium
@@ -126,7 +127,7 @@ datamodule:
 
 ### FROM FINETUNING ###
 
-  module_type: "ADMETBenchmarkDataModule"
+  module_type: "TDCBenchmarkDataModule"
   args:
     processed_graph_data_path: datacache/processed_graph_data/dummy_finetuning_task_head
     # TDC specific
