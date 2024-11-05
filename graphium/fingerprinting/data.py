@@ -11,33 +11,65 @@ from pytorch_lightning import LightningDataModule
 
 from torch.utils.data import Dataset, DataLoader
 
-from graphium.data.datamodule import MultitaskFromSmilesDataModule, ADMETBenchmarkDataModule
+from graphium.data.datamodule import BaseDataModule, MultitaskFromSmilesDataModule, TDCBenchmarkDataModule, DatasetProcessingParams
 from graphium.trainer.predictor import PredictorModule
 from graphium.fingerprinting.fingerprinter import Fingerprinter
 
 
 class FingerprintDataset(Dataset):
+    """
+    Dataset class for fingerprints useful for probing experiments.
+    
+    Parameters:
+        labels: Labels for the dataset.
+        fingerprints: Dictionary of fingerprints, where keys specify model and layer of extraction.
+        smiles: List of SMILES strings.
+    """
     def __init__(
             self,
-            smiles: List[str],
             labels: torch.Tensor,
             fingerprints: Dict[str, torch.Tensor],
+            smiles: List[str] = None,
     ):
-        self.smiles = smiles
         self.labels = labels
         self.fingerprints = fingerprints
+        self.smiles = smiles
 
     def __len__(self):
-        return len(self.smiles)
+        return len(self.labels)
 
     def __getitem__(self, index):
         fp_list = []
         for val in self.fingerprints.values():
             fp_list.append(val[index])
-        return fp_list, self.labels[index]
+
+        if self.smiles is not None:
+            return fp_list, self.labels[index], self.smiles[index]
+        else:
+            return fp_list, self.labels[index]
 
 
 class FingerprintDatamodule(LightningDataModule):
+    """
+    DataModule class for extracting fingerprints from one (or multiple) pretrained model(s).
+
+    Parameters:
+        pretrained_models: Dictionary of pretrained models (keys) and list of layers (values), repectively to use.
+        task: Task to extract fingerprints for.
+        benchmark: Benchmark to extract fingerprints for.
+        df_path: Path to the DataFrame containing the SMILES strings.
+        batch_size: Batch size for fingerprint extraction (i.e., the forward passes of the pretrained models).
+        split_type: Type of split to use for the dataset.
+        splits_path: Path to the splits file.
+        split_val: Fraction of validation data.
+        split_test: Fraction of test data.
+        data_seed: Seed for data splitting.
+        num_workers: Number of workers for data loading.
+        device: Device to use for fingerprint extraction.
+        mol_cache_dir: Directory to cache the molecules in.
+        fps_cache_dir: Directory to cache the fingerprints in
+
+    """
     def __init__(
         self,
         pretrained_models: Dict[str, List[str]],
@@ -45,7 +77,7 @@ class FingerprintDatamodule(LightningDataModule):
         benchmark: Literal["tdc", None] = "tdc",
         df_path: str = None,
         batch_size: int = 64,
-        split_type: str = "random",
+        split_type: Literal["random", "scaffold"] = "random",
         splits_path: str = None,
         split_val: float = 0.1,
         split_test: float = 0.1,
@@ -103,12 +135,9 @@ class FingerprintDatamodule(LightningDataModule):
                 self.splits.append("test")
 
             self.data = {
-                split: {
-                    "smiles": [],
-                    "labels": [],
-                    "fps": {},
-                }
-                for split in self.splits
+                "smiles": {split: [] for split in self.splits},
+                "labels": {split: [] for split in self.splits},
+                "fps": {split: {} for split in self.splits},
             }
 
             for model, layers in self.pretrained_models.items():
@@ -120,26 +149,33 @@ class FingerprintDatamodule(LightningDataModule):
                     assert self.df_path is not None, "df_path must be provided if not using an integrated benchmark"
 
                     # Add a dummy task column (filled with NaN values) in case no such column is provided
-                    smiles_df = pd.read_csv(self.df_path)
+                    base_datamodule = BaseDataModule()
+                    smiles_df = base_datamodule._read_table(self.df_path)
                     task_cols = [col for col in smiles_df if col.startswith("task_")]
                     if len(task_cols) == 0:
-                        df_path = ".".join(self.df_path.split(".")[:-1])
+                        df_path, file_type = ".".join(self.df_path.split(".")[:-1]), self.df_path.split(".")[-1]
+                        
                         smiles_df["task_dummy"] = np.nan
-                        smiles_df.to_csv(f"{df_path}_with_dummy_task_col.csv", index=False)
-                        self.df_path = f"{df_path}_with_dummy_task_col.csv"
+                        
+                        if file_type == "parquet":
+                            smiles_df.to_parquet(f"{df_path}_with_dummy_task_col.{file_type}", index=False)
+                        else:
+                            smiles_df.to_csv(f"{df_path}_with_dummy_task_col.{file_type}", index=False)
+                        
+                        self.df_path = f"{df_path}_with_dummy_task_col.{file_type}"
 
                     task_specific_args = {
-                        "fingerprinting": {
-                            "df_path": self.df_path,
-                            "smiles_col": "smiles",
-                            "label_cols": "task_*",
-                            "task_level": "graph",
-                            "splits_path": self.splits_path,
-                            "split_type": self.split_type,
-                            "split_val": self.split_val,
-                            "split_test": self.split_test,
-                            "seed": self.data_seed,
-                        }
+                        "fingerprinting": DatasetProcessingParams(
+                            df_path=self.df_path,
+                            smiles_col="smiles",
+                            label_cols="task_*",
+                            task_level="graph",
+                            splits_path=self.splits_path,
+                            split_type=self.split_type,
+                            split_val=self.split_val,
+                            split_test=self.split_test,
+                            seed=self.data_seed,
+                        )
                     }
                     label_key = "graph_fingerprinting"
 
@@ -152,7 +188,7 @@ class FingerprintDatamodule(LightningDataModule):
                     )
 
                 elif self.benchmark == "tdc":
-                    datamodule = ADMETBenchmarkDataModule(
+                    datamodule = TDCBenchmarkDataModule(
                         tdc_benchmark_names=[self.task],
                         tdc_train_val_seed=self.data_seed,
                         batch_size_inference=128,
@@ -180,15 +216,15 @@ class FingerprintDatamodule(LightningDataModule):
                     loader_dict["test"] = datamodule.get_dataloader(datamodule.test_ds, shuffle=False, stage="predict")
 
                 for split, loader in loader_dict.items():
-                    if len(self.data[split]["smiles"]) == 0:
+                    if len(self.data["smiles"][split]) == 0:
                         for batch in loader:
-                            self.data[split]["smiles"] += [item for item in batch["smiles"]]
-                            self.data[split]["labels"] += batch["labels"][label_key]
+                            self.data["smiles"][split] += [item for item in batch["smiles"]]
+                            self.data["labels"][split] += batch["labels"][label_key]
 
                     with Fingerprinter(predictor, layers, out_type="torch") as fp:
                         fps = fp.get_fingerprints_for_dataset(loader, store_dict=True)
                         for fp_name, fp in fps.items():
-                            self.data[split]["fps"][f"{model}/{fp_name}"] = fp
+                            self.data["fps"][split][f"{model}/{fp_name}"] = fp
 
             os.makedirs(self.fps_cache_dir, exist_ok=True)
             torch.save(self.data, f"{self.fps_cache_dir}/fps.pt")
@@ -196,10 +232,10 @@ class FingerprintDatamodule(LightningDataModule):
     def setup(self, stage: str) -> None:
         # Creating datasets
         if stage == "fit":
-            self.train_dataset = FingerprintDataset(self.smiles["train"], self.labels["train"], self.fps_dict["train"])
-            self.valid_dataset = FingerprintDataset(self.smiles["valid"], self.labels["valid"], self.fps_dict["valid"])
+            self.train_dataset = FingerprintDataset(self.labels["train"], self.fps_dict["train"])
+            self.valid_dataset = FingerprintDataset(self.labels["valid"], self.fps_dict["valid"])
         else:
-            self.test_dataset = FingerprintDataset(self.smiles["test"], self.labels["test"], self.fps_dict["test"])
+            self.test_dataset = FingerprintDataset(self.labels["test"], self.fps_dict["test"])
 
     def get_fp_dims(self):
         fp_dict = next(iter(self.fps_dict.values()))

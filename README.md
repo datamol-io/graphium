@@ -35,8 +35,6 @@ Visit https://graphium-docs.datamol.io/.
 
 ## Installation for developers
 
-### For CPU and GPU developers
-
 Use [`mamba`](https://github.com/mamba-org/mamba), a faster and better alternative to `conda`.
 
 If you are using a GPU, we recommend enforcing the CUDA version that you need with `CONDA_OVERRIDE_CUDA=XX.X`.
@@ -51,18 +49,6 @@ mamba env create -f env.yml -n graphium
 # Install Graphium in dev mode
 mamba activate graphium
 pip install --no-deps -e .
-```
-
-### For IPU developers
-```bash
-# Install Graphcore's SDK and Graphium dependencies in a new environment called `.graphium_ipu`
-./install_ipu.sh .graphium_ipu
-```
-
-The above step needs to be done once. After that, enable the SDK and the environment as follows:
-
-```bash
-source enable_ipu.sh .graphium_ipu
 ```
 
 ## Training a model
@@ -150,23 +136,36 @@ Thanks to the modular nature of `hydra` you can reuse many of our config setting
 
 ### Finetuning
 
-After pretraining a model and saving a model checkpoint, the model can be finetuned to a new task:
+After pretraining a model and saving a model checkpoint, the model can be finetuned to a new task
+
 ```bash
-graphium-train +finetuning custom finetuning.pretrained_model=[model_identifier] constants.data_path=[path_to_data] constants.task=[name_of_task] constants.task_type=[cls OR reg]
+graphium-train +finetuning [example-custom OR example-tdc] finetuning.pretrained_model=[model_identifier]
 ```
 
 The `[model_identifier]` serves to identify the pretrained model among those maintained in the `GRAPHIUM_PRETRAINED_MODELS_DICT` in `graphium/utils/spaces.py`, where the `[model_identifier]` maps to the location of the checkpoint of the pretrained model.
 
-The custom dataset to finetune from consists of two files `raw.csv` and `split.csv` that are provided in `[path_to_data]/[name_of_task]`. The `raw.csv` contains two columns, namely `smiles` with the smiles strings, and `target` with the corresponding targets. In `split.csv`, three columns `train`, `val`, `test` contain the indices of the rows in `raw.csv`. Examples can be found under `expts/data/finetuning_example-reg` (regression) and `expts/data/finetuning_example-cls` (binary classification).
+We have provided two example yaml configs under `expts/hydra-configs/finetuning` for finetuning on a custom dataset (`example-custom.yaml`) or for a task from the TDC benchmark collection (`example-tdc.yaml`).
+
+When using `example-custom.yaml`, to finetune on a custom dataset, we nee to provide the location of the data (`constants.data_path=[path_to_data]`) and the type of task (`constants.task_type=[cls OR reg]`).
+
+When using `example-tdc.yaml`, to finetune on a TDC task, we only need to provide the task name (`constants.task=[task_name]`) and the task type is inferred automatically.
+
+Custom datasets to finetune from consist of two files `raw.csv` and `split.csv`. The `raw.csv` contains two columns, namely `smiles` with the smiles strings, and `target` with the corresponding targets. In `split.csv`, three columns `train`, `val`, `test` contain the indices of the rows in `raw.csv`. Examples can be found under `expts/data/finetuning_example-reg` (regression) and `expts/data/finetuning_example-cls` (binary classification).
 
 ### Fingerprinting
 
 Alternatively, we can also obtain molecular embeddings (fingerprints) from a pretrained model:
 ```bash
-graphium fps create custom pretrained.model=[model_identifier] pretrained.layers=[layer_identifiers] datamodelu.df_path=[path_to_data]
+graphium fps create [example-custom OR example-tdc] pretrained.model=[model_identifier] pretrained.layers=[layer_identifiers]
 ```
 
-After specifiying the `[model_identifier]`, we need to provide a list of layers from that model where we want to read out embeddings via `[layer_identifiers]`. An example can be found in `expts/hydra-configs/fingerprinting/custom.yaml`. In addition, the location of the smiles to be embedded needs to be passed as `[path_to_data]`. The data can be passed as a csv file with a column `smiles`, similar to `expts/data/finetuning_example-reg/raw.csv`.
+We have provided two example yaml configs under `expts/hydra-configs/fingerprinting` for extracting fingerprints for a custom dataset (`example-custom.yaml`) or for a dataset from the TDC benchmark collection (`expample-tdc.yaml`).
+
+After specifiying the `[model_identifier]`, we need to provide a list of layers from that model where we want to read out embeddings via `[layer_identifiers]` (which requires knowledge of the architecture of the pretrained model).
+
+When using `example-custom.yaml`, the location of the smiles to be embedded needs to be passed via `datamodule.df_path=[path_to_data]`. The data can be passed as a csv/parquet file with a column `smiles`, similar to `expts/data/finetuning_example-reg/raw.csv`.
+
+When extracting fingerprints for a TDC task using `expample-tdc.yaml`, we need to specify `datamodule.benchmark` and `datamodule.task` instead of `datamodule.df_path`.
 
 ## License
 
