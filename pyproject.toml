@@ -38,7 +38,7 @@ dependencies = [
     "tqdm",
     "platformdirs",
     # scientific
-    "numpy==1.25.0",
+    "numpy<2.0",
     "scipy >=1.4",
     "pandas >=1.0",
     "scikit-learn",
@@ -63,7 +63,7 @@ dependencies = [
     # chemistry
     "datamol >=0.10",
     "hydra-core",
-    "rdkit==2024.03.4"
+    "rdkit"
 ]
 
 [project.optional-dependencies]
