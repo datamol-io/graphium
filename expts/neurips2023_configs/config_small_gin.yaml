@@ -1,4 +1,4 @@
-# Testing the gin model with the PCQMv2 dataset on IPU.
+# Testing the gin model with the PCQMv2 dataset.
 
 defaults:
   - base_config: small

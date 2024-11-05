@@ -21,8 +21,8 @@ import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
+from torch_geometric.utils import to_dense_batch
 from copy import deepcopy
-from graphium.ipu.to_dense_batch import to_dense_batch
 
 from graphium.nn.base_layers import MultiheadAttentionMup
 
@@ -65,12 +65,11 @@ class test_MultiHeadAttention(ut.TestCase):
         attention_layer_bias = MultiheadAttentionMup(biased_attention=True, **self.attn_kwargs)
         attention_layer_bias.eval()
 
-        h_dense, mask, _ = to_dense_batch(
+        h_dense, mask = to_dense_batch(
             bg.feat,
             batch=bg.batch,
             batch_size=None,
-            max_num_nodes_per_graph=None,
-            drop_nodes_last_graph=False,
+            max_num_nodes=None,
         )
         # attn_bias [batch, num_heads, nodes, nodes]
         nodes = h_dense.size()[1]

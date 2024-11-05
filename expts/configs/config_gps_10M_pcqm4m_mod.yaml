@@ -1,10 +1,10 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the mpnn only model with the PCQMv2 dataset.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: gpu  # cpu or ipu or gpu
+    type: gpu  # cpu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -79,18 +79,6 @@ datamodule:
     num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-
-    # ipu_dataloader_training_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-    #   max_num_edges_per_graph: 60
-
-    # ipu_dataloader_inference_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
-    #   max_num_edges_per_graph: 120
-    #   # test-dev max nodes: 50, max_edges: 116
-    #   # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -223,7 +211,7 @@ predictor:
   metrics_on_progress_bar:
     homolumo: ["mae", "pearsonr"]
   loss_fun:
-    homolumo: mse_ipu
+    homolumo: mse
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -246,12 +234,12 @@ predictor:
 metrics:
   homolumo:
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label

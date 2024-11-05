@@ -22,7 +22,6 @@ from torch.utils.data.dataloader import default_collate
 from typing import Union, List, Optional, Dict, Type, Any, Iterable
 from torch_geometric.data import Data, Batch
 
-from graphium.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
 from loguru import logger
 from graphium.data.utils import get_keys
 from graphium.data.dataset import torch_enum_to_dtype
@@ -34,7 +33,6 @@ def graphium_collate_fn(
     labels_dtype_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
-    batch_size_per_pack: Optional[int] = None,
 ) -> Union[Any, Dict[str, Any]]:
     """This collate function is identical to the default
     pytorch collate function but add support for `pyg.data.Data` to batch graphs.
@@ -76,12 +74,6 @@ def graphium_collate_fn(
         do_not_batch_keys:
             Keys to ignore for the collate
 
-        batch_size_per_pack: The number of graphs to pack together.
-            This is useful for using packing with the Transformer.
-            If None, no packing is done.
-            Otherwise, indices are generated to map the nodes to the pack they belong to under the key `"pack_from_node_idx"`,
-            with an additional mask to indicate which nodes are from the same graph under the key `"pack_attn_mask"`.
-
     Returns:
         The batched elements. See `torch.utils.data.dataloader.default_collate`.
     """
@@ -113,7 +105,7 @@ def graphium_collate_fn(
             # If a PyG Graph is provided, use the PyG batching
             elif isinstance(elem[key], Data):
                 pyg_graphs = [d[key] for d in elements]
-                batch[key] = collage_pyg_graph(pyg_graphs, num_nodes, batch_size_per_pack=batch_size_per_pack)
+                batch[key] = collage_pyg_graph(pyg_graphs, num_nodes)
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
@@ -135,7 +127,7 @@ def graphium_collate_fn(
 
 
 def collage_pyg_graph(
-    pyg_graphs: List[Data], num_nodes: List[int], batch_size_per_pack: Optional[int] = None
+    pyg_graphs: List[Data], num_nodes: List[int],
 ):
     """
     Function to collate pytorch geometric graphs.
@@ -144,8 +136,6 @@ def collage_pyg_graph(
 
     Parameters:
         pyg_graphs: List of PyG graphs
-        batch_size_per_pack: The number of graphs to pack together.
-            This is useful for using packing with the Transformer,
     """
 
     # Calculate maximum number of nodes per graph in current batch
@@ -161,22 +151,6 @@ def collage_pyg_graph(
 
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
-
-    # Apply the packing at the mini-batch level. This is useful for using packing with the Transformer,
-    # especially in the case of the large graphs being much larger than the small graphs.
-    # CAREFUL!!! This changes the order of the graphs in the batch, without changing the order of the labels or other objects.
-    # An error is raised temporarily.
-    if batch_size_per_pack is not None:
-        raise NotImplementedError(
-            "Packing is not yet functional, as it changes the order of the graphs in the batch without changing the label order"
-        )
-        packed_graph_idx = fast_packing(num_nodes, batch_size_per_pack)
-
-        # Get the node to pack indices and the mask
-        pack_from_node_idx, pack_attn_mask = node_to_pack_indices_mask(packed_graph_idx, num_nodes)
-        for pyg_graph in pyg_graphs:
-            pyg_graph.pack_from_node_idx = pack_from_node_idx
-            pyg_graph.pack_attn_mask = pack_attn_mask
 
     return Batch.from_data_list(pyg_graphs)
 

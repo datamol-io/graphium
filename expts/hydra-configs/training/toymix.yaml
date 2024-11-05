@@ -11,7 +11,7 @@ predictor:
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs: null
-  target_nan_mask: null
+  target_nan_mask: ignore
   multitask_handling: flatten # flatten, mean-per-label
 
 trainer:

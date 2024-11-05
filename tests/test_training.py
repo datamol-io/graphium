@@ -92,9 +92,7 @@ class test_CLITraining():
             "trainer.trainer.check_val_every_n_epoch=1",
             f"trainer.trainer.precision={acc_prec}",
         ]
-        if acc_type == "ipu":
-            overrides.append("accelerator.ipu_config=['useIpuModel(True)']")
-            overrides.append("accelerator.ipu_inference_config=['useIpuModel(True)']")
+
         # Backup the original sys.argv
         original_argv = sys.argv.copy()
 
@@ -109,20 +107,6 @@ class test_CLITraining():
 
     def test_cpu_cli_training(self):
         self.call_cli_with_overrides("cpu", "32")
-
-    @pytest.mark.ipu
-    @pytest.mark.skip
-    def test_ipu_cli_training(self):
-        with ut.patch("poptorch.ipuHardwareIsAvailable", return_value=True):
-            with ut.patch("lightning_graphcore.accelerator._IPU_AVAILABLE", new=True):
-                import poptorch
-
-                assert poptorch.ipuHardwareIsAvailable()
-                from lightning_graphcore.accelerator import _IPU_AVAILABLE
-
-                assert _IPU_AVAILABLE is True
-                self.call_cli_with_overrides("ipu", "16-true")
-
 
 
 def initialize_hydra(config_path, job_name="app"):

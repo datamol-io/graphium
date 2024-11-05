@@ -15,16 +15,16 @@ predictor:
     pcqm4m_n4: []
   loss_fun:
     l1000_vcap:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 3
       alpha: 0.5
     l1000_mcf7:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 3
       alpha: ${predictor.loss_fun.l1000_vcap.alpha}
-    pcba_1328: bce_logits_ipu
-    pcqm4m_g25: mae_ipu
-    pcqm4m_n4: mae_ipu
+    pcba_1328: bce_logits
+    pcqm4m_g25: mae
+    pcqm4m_n4: mae
 
 metrics:
   l1000_vcap: &classif_metrics
@@ -48,7 +48,7 @@ metrics:
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
-  # use auroc and averageprecision (non_ipu version) so tha nans are handled correctly
+  
     - name: auroc
       metric: auroc
       task: binary
@@ -63,17 +63,17 @@ metrics:
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
     - name: r2
-      metric: r2_score_ipu
+      metric: r2_score
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label

@@ -81,7 +81,7 @@ class test_DataModule(ut.TestCase):
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
-        assert len(ds) == 642
+        assert len(ds) == 644
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
@@ -184,7 +184,7 @@ class test_DataModule(ut.TestCase):
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
-        assert len(ds) == 642
+        assert len(ds) == 644
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))

@@ -14,7 +14,7 @@ Refer to the LICENSE file for the full terms and conditions.
 
 from typing import Iterable, List, Dict, Literal, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
-from graphium.ipu.to_dense_batch import to_dense_batch
+from torch_geometric.utils import to_dense_batch
 from loguru import logger
 
 # Misc imports
@@ -40,10 +40,6 @@ from graphium.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 from graphium.nn.utils import MupMixin
-from graphium.ipu.ipu_utils import import_poptorch, is_running_on_ipu
-
-poptorch = import_poptorch(raise_error=False)
-
 import collections
 
 
@@ -1476,8 +1472,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         if accelerator_kwargs is not None:
             accelerator = accelerator_kwargs["_accelerator"]
-            if accelerator == "ipu":
-                self._apply_ipu_options(accelerator_kwargs)
 
         self._check_bad_arguments()
 
@@ -1529,45 +1523,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                     f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
                 )
 
-    def _apply_ipu_options(self, ipu_kwargs):
-        gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
-        self._apply_ipu_pipeline_split(gnn_layers_per_ipu)
-
-    def _apply_ipu_pipeline_split(self, gnn_layers_per_ipu):
-        r"""
-        Apply pipeline split from accelerator options if applicable
-        """
-
-        if gnn_layers_per_ipu is None:
-            return
-
-        if not isinstance(gnn_layers_per_ipu, collections.abc.Sequence):
-            raise ValueError("gnn_layers_per_ipu must be a Sequence (e.g. a list)")
-
-        valid_ipu_pipeline_lengths = [1, 2, 4, 8, 16]
-        pipeline_length = len(gnn_layers_per_ipu)
-
-        if pipeline_length not in valid_ipu_pipeline_lengths:
-            raise ValueError(
-                f"Length of gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
-                f"got {gnn_layers_per_ipu} of length {pipeline_length} instead"
-            )
-
-        model_depth = len(self.gnn.layers)
-
-        if sum(gnn_layers_per_ipu) != model_depth:
-            raise ValueError(
-                f"The values in gnn_layers_per_ipu must add up to the depth of the model, "
-                f"got {gnn_layers_per_ipu} with total {sum(gnn_layers_per_ipu)} vs model depth "
-                f"of {model_depth}"
-            )
-
-        begin_block_layer_indices = [sum(gnn_layers_per_ipu[:i]) for i in range(1, pipeline_length)]
-
-        for begin_block_layer_index, ipu_id in zip(begin_block_layer_indices, range(1, pipeline_length)):
-            self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
-                self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
-            )
 
     def _enable_readout_cache(self, module_filter: Optional[Union[str, List[str]]]):
         """
@@ -1934,7 +1889,6 @@ class GraphOutputNN(nn.Module, MupMixin):
                 node_feats=g["feat"],
                 batch=g.batch,
                 max_num_nodes=self.max_num_nodes_per_graph,
-                drop_nodes_last_graph=is_running_on_ipu(),
             )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":
@@ -2024,7 +1978,6 @@ class GraphOutputNN(nn.Module, MupMixin):
         max_num_nodes: int = None,
         fill_value: float = float("nan"),
         batch_size: int = None,
-        drop_nodes_last_graph: bool = False,
     ) -> torch.Tensor:
         r"""
         Vectorized implementation of nodepair-level task:
@@ -2035,19 +1988,16 @@ class GraphOutputNN(nn.Module, MupMixin):
             fill_value: The value for invalid entries in the
                 resulting dense output tensor. (default: :obj:`NaN`)
             batch_size: The batch size. (default: :obj:`None`)
-            drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
-                the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
         Returns:
             result: concatenated node features of shape B * max_num_nodes * 2*h,
             where B is number of graphs, max_num_nodes is the chosen maximum number nodes, and h is the feature dim
         """
-        dense_feat, mask, _ = to_dense_batch(
+        dense_feat, mask = to_dense_batch(
             node_feats,
             batch=batch,
             fill_value=fill_value,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes,
-            drop_nodes_last_graph=drop_nodes_last_graph,
+            max_num_nodes=max_num_nodes,
         )
         n = dense_feat.size(1)
         h_X = dense_feat[:, :, None].repeat(1, 1, n, 1)

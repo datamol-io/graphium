@@ -7,7 +7,7 @@ dependencies:
   - pybind11
   - librdkit-dev # headers for rdkit only available on conda-forge
   - pytorch
-  - numpy
+  - numpy==1.25
   - rdkit
 
   - pip:

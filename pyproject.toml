@@ -38,7 +38,7 @@ dependencies = [
     "tqdm",
     "platformdirs",
     # scientific
-    "numpy<2.0",
+    "numpy==1.25.0",
     "scipy >=1.4",
     "pandas >=1.0",
     "scikit-learn",
@@ -63,7 +63,7 @@ dependencies = [
     # chemistry
     "datamol >=0.10",
     "hydra-core",
-    "rdkit"
+    "rdkit==2024.03.4"
 ]
 
 [project.optional-dependencies]
@@ -113,7 +113,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:pkg_resources.*:",
 ]
 markers = [
-    "ipu: marks tests that are specific to the IPU (deselect with '-m \"not ipu\"')",
 ]
 
 [tool.coverage.run]

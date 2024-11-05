@@ -16,8 +16,3 @@ component_management:
         target: auto
         branches:
           - "!main"
-  individual_components:
-    - component_id: ipu # this is an identifier that should not be changed
-      name: ipu # this is a display name, and can be changed freely
-      paths:
-        - graphium/ipu/**

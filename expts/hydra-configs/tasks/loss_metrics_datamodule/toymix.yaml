@@ -8,9 +8,9 @@ predictor:
     tox21: ["auroc"]
     zinc: ["mae"]
   loss_fun:
-    qm9: mae_ipu
-    tox21: bce_logits_ipu
-    zinc: mae_ipu
+    qm9: mae
+    tox21: bce_logits
+    zinc: mae
 
 metrics:
   qm9: &qm9_metrics
