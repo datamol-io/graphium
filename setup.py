@@ -34,8 +34,7 @@ if system == "Darwin":
 elif system == "Windows":
     pass
 
-print(rdkit_prefix)
-sys.exit(0)
+
 ext_modules = [
     Pybind11Extension(
         "graphium_cpp",
