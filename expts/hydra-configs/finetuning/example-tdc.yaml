@@ -1,0 +1,76 @@
+# @package _global_
+
+defaults:
+  - override /tasks/loss_metrics_datamodule: tdc
+constants:
+  task: bbb_martins
+  # wandb:
+  #   name: finetune_${constants.task}
+  #   project: tbd
+  #   entity: tbd
+  #   tags:
+  #   - finetuning
+  #   - ${constants.task}
+  #   - ${finetuning.pretrained_model}
+  seed: 42
+  max_epochs: 20
+  raise_train_error: true
+  metric: ${get_metric_name:${constants.task}}
+  model_dropout: 0.
+
+datamodule:
+  args:
+    batch_size_training: 256
+    batch_size_inference: 256
+    dataloading_from: ram
+    persistent_workers: true
+    num_workers: 2
+    split_type: default
+    tdc_train_val_seed: 1
+  
+trainer:
+  model_checkpoint:
+    save_top_k: 0
+    dirpath: none
+    every_n_epochs: 200
+    save_last: false
+  trainer:
+    precision: 32
+    check_val_every_n_epoch: 1
+    accumulate_grad_batches: 1
+  
+predictor:
+  optim_kwargs:
+    lr: 0.00001
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: ${constants.max_epochs}
+    warmup_epochs: 3
+    verbose: False
+
+
+
+# == Fine-tuning config == 
+
+finetuning:
+  task: ${constants.task}
+  level: graph
+  pretrained_model: dummy-pretrained-model
+  finetuning_module: graph_output_nn  
+  sub_module_from_pretrained: graph
+  new_sub_module: graph
+  drop_depth: 1
+  added_depth: 1
+  new_out_dim: 256
+
+  keep_modules_after_finetuning_module:
+    task_heads-zinc:
+      new_sub_module: ${constants.task}
+      hidden_dims: ${finetuning.new_out_dim}
+      depth: 1
+      dropout: 0.
+      last_activation: none
+      out_dim: 1
+
+  epoch_unfreeze_all: 0
+  always_freeze_modules: []

@@ -1,5 +1,5 @@
 pretrained:
-  model: dummy-pretrained-model:
+  model: dummy-pretrained-model
   layers:
     - graph_output_nn-graph:0
     - task_heads-zinc:0
@@ -12,5 +12,5 @@ datamodule:
   split_test: 1.0
   device: cpu     # cpu or cuda
   num_workers: 0
-  fps_cache_dir: ./expts/data/finetuning_example-reg
+  fps_cache_dir: ./expts/data/fps/finetuning_example-reg
   mol_cache_dir: ${datamodule.fps_cache_dir}

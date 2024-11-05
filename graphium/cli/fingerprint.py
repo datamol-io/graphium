@@ -25,11 +25,9 @@ def smiles_to_fps(cfg_name: str, overrides: List[str]) -> Dict[str, Any]:
         )
     cfg = OmegaConf.to_container(cfg, resolve=True)
 
-    wandb.init(
-        name="Fingerprinting",
-        entity="valencelabs",
-        project="graphium-fingerprints",
-    )
+    if "wandb" in cfg.keys():
+        wandb_cfg = cfg.get("wandb")
+        wandb.init(**wandb_cfg)
 
     pretrained_models = cfg.get("pretrained")
 
@@ -49,8 +47,11 @@ def smiles_to_fps(cfg_name: str, overrides: List[str]) -> Dict[str, Any]:
     datamodule.prepare_data()
 
     logger.info(f"Fingerprints saved in {datamodule.fps_cache_dir}/fps.pt.")
-    wandb.run.finish()
+    try:
+        wandb.run.finish()
+    except:
+        pass
 
 
 if __name__ == "__main__":
-    smiles_to_fps(cfg_name="tdc", overrides=[])
+    smiles_to_fps(cfg_name="example-tdc", overrides=[])

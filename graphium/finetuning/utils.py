@@ -46,10 +46,10 @@ def filter_cfg_based_on_admet_benchmark_name(config: Dict[str, Any], names: Unio
     have settings related to a subset of the endpoints
     """
 
-    if config["datamodule"]["module_type"] != "ADMETBenchmarkDataModule":
+    if config["datamodule"]["module_type"] != "TDCBenchmarkDataModule":
         # NOTE (cwognum): For now, this implies we only support the ADMET benchmark from TDC.
         #    It is easy to extend this in the future to support more datasets.
-        raise ValueError("You can only use this method for the `ADMETBenchmarkDataModule`")
+        raise ValueError("You can only use this method for the `TDCBenchmarkDataModule`")
 
     if isinstance(names, str):
         names = [names]
@@ -217,7 +217,7 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         "finetuning_head",
         "unfreeze_pretrained_depth",
         "epoch_unfreeze_all",
-        "freeze_always",
+        "always_freeze_modules",
     ]
 
     for key in drop_keys:

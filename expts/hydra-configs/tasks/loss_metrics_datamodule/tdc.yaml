@@ -134,7 +134,7 @@ metrics:
   ld50_zhu: *regression_metrics
 
 datamodule:
-  module_type: "ADMETBenchmarkDataModule"
+  module_type: "TDCBenchmarkDataModule"
   args:
     # TDC specific
     tdc_benchmark_names: null

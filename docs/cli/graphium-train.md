@@ -24,7 +24,7 @@ graphium-train architecture=toymix tasks=toymix training=toymix model=gcn accele
 automatically selects the correct configs to run the experiment on GPU.
 Finally, you can also run a fine-tuning loop:
 ```bash
-graphium-train +finetuning=admet
+graphium-train +finetuning=example-tdc
 ```
 
 To use a config file you built from scratch you can run

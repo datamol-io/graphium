@@ -131,7 +131,7 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "GraphOGBDataModule": Datamodules.GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": Datamodules.MultitaskFromSmilesDataModule,
-    "ADMETBenchmarkDataModule": Datamodules.ADMETBenchmarkDataModule,
+    "TDCBenchmarkDataModule": Datamodules.TDCBenchmarkDataModule,
 }
 
 GRAPHIUM_PRETRAINED_MODELS_DICT = {

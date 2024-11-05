@@ -8,14 +8,14 @@ constants:
   task: finetuning_example-cls # finetuning_example-cls OR finetuning_example-reg
   task_type: cls  # cls OR reg
   data_path: expts/data
-  wandb:
-    name: finetune_${constants.task}
-    project: finetuning
-    entity: valencelabs
-    tags:
-    - finetuning
-    - ${constants.task}
-    - ${finetuning.pretrained_model}
+  # wandb:
+  #   name: finetune_${constants.task}
+  #   project: tbd
+  #   entity: tbd
+  #   tags:
+  #   - finetuning
+  #   - ${constants.task}
+  #   - ${finetuning.pretrained_model}
   seed: 42
   max_epochs: 20
   raise_train_error: true
@@ -42,7 +42,7 @@ datamodule:
 trainer:
   model_checkpoint:
     save_top_k: 0
-    dirpath: ~/project/outgoing/finetuning/${constants.task}/${now:%Y-%m-%d_%H-%M-%S.%f}/
+    dirpath: none
     every_n_epochs: 200
     save_last: false
   trainer:
@@ -52,7 +52,7 @@ trainer:
   
 predictor:
   optim_kwargs:
-    lr: 0.000001
+    lr: 0.00001
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: ${constants.max_epochs}
@@ -72,30 +72,16 @@ finetuning:
   new_sub_module: graph
   drop_depth: 1
   added_depth: 1
-  new_out_dim: 1024 # TODO: infer automatically
-  # new_out_dim: 1024 # TODO: infer automatically
+  new_out_dim: 256
 
   keep_modules_after_finetuning_module:
-    task_heads-pcba_1328:
+    task_heads-zinc:
       new_sub_module: finetune
-      hidden_dims: 512
+      hidden_dims: 256
       depth: 1
       dropout: 0.
       last_activation: none
       out_dim: 1
 
-  # Optional finetuning head appended to model after finetuning_module
-  # finetuning_head:
-  #   task: finetune
-  #   previous_module: task_heads
-  #   incoming_level: graph
-  #   model_type: mlp
-  #   depth: 2
-  #   in_dim: 3707 # TODO: infer automatically
-  #   hidden_dims: 1024
-  #   out_dim: 1
-  #   dropout: 0.
-  #   last_layer_is_readout: true
-
   epoch_unfreeze_all: 0
-  freeze_always: []
+  always_freeze_modules: []

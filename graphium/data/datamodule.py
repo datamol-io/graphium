@@ -2066,7 +2066,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         return ogb_metadata
 
 
-class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
+class TDCBenchmarkDataModule(MultitaskFromSmilesDataModule):
     """
     Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).
 
