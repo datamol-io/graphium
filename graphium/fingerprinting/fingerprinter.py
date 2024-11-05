@@ -138,8 +138,9 @@ class Fingerprinter:
         self.network._enable_readout_cache(list(self._spec.keys()))
         return self
 
-    def get_fingerprints_for_batch(self, batch):
+    def get_fingerprints_for_batch(self, batch, store_dict: bool=False):
         """Get the fingerprints for a single batch"""
+        self.network.eval()
 
         if not self.network._cache_readouts:
             raise RuntimeError(
@@ -152,18 +153,31 @@ class Fingerprinter:
         with torch.inference_mode():
             if self.predictor is not None:
                 batch["features"] = self.predictor._convert_features_dtype(batch["features"])
+                device = next(iter(self.network.parameters())).device
+                for key, val in batch["features"].items():
+                    if isinstance(val, torch.Tensor):
+                        batch["features"][key] = val.to(device)
             self.network(batch["features"])
 
-        readout_list = []
-        for module_name, layers in self._spec.items():
-            readout_list.extend(
-                [self.network._module_map[module_name]._readout_cache[layer].cpu() for layer in layers]
-            )
+        if store_dict:
+            readout_dict = {}
+            for module_name, layers in self._spec.items():
+                for layer in layers:
+                    readout_dict[f"{module_name}:{layer}"] = self._convert_output_type(self.network._module_map[module_name]._readout_cache[layer].cpu())
 
-        feats = torch.cat(readout_list, dim=-1)
-        return self._convert_output_type(feats)
+            return readout_dict
+          
+        else:
+            readout_list = []
+            for module_name, layers in self._spec.items():
+                readout_list.extend(
+                    [self.network._module_map[module_name]._readout_cache[layer].cpu() for layer in layers]
+                )
+  
+            feats = torch.cat(readout_list, dim=-1)
+            return self._convert_output_type(feats)
 
-    def get_fingerprints_for_dataset(self, dataloader):
+    def get_fingerprints_for_dataset(self, dataloader, store_dict: bool=False):
         """Return the fingerprints for an entire dataset"""
 
         original_out_type = self._out_type
@@ -171,13 +185,29 @@ class Fingerprinter:
 
         fps = []
         for batch in tqdm.tqdm(dataloader, desc="Fingerprinting batches"):
-            feats = self.get_fingerprints_for_batch(batch)
+            feats = self.get_fingerprints_for_batch(batch, store_dict=store_dict)
             fps.append(feats)
 
-        fps = torch.cat(fps, dim=0)
-
         self._out_type = original_out_type
-        return self._convert_output_type(fps)
+
+        if store_dict:
+            fps_dict = fps[0]
+            for key, value in fps_dict.items():
+                fps_dict[key] = [value]
+            for item in fps[1:]:
+                for key, value in item.items():
+                    fps_dict[key].extend([value])
+            
+            self._out_type = original_out_type
+            for key, value in fps_dict.items():
+                fps_dict[key] = self._convert_output_type(torch.cat(value, dim=0))
+
+            return fps_dict
+
+        else:
+            fps = torch.cat(fps, dim=0)
+
+            return self._convert_output_type(fps)
 
     def teardown(self):
         """Restore the network to its original state"""

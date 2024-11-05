@@ -3,5 +3,5 @@
 #  want to override both. 
 
 defaults:
-  - task_heads: admet
-  - loss_metrics_datamodule: admet
+  - task_heads: tdc
+  - loss_metrics_datamodule: tdc

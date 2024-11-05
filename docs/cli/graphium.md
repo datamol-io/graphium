@@ -103,7 +103,7 @@ $ graphium finetune [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `admet`: Utility CLI to easily fine-tune a model on...
+* `tdc`: Utility CLI to easily fine-tune a model on...
 * `fingerprint`: Endpoint for getting fingerprints from a...
 
 ### `graphium finetune admet`
@@ -135,7 +135,7 @@ Endpoint for getting fingerprints from a pretrained model.
 The pretrained model should be a `.ckpt` path or pre-specified, named model within Graphium.
 The fingerprint layer specification should be of the format `module:layer`.
 If specified as a list, the fingerprints from all the specified layers will be concatenated.
-See the docs of the `graphium.finetuning.fingerprinting.Fingerprinter` class for more info.
+See the docs of the `graphium.fingerprinting.fingerprinter.Fingerprinter` class for more info.
 
 **Usage**:
 

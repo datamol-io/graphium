@@ -1,0 +1,15 @@
+pretrained:
+  model: dummy-pretrained-model
+  layers:
+    - graph_output_nn-graph:0
+    - task_heads-zinc:0
+
+datamodule:
+  df_path: null
+  benchmark: tdc
+  task: herg
+  data_seed: 1
+  device: cpu     # cpu or cuda
+  num_workers: 0
+  fps_cache_dir: ./expts/data/fps/${datamodule.benchmark}/${datamodule.task}
+  mol_cache_dir: ${datamodule.fps_cache_dir}

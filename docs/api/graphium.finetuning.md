@@ -10,4 +10,4 @@ Module for finetuning models and doing linear probing (fingerprinting).
 
 ::: graphium.finetuning.finetuning_architecture.FinetuningHead
 
-::: graphium.finetuning.fingerprinting.Fingerprinter
+::: graphium.fingerprinting.fingerprinter.Fingerprinter

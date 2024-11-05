@@ -661,6 +661,7 @@ class DatasetProcessingParams:
         idx_col: Optional[str] = None,
         mol_ids_col: Optional[str] = None,
         sample_size: Union[int, float, Type[None]] = None,
+        split_type: str = "random",
         split_val: float = 0.2,
         split_test: float = 0.2,
         seed: int = None,
@@ -703,6 +704,7 @@ class DatasetProcessingParams:
         self.idx_col = idx_col
         self.mol_ids_col = mol_ids_col
         self.sample_size = sample_size
+        self.split_type = split_type
         self.split_val = split_val
         self.split_test = split_test
         self.seed = seed
@@ -1059,6 +1061,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             train_indices, val_indices, test_indices = self._get_split_indices(
                 num_molecules,
                 split_val=self.task_dataset_processing_params[task].split_val,
+                split_type=self.task_dataset_processing_params[task].split_type,
                 split_test=self.task_dataset_processing_params[task].split_test,
                 sample_idx=sample_idx,
                 split_seed=self.task_dataset_processing_params[task].seed,
@@ -1504,6 +1507,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         dataset_size: int,
         split_val: float,
         split_test: float,
+        split_type: str = "random",
         sample_idx: Optional[Iterable[int]] = None,
         split_seed: int = None,
         splits_path: Union[str, os.PathLike, Dict[str, Iterable[int]]] = None,
@@ -1525,31 +1529,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if sample_idx is None:
             sample_idx = np.arange(dataset_size)
 
-        if splits_path is None:
-            # Random splitting
-            if split_test + split_val > 0:
-                train_indices, val_test_indices = train_test_split(
-                    sample_idx,
-                    test_size=split_val + split_test,
-                    random_state=split_seed,
-                )
-                sub_split_test = split_test / (split_test + split_val)
-            else:
-                train_indices = sample_idx
-                val_test_indices = np.array([])
-                sub_split_test = 0
-
-            if split_test > 0:
-                val_indices, test_indices = train_test_split(
-                    val_test_indices,
-                    test_size=sub_split_test,
-                    random_state=split_seed,
-                )
-            else:
-                val_indices = val_test_indices
-                test_indices = np.array([])
-
-        else:
+        if splits_path is not None:
             train, val, test = split_names
             if isinstance(splits_path, (Dict, pd.DataFrame)):
                 # Split from a dataframe
@@ -1575,6 +1555,70 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             val_indices = val_indices[~np.isnan(val_indices)].tolist()
             test_indices = np.asarray(splits[test]).astype("int")
             test_indices = test_indices[~np.isnan(test_indices)].tolist()
+
+        elif split_type == "scaffold" and split_test != 1.:
+            # Scaffold splitting
+            try:
+                import splito
+            except ImportError as error:
+                raise RuntimeError(
+                    f"To do the splitting, `splito` needs to be installed. "
+                    f"Please install it with `pip install splito`"
+                ) from error
+                
+            # Split data into scaffolds
+            splitter = splito.ScaffoldSplit(
+                smiles=self.smiles,
+                test_size=split_test,
+                random_state=split_seed,
+            )
+            train_val_indices, test_indices = next(splitter.split(X=self.smiles))
+            train_val_smiles = [self.smiles[i] for i in train_val_indices]
+
+            sub_split_val = split_val / (1 - split_test)
+                
+            splitter = splito.ScaffoldSplit(
+                smiles=train_val_smiles,
+                test_size=sub_split_val,
+                random_state=split_seed,
+            )
+            train_indices, val_indices = next(splitter.split(X=train_val_smiles))
+
+        else:
+            if split_type != "random":
+                logger.warning(f"Unkown split {split_type}. Defaulting to `random`.")
+
+            # Random splitting
+            if split_test + split_val > 0:
+                if split_test == 1.:
+                    train_indices = np.array([])
+                    val_test_indices = sample_idx
+                    sub_split_test = 1.
+                else:
+                    train_indices, val_test_indices = train_test_split(
+                        sample_idx,
+                        test_size=split_val + split_test,
+                        random_state=split_seed,
+                    )
+                    sub_split_test = split_test / (split_test + split_val)
+            else:
+                train_indices = sample_idx
+                val_test_indices = np.array([])
+                sub_split_test = 0
+
+            if split_test > 0:
+                if split_test == 1.:
+                    val_indices = np.array([])
+                    test_indices = val_test_indices
+                else:
+                    val_indices, test_indices = train_test_split(
+                        val_test_indices,
+                        test_size=sub_split_test,
+                        random_state=split_seed,
+                    )
+            else:
+                val_indices = val_test_indices
+                test_indices = np.array([])
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
@@ -1910,7 +1954,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         return ogb_metadata
 
 
-class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
+class TDCBenchmarkDataModule(MultitaskFromSmilesDataModule):
     """
     Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).
 
