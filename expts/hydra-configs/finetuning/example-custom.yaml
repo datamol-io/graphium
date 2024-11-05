@@ -77,7 +77,7 @@ finetuning:
   keep_modules_after_finetuning_module:
     task_heads-zinc:
       new_sub_module: finetune
-      hidden_dims: 256
+      hidden_dims: ${finetuning.new_out_dim}
       depth: 1
       dropout: 0.
       last_activation: none
