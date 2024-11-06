@@ -17,6 +17,8 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 import torch, rdkit, os
 import numpy
 
+python_version = str(sys.version_info[0]) + str(sys.version_info[1])
+
 torch_dir = torch.__path__[0]
 rdkit_lib_index = rdkit.__path__[0].split("/").index("lib")
 rdkit_prefix = "/".join(rdkit.__path__[0].split("/")[:rdkit_lib_index])
@@ -78,7 +80,7 @@ ext_modules = [
             "RDKitSubstructMatch",
             "torch_cpu",
             "torch_python",
-            "boost_python310" # FIX THIS TO BE DYNAMIC BASED ON PYTHON VERSION
+            f"boost_python{python_version}"
         ],
         library_dirs=[os.path.join(rdkit_prefix, "lib"), os.path.join(torch_dir, "lib")],
         extra_compile_args=package_compile_args
