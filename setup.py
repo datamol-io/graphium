@@ -78,6 +78,7 @@ ext_modules = [
             "RDKitSubstructMatch",
             "torch_cpu",
             "torch_python",
+            "boost_python310" # FIX THIS TO BE DYNAMIC BASED ON PYTHON VERSION
         ],
         library_dirs=[os.path.join(rdkit_prefix, "lib"), os.path.join(torch_dir, "lib")],
         extra_compile_args=package_compile_args
