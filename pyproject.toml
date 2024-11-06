@@ -12,7 +12,7 @@ authors = [
     { name = "Nia Dickson", email = "ndickson@nvidia.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9,<3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -37,38 +37,44 @@ dependencies = [
     "omegaconf >=2.0.0",
     "tqdm",
     "platformdirs",
+
     # scientific
-    "numpy<2.0",
+    "numpy==1.2.5",
     "scipy >=1.4",
     "pandas >=1.0",
     "scikit-learn",
     "fastparquet",
+
     # viz
     "matplotlib >=3.0.1",
     "seaborn",
+
     # cloud IO
     "fsspec >=2021.6",
     "s3fs >=2021.6",
     "gcsfs >=2021.6",
+
     # ML packages
     "lightning >=2.0",
     "torchmetrics >=0.7.0,<0.11",
     "ogb",
     "torch-geometric >=2.0",
-    "wandb",
+    "wandb >=0.18.5",
     "mup",
     "torch_sparse >=0.6",
     "torch_cluster >=1.5",
     "torch_scatter >=2.0",
+    
     # chemistry
     "datamol >=0.10",
     "hydra-core",
-    "rdkit"
+    "rdkit==2024.03.4"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest"
+    "pytest",
+
 ]
 
 [project.scripts]
