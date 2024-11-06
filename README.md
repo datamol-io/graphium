@@ -32,9 +32,23 @@ A deep learning library focused on graph representation learning for real-world 
 
 Visit https://graphium-docs.datamol.io/.
 
-## Installation for developers
+## Installation for users 
+### conda-forge
+conda-forge is the recommended method for installing Graphium. To install Graphium via conda-forge, run the following command:
+```
+conda install graphium
+```
 
-Use [`mamba`](https://github.com/mamba-org/mamba), a faster and better alternative to `conda`.
+Note: we recommend using [`mamba`](https://github.com/mamba-org/mamba) instead of `conda`. It is a faster and better alternative.
+
+### PyPi
+To install Graphium via PyPi, run the following command:
+```
+pip install graphium
+```
+Note: the latest available version of Graphium on PyPi is `2.4.7`. This is due to the addition of C++ code in version `3.0.0` that depends on packages only available via conda-forge. There are plans to eventually support Graphium `>=3.0.0` on PyPi.
+
+## Installation for developers
 
 If you are using a GPU, we recommend enforcing the CUDA version that you need with `CONDA_OVERRIDE_CUDA=XX.X`.
 
@@ -47,7 +61,7 @@ mamba env create -f env.yml -n graphium
 
 # Install Graphium in dev mode
 mamba activate graphium
-pip install --no-deps -e .
+pip install --no-deps --no-build-isolation -e .
 ```
 
 ## Training a model

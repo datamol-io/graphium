@@ -112,6 +112,9 @@ jobs:
 
       - name: Deploy the doc
         run: |
+          echo "Generating Graphium C++ docs"
+          doxygen Doxyfile
+
           echo "Get the gh-pages branch"
           git fetch origin gh-pages
 

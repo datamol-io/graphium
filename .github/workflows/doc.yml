@@ -45,6 +45,9 @@ jobs:
 
           echo "Auto-generating typer docs"
           typer graphium.cli.__main__ utils docs --name graphium --output docs/cli/graphium.md
+
+          echo "Generating Graphium C++ docs"
+          doxygen Doxyfile
           
           echo "Get the gh-pages branch"
           git fetch origin gh-pages
