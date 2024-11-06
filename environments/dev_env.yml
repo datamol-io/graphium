@@ -3,7 +3,7 @@ channels:
   # - pyg # Add for Windows
 
 dependencies:
-  - python ==3.10
+  - python=3.10
   - pip
   - typer
   - loguru
@@ -12,7 +12,7 @@ dependencies:
   - platformdirs
 
   # scientific
-  - numpy ==1.25.0
+  - numpy=1.25.0
   - scipy >=1.4
   - pandas >=1.0
   - scikit-learn
@@ -70,15 +70,9 @@ dependencies:
   - markdown-include
   - mike >=1.0.0
 
-  # graphium_cpp build dependencies
-  - pybind11
-  - librdkit-dev
-
   # Optional
   - pytdc
 
   - pip:
       - hydra-core>=1.3.2
       - hydra-optuna-sweeper
-      - setuptools-scm
-      - build
