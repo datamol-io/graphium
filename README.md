@@ -36,7 +36,7 @@ Visit https://graphium-docs.datamol.io/.
 ### conda-forge
 conda-forge is the recommended method for installing Graphium. To install Graphium via conda-forge, run the following command:
 ```
-conda install graphium
+mamba install graphium -c conda-forge
 ```
 
 Note: we recommend using [`mamba`](https://github.com/mamba-org/mamba) instead of `conda`. It is a faster and better alternative.
