@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['vectors_0',['vectors',['../struct_laplacian_data.html#a1550fb3eadd38e207c395f69966c6c2d',1,'LaplacianData']]]
+  ['unit_0',['UNIT',['../labels_8cpp.html#a27d9eab817696f157915b419b7b1c94baec8fc2c42b9c76effd648a14b311411f',1,'labels.cpp']]],
+  ['users_1',['Installation for users',['../index.html#autotoc_md2',1,'']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['types_0',['Types',['../struct_types.html',1,'']]]
+  ['spectral_2ecpp_0',['spectral.cpp',['../spectral_8cpp.html',1,'']]]
 ];

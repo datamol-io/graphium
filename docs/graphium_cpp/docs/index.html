@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Graphium C++: Main Page</title>
+<title>graphium_cpp: graphium_cpp</title>
 <link rel="icon" href="logo-mini-dark.png" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -27,9 +27,8 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="logo-mini-white-doxygen.png"/></td>
   <td id="projectalign">
-   <div id="projectname">Graphium C++<span id="projectnumber">&#160;3.0.0</span>
+   <div id="projectname">graphium_cpp<span id="projectnumber">&#160;3.0.0</span>
    </div>
-   <div id="projectbrief">C++ accelerations of Graphium&#39;s featurization and data loading processes</div>
   </td>
  </tr>
  </tbody>
@@ -86,10 +85,43 @@ $(function(){ initResizable(false); });
 </div>
 </div>
 
-<div class="header">
-  <div class="headertitle"><div class="title">Graphium C++ Documentation</div></div>
+<div><div class="header">
+  <div class="headertitle"><div class="title">graphium_cpp </div></div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p><a class="anchor" id="md_graphium_2graphium__cpp_2_r_e_a_d_m_e"></a> </p><div align="center"> <img src="../../images/banner-tight.png" alt="" height="200px" class="inline"/> <h3>C++ accelerations of <code>graphium</code>'s featurization and data loading processes</h3>
+</div><div align="center"> </div><hr  />
+<p>Welcome to the documentation for the C++ API of the <code>graphium</code> library. This API is used to:</p>
+<ul>
+<li>🏗️ Compute positional and structural encodings</li>
+<li>📁 Cache supervised labels into very light and optimized files</li>
+</ul>
+<p>This significantly accelerates dataloading and removes the need for long pre-processing of large datasets.</p>
+<h2><a class="anchor" id="autotoc_md1"></a>
+Python API Documentation</h2>
+<p>To view the documentation related to the Python API, visit <a href="https://graphium-docs.datamol.io/">https://graphium-docs.datamol.io/</a>.</p>
+<h2><a class="anchor" id="autotoc_md2"></a>
+Installation for users</h2>
+<p><code>graphium_cpp</code> is automatically included in the install of <code>graphium</code>. <code>graphium</code> can be installed via: </p><div class="fragment"><div class="line">mamba install graphium -c conda-forge</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md3"></a>
+Installation for developers</h2>
+<p>To install <code>graphium_cpp</code> (and <code>graphium</code>) locally, refer to these steps: </p><div class="fragment"><div class="line"># Install graphium&#39;s dependencies in a new environment named `graphium`</div>
+<div class="line">mamba env create -f env.yml -n graphium</div>
+<div class="line"> </div>
+<div class="line"># To force the CUDA version to 11.2, or any other version you prefer, use the following command:</div>
+<div class="line"># CONDA_OVERRIDE_CUDA=11.2 mamba env create -f env.yml -n graphium</div>
+<div class="line"> </div>
+<div class="line"># Activate the mamba environment containing graphium&#39;s dependencies</div>
+<div class="line">mamba activate graphium</div>
+<div class="line"> </div>
+<div class="line"># Install graphium in dev mode</div>
+<div class="line">pip install --no-deps --no-build-isolation -e .</div>
+<div class="line"> </div>
+<div class="line"># On every change to graphium_cpp code, reinstall the package</div>
+<div class="line">pip install --no-deps --no-build-isolation -e .</div>
+</div><!-- fragment --><p>Please ensure you reinstall <code>graphium</code> when you make changes to the C++ code of <code>graphium_cpp</code>. This will automatically recompile the extension and make your changes available for use in <code>graphium</code>.</p>
+<p>If you are introducing new files or libraries to <code>graphium_cpp</code>, please ensure you update <code>graphium</code>'s <code>setup.py</code> file accordingly. </p>
+</div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"/>
 </div><!-- contents -->
 <!-- start footer part -->

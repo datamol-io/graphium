@@ -1,10 +1,7 @@
 var searchData=
 [
-  ['neighbordata_0',['NeighborData',['../struct_neighbor_data.html',1,'']]],
-  ['none_1',['NONE',['../labels_8cpp.html#a27d9eab817696f157915b419b7b1c94bab50339a10e1de285ac99d4c3990b8693',1,'labels.cpp']]],
-  ['normal_2',['NORMAL',['../labels_8cpp.html#a27d9eab817696f157915b419b7b1c94ba1e23852820b9154316c7c06e2b7ba051',1,'labels.cpp']]],
-  ['normalization_3',['normalization',['../struct_laplacian_data.html#a5283562b43d7e3fb404f0966e12bea52',1,'LaplacianData']]],
-  ['normalizationmethod_4',['NormalizationMethod',['../labels_8cpp.html#a27d9eab817696f157915b419b7b1c94b',1,'labels.cpp']]],
-  ['normalizationoptions_5',['NormalizationOptions',['../struct_normalization_options.html',1,'']]],
-  ['num_5fmols_5fper_5ffile_6',['num_mols_per_file',['../labels_8cpp.html#a76fd3c41fa982bb1ab70141e3a1f4be6',1,'labels.cpp']]]
+  ['matrix_5ftemp_0',['matrix_temp',['../struct_laplacian_data.html#a39fb8504f32d8b44198d05551a1a76c7',1,'LaplacianData']]],
+  ['molbriefdata_1',['MolBriefData',['../struct_mol_brief_data.html',1,'']]],
+  ['molkey_2',['MolKey',['../struct_mol_key.html',1,'']]],
+  ['multiply_5fdense_5fby_5fsparse_3',['multiply_dense_by_sparse',['../random__walk_8cpp.html#a8b5350b6dcc243a32c0f4eb2fbf11a72',1,'random_walk.cpp']]]
 ];
