@@ -118,8 +118,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:pytorch_lightning.*:",
     "ignore::DeprecationWarning:pkg_resources.*:",
 ]
-markers = [
-]
 
 [tool.coverage.run]
 source = ["graphium/"]
