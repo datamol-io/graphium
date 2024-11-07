@@ -11,6 +11,9 @@ on:
   schedule:
     - cron: "0 4 * * *"
 
+env:
+  ENV_FILE: env.yml
+
 jobs:
   test:
     strategy:
@@ -35,10 +38,16 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
+      - name: Set OS-specific environment vriable
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then 
+            echo "ENV_FILE=env_windows.yml" >> $GITHUB_ENV;
+          fi
+
       - name: Setup mamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: env.yml
+          environment-file: ${{ env.ENV_FILE }}
           environment-name: graphium
           cache-environment: true
           cache-downloads: true
