@@ -25,16 +25,16 @@ mamba install graphium -c conda-forge
 ## Installation for developers 
 To install `graphium_cpp` (and `graphium`) locally, refer to these steps:
 ```
-# Install graphium's dependencies in a new environment named `graphium`
+# Install Graphium's dependencies in a new environment named `graphium`
 mamba env create -f env.yml -n graphium
 
 # To force the CUDA version to 11.2, or any other version you prefer, use the following command:
 # CONDA_OVERRIDE_CUDA=11.2 mamba env create -f env.yml -n graphium
 
-# Activate the mamba environment containing graphium's dependencies
+# Activate the mamba environment containing Graphium's dependencies
 mamba activate graphium
 
-# Install graphium in dev mode
+# Install Graphium in dev mode
 pip install --no-deps --no-build-isolation -e .
 
 # On every change to graphium_cpp code, reinstall the package

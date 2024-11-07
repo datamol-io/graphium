@@ -59,7 +59,7 @@ mamba env create -f env.yml -n graphium
 # To force the CUDA version to 11.2, or any other version you prefer, use the following command:
 # CONDA_OVERRIDE_CUDA=11.2 mamba env create -f env.yml -n graphium
 
-# Activate the mamba environment containing graphium's dependencies
+# Activate the mamba environment containing Graphium's dependencies
 mamba activate graphium
 
 # Install Graphium in dev mode

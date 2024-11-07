@@ -13,9 +13,11 @@ Use [`mamba`](https://github.com/mamba-org/mamba), a preferred alternative to co
 # Install Graphium's dependencies in a new environment named `graphium`
 mamba env create -f env.yml -n graphium
 
-# Install Graphium in dev mode
+# Activate the mamba environment containing graphium's dependencies
 mamba activate graphium
-pip install --no-deps -e .
+
+# Install Graphium in dev mode
+pip install --no-deps --no-build-isolation -e .
 ```
 
 ## Build the documentation
@@ -24,5 +26,6 @@ You can build and serve the documentation locally with:
 
 ```bash
 # Build and serve the doc
+doxygen Doxyfile
 mkdocs serve
 ```

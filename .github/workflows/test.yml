@@ -52,7 +52,7 @@ jobs:
             pytorch=${{ matrix.pytorch-version }}
 
       - name: Install library
-        run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
+        run: python -m pip install --no-deps --no-build-isolation -e . # `-e` required for correct `coverage` run.
 
       - name: Install test dependencies
         run: micromamba install -c conda-forge pytdc  # Required to run the `test_finetuning.py`

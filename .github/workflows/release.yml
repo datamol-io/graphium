@@ -99,7 +99,7 @@ jobs:
           git push origin "${{ inputs.release-version }}"
 
       - name: Install library
-        run: python -m pip install --no-deps .
+        run: python -m pip install --no-deps --no-build-isolation .
 
       - name: Build the wheel and sdist
         run: python -m build --no-isolation

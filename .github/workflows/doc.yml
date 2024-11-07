@@ -32,7 +32,7 @@ jobs:
 
       - name: Install library
         run: |
-          python -m pip install --no-deps .
+          python -m pip install --no-deps --no-build-isolation .
           pip install typer-cli
 
       - name: Configure git
