@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 r"""Data classes to group together related arguments for the creation of a Predictor Module."""
 
 
@@ -30,6 +29,7 @@ from inspect import signature, isclass
 
 from torch import nn
 
+
 @dataclass
 class ModelOptions:
     r"""
@@ -42,6 +42,7 @@ class ModelOptions:
         model_kwargs:
             Key-word arguments used to initialize the model from `model_class`.
     """
+
     model_class: Type[nn.Module]
     model_kwargs: Dict[str, Any]
 
@@ -78,6 +79,7 @@ class OptimOptions:
         scheduler_class: The class to use for the scheduler, or the str representing the scheduler.
 
     """
+
     optim_kwargs: Optional[Dict[str, Any]] = None
     torch_scheduler_kwargs: Optional[Dict[str, Any]] = None
     scheduler_kwargs: Optional[Dict[str, Any]] = None
@@ -114,6 +116,7 @@ class OptimOptions:
         if self.scheduler_class is None:
             if isinstance(scheduler_class, str):
                 from graphium.utils.spaces import SCHEDULER_DICT
+
                 self.scheduler_class = SCHEDULER_DICT[scheduler_class]
             elif isclass(scheduler_class):
                 self.scheduler_class = scheduler_class
@@ -154,6 +157,7 @@ class EvalOptions:
             If `None`, all the metrics are computed. Using less metrics can significantly improve
             performance, depending on the number of readouts.
     """
+
     loss_fun: Union[str, Dict, Callable]
     metrics: Dict[str, Callable] = None
     metrics_on_progress_bar: List[str] = field(default_factory=List[str])
@@ -193,7 +197,7 @@ class EvalOptions:
                 Function or callable to compute the loss, takes `preds` and `targets` as inputs.
         """
 
-        from graphium.utils.spaces import LOSS_DICT # Avoiding circular imports with `spaces.py`
+        from graphium.utils.spaces import LOSS_DICT  # Avoiding circular imports with `spaces.py`
 
         if isinstance(loss_fun, str):
             if loss_fun not in LOSS_DICT.keys():
@@ -238,6 +242,7 @@ class FlagOptions:
 
             - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
     """
+
     flag_kwargs: Dict[str, Any] = None
 
     # Set the parameters and default values for the FLAG adversarial augmentation, and check values

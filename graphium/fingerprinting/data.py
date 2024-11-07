@@ -11,7 +11,12 @@ from pytorch_lightning import LightningDataModule
 
 from torch.utils.data import Dataset, DataLoader
 
-from graphium.data.datamodule import BaseDataModule, MultitaskFromSmilesDataModule, TDCBenchmarkDataModule, DatasetProcessingParams
+from graphium.data.datamodule import (
+    BaseDataModule,
+    MultitaskFromSmilesDataModule,
+    TDCBenchmarkDataModule,
+    DatasetProcessingParams,
+)
 from graphium.trainer.predictor import PredictorModule
 from graphium.fingerprinting.fingerprinter import Fingerprinter
 
@@ -19,17 +24,18 @@ from graphium.fingerprinting.fingerprinter import Fingerprinter
 class FingerprintDataset(Dataset):
     """
     Dataset class for fingerprints useful for probing experiments.
-    
+
     Parameters:
         labels: Labels for the dataset.
         fingerprints: Dictionary of fingerprints, where keys specify model and layer of extraction.
         smiles: List of SMILES strings.
     """
+
     def __init__(
-            self,
-            labels: torch.Tensor,
-            fingerprints: Dict[str, torch.Tensor],
-            smiles: List[str] = None,
+        self,
+        labels: torch.Tensor,
+        fingerprints: Dict[str, torch.Tensor],
+        smiles: List[str] = None,
     ):
         self.labels = labels
         self.fingerprints = fingerprints
@@ -70,6 +76,7 @@ class FingerprintDatamodule(LightningDataModule):
         fps_cache_dir: Directory to cache the fingerprints in
 
     """
+
     def __init__(
         self,
         pretrained_models: Dict[str, List[str]],
@@ -118,11 +125,11 @@ class FingerprintDatamodule(LightningDataModule):
 
         self.splits = []
 
-    def prepare_data(self) -> None:  
+    def prepare_data(self) -> None:
         if self.fps_cache_dir is not None and os.path.exists(f"{self.fps_cache_dir}/fps.pt"):
             self.smiles, self.labels, self.fps_dict = torch.load(f"{self.fps_cache_dir}/fps.pt").values()
             self.splits = list(self.smiles.keys())
-        
+
         else:
             # Check which splits are needed
             self.splits = []
@@ -146,22 +153,27 @@ class FingerprintDatamodule(LightningDataModule):
 
                 # Featurization
                 if self.benchmark is None:
-                    assert self.df_path is not None, "df_path must be provided if not using an integrated benchmark"
+                    assert (
+                        self.df_path is not None
+                    ), "df_path must be provided if not using an integrated benchmark"
 
                     # Add a dummy task column (filled with NaN values) in case no such column is provided
                     base_datamodule = BaseDataModule()
                     smiles_df = base_datamodule._read_table(self.df_path)
                     task_cols = [col for col in smiles_df if col.startswith("task_")]
                     if len(task_cols) == 0:
-                        df_path, file_type = ".".join(self.df_path.split(".")[:-1]), self.df_path.split(".")[-1]
-                        
+                        df_path, file_type = (
+                            ".".join(self.df_path.split(".")[:-1]),
+                            self.df_path.split(".")[-1],
+                        )
+
                         smiles_df["task_dummy"] = np.nan
-                        
+
                         if file_type == "parquet":
                             smiles_df.to_parquet(f"{df_path}_with_dummy_task_col.{file_type}", index=False)
                         else:
                             smiles_df.to_csv(f"{df_path}_with_dummy_task_col.{file_type}", index=False)
-                        
+
                         self.df_path = f"{df_path}_with_dummy_task_col.{file_type}"
 
                     task_specific_args = {
@@ -197,7 +209,7 @@ class FingerprintDatamodule(LightningDataModule):
                         processed_graph_data_path=f"{self.mol_cache_dir}/mols/",
                     )
                     label_key = f"graph_{self.task}"
-                
+
                 else:
                     raise ValueError(f"Invalid benchmark: {self.benchmark}")
 
@@ -207,13 +219,19 @@ class FingerprintDatamodule(LightningDataModule):
                 loader_dict = {}
                 if "train" in self.splits:
                     datamodule.train_ds.return_smiles = True
-                    loader_dict["train"] = datamodule.get_dataloader(datamodule.train_ds, shuffle=False, stage="predict")
+                    loader_dict["train"] = datamodule.get_dataloader(
+                        datamodule.train_ds, shuffle=False, stage="predict"
+                    )
                 if "valid" in self.splits:
                     datamodule.val_ds.return_smiles = True
-                    loader_dict["valid"] = datamodule.get_dataloader(datamodule.val_ds, shuffle=False, stage="predict")
+                    loader_dict["valid"] = datamodule.get_dataloader(
+                        datamodule.val_ds, shuffle=False, stage="predict"
+                    )
                 if "test" in self.splits:
                     datamodule.test_ds.return_smiles = True
-                    loader_dict["test"] = datamodule.get_dataloader(datamodule.test_ds, shuffle=False, stage="predict")
+                    loader_dict["test"] = datamodule.get_dataloader(
+                        datamodule.test_ds, shuffle=False, stage="predict"
+                    )
 
                 for split, loader in loader_dict.items():
                     if len(self.data["smiles"][split]) == 0:
@@ -241,7 +259,7 @@ class FingerprintDatamodule(LightningDataModule):
         fp_dict = next(iter(self.fps_dict.values()))
 
         return [fp.size(1) for fp in fp_dict.values()]
-    
+
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True)
 

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the file graphium/trainer/predictor.py
 """
@@ -24,8 +23,9 @@ import unittest as ut
 
 from graphium.trainer.predictor_summaries import MultiTaskSummary, STDMetric, GradientNormMetric
 
+
 class SimpleNN(nn.Module):
-# Define a simple neural network with 2 layers
+    # Define a simple neural network with 2 layers
     def __init__(self, in_dim=10, out_dim=1):
         super(SimpleNN, self).__init__()
         torch.random.manual_seed(42)
@@ -42,7 +42,7 @@ class SimpleNN(nn.Module):
         # Pass the output of the first layer through the second layer
         x = self.layer2(x)
         return x
-    
+
 
 class SimpleDictNN(nn.Module):
     def __init__(self, task_list, in_dim=10, out_dim=1):
@@ -70,10 +70,11 @@ def simple_nn_grad_step(model, inputs, targets):
     optimizer.step()
     return model
 
+
 class test_TaskSummary(ut.TestCase):
 
     def test_std_metric(self):
-            
+
         # Generate random data
         torch.random.manual_seed(42)
         rand = torch.rand(100, 1)
@@ -108,16 +109,16 @@ class test_TaskSummary(ut.TestCase):
         self.assertAlmostEqual(std_metric_val.item(), expected_std.item(), places=5)
 
         # Add some nans
-        rand[[3, 5, 11, 23, 42, 56, 78, 99]] = float('nan')
+        rand[[3, 5, 11, 23, 42, 56, 78, 99]] = float("nan")
         expected_std = torch.std(rand[~rand.isnan()], correction=0)
 
-        std_metric = STDMetric(nan_strategy='ignore', correction=0)
+        std_metric = STDMetric(nan_strategy="ignore", correction=0)
         std_metric.update(rand)
         std_metric_val = std_metric.compute()
         std_metric.reset()
 
         self.assertAlmostEqual(std_metric_val.item(), expected_std.item(), places=5)
-        
+
     def test_gradient_norm_metric(self):
 
         # Generate random data
@@ -169,7 +170,6 @@ class test_TaskSummary(ut.TestCase):
             dict2[key] = round(dict2[key].item(), places)
         self.assertDictEqual(dict1, dict2)
 
-
     def test_multi_task_summary(self):
 
         # Generate random data
@@ -180,9 +180,9 @@ class test_TaskSummary(ut.TestCase):
         preds = {f"task{i+1}": preds[:, i] for i in range(preds.shape[1])}
 
         task_metrics = {
-            "task1": {'mae': MeanAbsoluteError(), 'pearson': PearsonCorrCoef()},
-            "task2": {'pearson': PearsonCorrCoef()},
-            "task3": {'mae': MeanAbsoluteError()}
+            "task1": {"mae": MeanAbsoluteError(), "pearson": PearsonCorrCoef()},
+            "task2": {"pearson": PearsonCorrCoef()},
+            "task3": {"mae": MeanAbsoluteError()},
         }
 
         expected_dict = {}
@@ -192,7 +192,6 @@ class test_TaskSummary(ut.TestCase):
                 expected_val = metric.compute()
                 metric.reset()
                 expected_dict[f"{task}/{metric_name}/val"] = expected_val
-        
 
         # Test the metrics on validation step
         summary_val = MultiTaskSummary(task_metrics, step_name="val", compute_mean=False, compute_std=False)
@@ -214,7 +213,7 @@ class test_TaskSummary(ut.TestCase):
         targets2 = {key: targets[key][10:25] for key in targets.keys()}
         preds3 = {key: preds[key][25:] for key in preds.keys()}
         targets3 = {key: targets[key][25:] for key in targets.keys()}
-        
+
         summary_val.update(preds1, targets1)
         summary_val.update(preds2, targets2)
         summary_val.update(preds3, targets3)
@@ -243,14 +242,26 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mean_std, places=5)
 
         # Test the training step doesn't return anything when no metrics on training set are selected
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=None, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(
+            task_metrics,
+            step_name="train",
+            task_metrics_on_training_set=None,
+            compute_mean=False,
+            compute_std=False,
+        )
         summary_train.update(preds, targets)
         summary_train = summary_train.compute()
         self.assertDictEqual(summary_train, {})
 
         # Test the training step returns only the mae
         task_metrics_on_training_set = {"task1": ["mae"], "task2": None, "task3": "mae"}
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(
+            task_metrics,
+            step_name="train",
+            task_metrics_on_training_set=task_metrics_on_training_set,
+            compute_mean=False,
+            compute_std=False,
+        )
         summary_train.update(preds, targets)
         summary_dict = summary_train.compute()
         expected_dict_mae = {key: value for key, value in expected_dict.items() if "mae" in key}
@@ -258,7 +269,13 @@ class test_TaskSummary(ut.TestCase):
         self.assertDictTensorAlmostEqual(summary_dict, expected_dict_mae, places=5)
 
         # Test the training step returns only the mae with multiple steps
-        summary_train = MultiTaskSummary(task_metrics, step_name="train", task_metrics_on_training_set=task_metrics_on_training_set, compute_mean=False, compute_std=False)
+        summary_train = MultiTaskSummary(
+            task_metrics,
+            step_name="train",
+            task_metrics_on_training_set=task_metrics_on_training_set,
+            compute_mean=False,
+            compute_std=False,
+        )
         summary_train.update(preds1, targets1)
         summary_train.update(preds2, targets2)
         summary_train.update(preds3, targets3)

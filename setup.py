@@ -25,12 +25,12 @@ rdkit_prefix = "/".join(rdkit.__path__[0].split("/")[:rdkit_lib_index])
 
 system = platform.system()
 package_compile_args = [
-            "-O3",
-            "-Wall",
-            "-Wmissing-field-initializers",
-            "-Wmaybe-uninitialized",
-            "-Wuninitialized",
-        ]
+    "-O3",
+    "-Wall",
+    "-Wmissing-field-initializers",
+    "-Wmaybe-uninitialized",
+    "-Wuninitialized",
+]
 if system == "Darwin":
     package_compile_args.append("-mmacosx-version-min=10.15")
 elif system == "Windows":
@@ -58,7 +58,7 @@ ext_modules = [
             os.path.join(torch_dir, "include/torch/csrc/api/include"),
             os.path.join(rdkit_prefix, "include/rdkit"),
             os.path.join(rdkit_prefix, "include/boost"),
-            numpy.get_include()
+            numpy.get_include(),
         ],
         libraries=[
             "RDKitAlignment",
@@ -80,10 +80,10 @@ ext_modules = [
             "RDKitSubstructMatch",
             "torch_cpu",
             "torch_python",
-            f"boost_python{python_version}"
+            f"boost_python{python_version}",
         ],
         library_dirs=[os.path.join(rdkit_prefix, "lib"), os.path.join(torch_dir, "lib")],
-        extra_compile_args=package_compile_args
+        extra_compile_args=package_compile_args,
     )
 ]
 

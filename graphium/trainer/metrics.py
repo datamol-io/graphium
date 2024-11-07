@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Union, Callable, Optional, Dict, Any, Literal, List, Tuple
 
 import sys
@@ -135,27 +134,30 @@ class Thresholder:
         return all(is_eq)
 
 
-def _filter_nans(preds: Tensor, target: Tensor, target_nan_mask: Union[Literal[None, "none", "ignore"], int]) -> Tuple[Tensor, Tensor]:
+def _filter_nans(
+    preds: Tensor, target: Tensor, target_nan_mask: Union[Literal[None, "none", "ignore"], int]
+) -> Tuple[Tensor, Tensor]:
     """Handle the NaNs according to the chosen options"""
 
-    if target_nan_mask is None: # No NaN handling
+    if target_nan_mask is None:  # No NaN handling
         return preds, target
-    
+
     if target.dtype in [torch.int, torch.int16, torch.int32, torch.int64, torch.int8]:
         target_nans = (torch.iinfo(target.dtype).min == target) | (torch.iinfo(target.dtype).max == target)
     else:
         target_nans = torch.isnan(target)
-    if ~target_nans.any(): # No NaNs
+    if ~target_nans.any():  # No NaNs
         return preds, target
-    elif isinstance(target_nan_mask, (int, float)): # Replace NaNs
+    elif isinstance(target_nan_mask, (int, float)):  # Replace NaNs
         target = target.clone()
         target[target_nans] = target_nan_mask
-    elif target_nan_mask == "ignore": # Remove NaNs
+    elif target_nan_mask == "ignore":  # Remove NaNs
         target = target[~target_nans]
         preds = preds[~target_nans]
     else:
         raise ValueError(f"Invalid option `{target_nan_mask}`")
     return preds, target
+
 
 class MetricWrapper:
     r"""
@@ -226,33 +228,39 @@ class MetricWrapper:
         self.target_to_int = target_to_int
         self.kwargs = kwargs
 
-        self.metric, self.kwargs = self._initialize_metric(metric_class, self.target_nan_mask, self.multitask_handling, **self.kwargs)
+        self.metric, self.kwargs = self._initialize_metric(
+            metric_class, self.target_nan_mask, self.multitask_handling, **self.kwargs
+        )
 
     @staticmethod
     def _initialize_metric(metric, target_nan_mask, multitask_handling, **kwargs):
         r"""
         Initialize the metric with the provided kwargs
         """
-    
+
         if not isinstance(metric, type):
             if callable(metric):
                 metric = MetricToConcatenatedTorchMetrics(
                     metric_fn=metric,
-                    target_nan_mask=target_nan_mask, 
-                    multitask_handling=multitask_handling, 
-                    **kwargs)
+                    target_nan_mask=target_nan_mask,
+                    multitask_handling=multitask_handling,
+                    **kwargs,
+                )
                 return metric, kwargs
             elif all(hasattr(metric, method) for method in ["update", "compute", "reset", "to"]):
                 return metric, kwargs
             else:
-                raise ValueError(f"metric must be a callable, or a class with 'update', 'compute', 'reset', 'to', provided: `{type(metric)}`")
-        
+                raise ValueError(
+                    f"metric must be a callable, or a class with 'update', 'compute', 'reset', 'to', provided: `{type(metric)}`"
+                )
+
         metric = metric(**kwargs)
         if not all(hasattr(metric, method) for method in ["update", "compute", "reset", "to"]):
-            raise ValueError(f"metric must be a callable, or a class with 'update', 'compute', 'reset', 'to', provided: `{type(metric)}`")
+            raise ValueError(
+                f"metric must be a callable, or a class with 'update', 'compute', 'reset', 'to', provided: `{type(metric)}`"
+            )
 
         return metric, kwargs
-
 
     @staticmethod
     def _parse_target_nan_mask(target_nan_mask):
@@ -320,16 +328,18 @@ class MetricWrapper:
             metric_name = None
             metric = metric
         return metric, metric_name
-    
+
     @staticmethod
     def _ipu_metrics_name_conversion(metric, warning=True):
         r"""
         Convert the metric name from the removed ipu metrics to the regular torchmetrics metrics
         """
         metric_name = metric
-        if metric_name.endswith("_ipu"): # For backward compatibility when loading models with metrics for ipu
+        if metric_name.endswith(
+            "_ipu"
+        ):  # For backward compatibility when loading models with metrics for ipu
             metric_name = metric_name[:-4]
-            if metric_name == "average_precision": # A previous typo in the `spaces.py`
+            if metric_name == "average_precision":  # A previous typo in the `spaces.py`
                 metric_name = "averageprecision"
             if warning:
                 logger.warning(f"Using the metric `{metric_name}` instead of `{metric}`")
@@ -359,7 +369,7 @@ class MetricWrapper:
         else:
             classifigression = False
 
-        if (self.multitask_handling is None):
+        if self.multitask_handling is None:
             # In case of no multi-task handling, apply the nan filtering, then compute the metrics
             assert (
                 self.target_nan_mask != "ignore"
@@ -370,7 +380,6 @@ class MetricWrapper:
             if self.target_to_int:
                 target = target.to(int)
             self.metric.update(preds, target)
-
 
         elif self.multitask_handling == "flatten":
             # Flatten the tensors, apply the nan filtering, then compute the metrics
@@ -393,7 +402,7 @@ class MetricWrapper:
             if self.target_to_int:
                 target = target.to(int)
             self.metric.update(preds, target)
-        
+
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
             target_list = [target[..., ii] for ii in range(target.shape[-1])]
@@ -466,7 +475,6 @@ class MetricWrapper:
             return self.metric[0].device
         return self.metric.device
 
-
     def _filter_nans(self, preds: Tensor, target: Tensor) -> Tuple[Tensor, Tensor]:
         """Handle the NaNs according to the chosen options"""
 
@@ -525,11 +533,14 @@ class MetricWrapper:
         if thresholder is not None:
             thresholder = Thresholder(**thresholder)
         state["thresholder"] = thresholder
-        state["metric"], state["at_compute_kwargs"] = self._initialize_metric(state["metric"], state["target_nan_mask"], state["multitask_handling"], **state["kwargs"])
+        state["metric"], state["at_compute_kwargs"] = self._initialize_metric(
+            state["metric"], state["target_nan_mask"], state["multitask_handling"], **state["kwargs"]
+        )
 
         self.__dict__.update(state)
 
-class LossWrapper():
+
+class LossWrapper:
     r"""
     A simple wrapper to convert any metric or loss to an equivalent of `torchmetrics.Metric`
     by adding the `update`, `compute`, and `reset` methods to make it compatible with `MetricWrapper`.
@@ -549,7 +560,7 @@ class LossWrapper():
         elif len(self.scores) == 1:
             return self.scores[0]
         return nan_mean(torch.stack(self.scores))
-    
+
     def to(self, device: Union[str, torch.device]):
         for ii in range(len(self.scores)):
             self.scores[ii] = self.scores[ii].to(device)
@@ -570,6 +581,7 @@ class MetricToMeanTorchMetrics(Metric):
     However, it is limited in functionality. At each `.update()`, it computes the metric and stores in a list.
     Then at `.compute()` it returns the average of the computed metric, while ignoring NaNs.
     """
+
     scores: List[Tensor] = []
 
     def __init__(self, metric_fn):
@@ -590,52 +602,53 @@ class MetricToMeanTorchMetrics(Metric):
 
 class MetricToConcatenatedTorchMetrics(Metric):
 
-    preds: List[Tensor] # Always on CPU
-    target: List[Tensor] # Always on CPU
+    preds: List[Tensor]  # Always on CPU
+    target: List[Tensor]  # Always on CPU
 
-    def __init__(self, 
-                    metric_fn: Callable,
-                    target_nan_mask: Union[Literal[None, "none", "ignore"], int] = None,
-                    multitask_handling: Literal[None, "none", "flatten", "mean-per-label"] = None,
-                    **kwargs,
-                 ):
+    def __init__(
+        self,
+        metric_fn: Callable,
+        target_nan_mask: Union[Literal[None, "none", "ignore"], int] = None,
+        multitask_handling: Literal[None, "none", "flatten", "mean-per-label"] = None,
+        **kwargs,
+    ):
         r"""
-            A wrapper around the `torchmetrics.Metric` to handle the saving and syncing of `preds` and `target` tensors,
-            and moving them to the CPU.
-            This is useful for certain metrics that require to save all preds and targets, such as auroc and average_precision.
-            Otherwise, if using `MetricWrapper` with the option `mean-per-label`, the `preds` and `target` would be
-            duplicated for each label, causing major memory spikes. 
-            On top of that, all preds and targets would be on the GPU, which would cause the memory to increase at every step, 
-            and potentially lead to out-of-memory before the end of the epoch.
+        A wrapper around the `torchmetrics.Metric` to handle the saving and syncing of `preds` and `target` tensors,
+        and moving them to the CPU.
+        This is useful for certain metrics that require to save all preds and targets, such as auroc and average_precision.
+        Otherwise, if using `MetricWrapper` with the option `mean-per-label`, the `preds` and `target` would be
+        duplicated for each label, causing major memory spikes.
+        On top of that, all preds and targets would be on the GPU, which would cause the memory to increase at every step,
+        and potentially lead to out-of-memory before the end of the epoch.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-            metric_fn:
-                The metric function to use. This function should take `preds` and `target` as input, and return a scalar value.
+        metric_fn:
+            The metric function to use. This function should take `preds` and `target` as input, and return a scalar value.
 
-            target_nan_mask:
-                - None: Do not change behaviour if there are NaNs
+        target_nan_mask:
+            - None: Do not change behaviour if there are NaNs
 
-                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
-                  all NaNs will be replaced by zeros
+            - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+              all NaNs will be replaced by zeros
 
-                - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
-                  Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
+            - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+              Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
 
-            multitask_handling:
-                - None: Do not process the tensor before passing it to the metric.
-                  Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
-                  Use either 'flatten' or 'mean-per-label'.
+        multitask_handling:
+            - None: Do not process the tensor before passing it to the metric.
+              Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+              Use either 'flatten' or 'mean-per-label'.
 
-                - 'flatten': Flatten the tensor to produce the equivalent of a single task
+            - 'flatten': Flatten the tensor to produce the equivalent of a single task
 
-                - 'mean-per-label': Loop all the labels columns, process them as a single task,
-                    and average the results over each task
-                  *This option might slow down the computation if there are too many labels*
+            - 'mean-per-label': Loop all the labels columns, process them as a single task,
+                and average the results over each task
+              *This option might slow down the computation if there are too many labels*
 
         """
-                 
+
         super().__init__(compute_on_cpu=True, dist_sync_on_step=False, sync_on_compute=False)
         self.metric_fn = metric_fn
         self.target_nan_mask = target_nan_mask
@@ -665,7 +678,7 @@ class MetricToConcatenatedTorchMetrics(Metric):
 
         if (self.multitask_handling is None) or (self.multitask_handling in ["none", "flatten"]):
             preds, target = _filter_nans(preds, target, self.target_nan_mask)
-            value = self.metric_fn(preds, target,  **self.kwargs)
+            value = self.metric_fn(preds, target, **self.kwargs)
 
         elif self.multitask_handling == "mean-per-label":
             value = []
@@ -674,7 +687,9 @@ class MetricToConcatenatedTorchMetrics(Metric):
             preds_list = [preds[..., ii] for ii in range(preds.shape[-1])]
             for ii in range(len(target_list)):
                 try:
-                    this_preds, this_target = _filter_nans(preds_list[ii], target_list[ii], self.target_nan_mask)
+                    this_preds, this_target = _filter_nans(
+                        preds_list[ii], target_list[ii], self.target_nan_mask
+                    )
                     value.append(self.metric_fn(this_preds, this_target, **self.kwargs))
                 except:
                     pass
@@ -683,7 +698,7 @@ class MetricToConcatenatedTorchMetrics(Metric):
             # Wrong option
             raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
         return value
-    
+
     def to(self, device: Union[str, torch.device]):
         """
         Disables the moving of the metric to another device. Stays on CPU to avoid overflow.
@@ -693,25 +708,26 @@ class MetricToConcatenatedTorchMetrics(Metric):
             return
         if not self._to_device_warned:
             self._to_device_warned = True
-            logger.warning(f"{self.get_obj_name(self)}({self.get_obj_name(self.metric_fn)}) stays on `{self.device}`, won't move to `{device}`")
-        
+            logger.warning(
+                f"{self.get_obj_name(self)}({self.get_obj_name(self.metric_fn)}) stays on `{self.device}`, won't move to `{device}`"
+            )
+
     @staticmethod
     def get_obj_name(obj):
         """
         Returns the name of a function, class, or instance of a class.
-        
+
         Parameters:
         - obj: The object to get the name of.
-        
+
         Returns:
         - The name of the object as a string.
         """
         # If the object is a class or function, return its __name__
-        if hasattr(obj, '__name__'):
+        if hasattr(obj, "__name__"):
             return obj.__name__
         # If the object is an instance of a class, return its class's __name__
-        elif hasattr(obj, '__class__'):
+        elif hasattr(obj, "__class__"):
             return obj.__class__.__name__
         else:
             return str(obj)  # Fallback to converting the object to string
-

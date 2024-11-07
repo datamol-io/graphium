@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
 from typing import Any, Callable, Dict, List, Optional, Union, Literal, Iterable, Set
@@ -38,7 +37,7 @@ class SummaryInterface(object):
 
     def compute(self, **kwargs) -> Tensor:
         raise NotImplementedError()
-    
+
     def reset(self) -> None:
         raise NotImplementedError()
 
@@ -115,7 +114,7 @@ class SingleTaskSummary(SummaryInterface):
             self.metrics_on_training_set.update(["std_preds", "std_target"])
 
         self._cached_metrics: Dict[str, Tensor] = {}
-        self._logged_warnings: Set[str] = set() # Set to track which metrics have been logged
+        self._logged_warnings: Set[str] = set()  # Set to track which metrics have been logged
         self._device: torch.device = None
 
     @property
@@ -138,7 +137,9 @@ class SingleTaskSummary(SummaryInterface):
         all_metrics = set(self.metrics.keys())
         filter = set(filter)
         if not filter.issubset(all_metrics):
-            raise ValueError(f"metrics_to_use must be a subset of the metrics. Got {filter - all_metrics}, available {all_metrics}")
+            raise ValueError(
+                f"metrics_to_use must be a subset of the metrics. Got {filter - all_metrics}, available {all_metrics}"
+            )
 
         return filter
 
@@ -155,9 +156,9 @@ class SingleTaskSummary(SummaryInterface):
 
             return metrics_to_use
         return self.metrics
-    
+
     @staticmethod
-    def _update(metric_key:str, metric_obj, preds: Tensor, targets: Tensor) -> None:
+    def _update(metric_key: str, metric_obj, preds: Tensor, targets: Tensor) -> None:
         r"""
         update the state of the metrics
         Parameters:
@@ -182,7 +183,6 @@ class SingleTaskSummary(SummaryInterface):
         else:
             raise ValueError(f"Metric {metric_key} update method signature `{varnames}` is not recognized.")
 
-
     def update(self, preds: Tensor, targets: Tensor) -> None:
         r"""
         update the state of the metrics
@@ -204,9 +204,10 @@ class SingleTaskSummary(SummaryInterface):
                 if err_msg not in self._logged_warnings:
                     logger.warning(err_msg)
                     self._logged_warnings.add(err_msg)
-                
 
-    def _compute(self, metrics_to_use: Optional[Union[List[str], Dict[str, Any]]] = None) -> Dict[str, Tensor]:
+    def _compute(
+        self, metrics_to_use: Optional[Union[List[str], Dict[str, Any]]] = None
+    ) -> Dict[str, Tensor]:
 
         # Parse the metrics to use
         if metrics_to_use is None:
@@ -215,7 +216,7 @@ class SingleTaskSummary(SummaryInterface):
             metrics_to_use = list(metrics_to_use.keys())
         else:
             raise ValueError(f"metrics_to_use must be a list or a dictionary. Got {type(metrics_to_use)}")
-        
+
         self.last_metrics_exceptions = []  # Reset the exceptions for this step
 
         # Compute the metrics
@@ -246,7 +247,7 @@ class SingleTaskSummary(SummaryInterface):
         self._cached_metrics = computed_metrics
 
         return computed_metrics
-    
+
     def reset(self) -> None:
         r"""
         reset the state of the metrics
@@ -258,7 +259,9 @@ class SingleTaskSummary(SummaryInterface):
                 metric_name = self.metric_log_name(metric_key)
                 # Skip error if the message is `AttributeError: 'Tensor' object has no attribute 'clear'. Did you mean: 'char'?`
                 # This error happens when there's nothing to reset, usually because the metric failed.
-                if (metric_name not in self.last_metrics_exceptions) or ("'Tensor' object has no attribute 'clear'" not in str(e)):
+                if (metric_name not in self.last_metrics_exceptions) or (
+                    "'Tensor' object has no attribute 'clear'" not in str(e)
+                ):
                     raise e
 
     def get_results_on_progress_bar(
@@ -286,7 +289,7 @@ class SingleTaskSummary(SummaryInterface):
             return f"{metric_name}/{self.step_name}"
         else:
             return f"{self.task_name}/{metric_name}/{self.step_name}"
-        
+
     @property
     def device(self) -> Optional[torch.device]:
         return self._device
@@ -306,7 +309,7 @@ class MultiTaskSummary(SummaryInterface):
         class to store the summaries of the tasks
         Parameters:
 
-        
+
             compute_mean:
             whether to compute the mean of the predictions and targets
 
@@ -315,26 +318,38 @@ class MultiTaskSummary(SummaryInterface):
 
         """
         self.task_metrics = task_metrics
-        self.task_metrics_on_progress_bar = task_metrics_on_progress_bar if task_metrics_on_progress_bar is not None else {}
-        self.task_metrics_on_training_set = task_metrics_on_training_set if task_metrics_on_training_set is not None else {}
+        self.task_metrics_on_progress_bar = (
+            task_metrics_on_progress_bar if task_metrics_on_progress_bar is not None else {}
+        )
+        self.task_metrics_on_training_set = (
+            task_metrics_on_training_set if task_metrics_on_training_set is not None else {}
+        )
 
         # Initialize all the single-task summaries
         self.tasks = list(task_metrics.keys())
         self.task_summaries: Dict[str, SingleTaskSummary] = {}
         for task in self.tasks:
             self.task_summaries[task] = SingleTaskSummary(
-                metrics = self.task_metrics[task],
-                step_name = step_name,
-                metrics_on_training_set = self.task_metrics_on_training_set[task] if task in self.task_metrics_on_training_set else None,
-                metrics_on_progress_bar = self.task_metrics_on_progress_bar[task] if task in self.task_metrics_on_progress_bar else None,
-                task_name = task,
-                compute_mean = compute_mean,
-                compute_std = compute_std,
+                metrics=self.task_metrics[task],
+                step_name=step_name,
+                metrics_on_training_set=(
+                    self.task_metrics_on_training_set[task]
+                    if task in self.task_metrics_on_training_set
+                    else None
+                ),
+                metrics_on_progress_bar=(
+                    self.task_metrics_on_progress_bar[task]
+                    if task in self.task_metrics_on_progress_bar
+                    else None
+                ),
+                task_name=task,
+                compute_mean=compute_mean,
+                compute_std=compute_std,
             )
 
     def __getitem__(self, task: str) -> SingleTaskSummary:
         return self.task_summaries[task]
-    
+
     def keys(self) -> List[str]:
         return self.tasks
 
@@ -378,7 +393,7 @@ class MultiTaskSummary(SummaryInterface):
         for task in self.tasks:
             computed_metrics.update(self.task_summaries[task].compute())
         return computed_metrics
-    
+
     def reset(self) -> None:
         r"""
         reset the state of the metrics
@@ -393,7 +408,7 @@ class STDMetric(BaseAggregator):
     Based on `torchmetrics.Metric`, with a similar implementation to `torchmetric.MeanMetric`.
 
     Parameters:
-        correction: 
+        correction:
             The correction to apply to the standard deviation. Instead of dividing by number of samples `N`,
             we divide by `N-correction`.
 
@@ -404,7 +419,13 @@ class STDMetric(BaseAggregator):
             - a float: if a float is provided will impute any `nan` values with this value
 
     """
-    def __init__(self, nan_strategy: Union[Literal["error", "warn", "ignore"], float]="warn", correction:int=0, **kwargs):
+
+    def __init__(
+        self,
+        nan_strategy: Union[Literal["error", "warn", "ignore"], float] = "warn",
+        correction: int = 0,
+        **kwargs,
+    ):
         super().__init__(
             "sum",
             default_value=torch.tensor(0.0, dtype=torch.get_default_dtype()),
@@ -443,9 +464,10 @@ class STDMetric(BaseAggregator):
         dividor = max(0, self.total_weight - self.correction)
         mean = self.sum / self.total_weight
         mean_of_squares = self.sum_of_squares / self.total_weight
-        variance = mean_of_squares - mean ** 2
+        variance = mean_of_squares - mean**2
         variance_corr = variance * (self.total_weight / dividor)
         return torch.sqrt(variance_corr)
+
 
 class GradientNormMetric(Metric):
     """
@@ -457,6 +479,7 @@ class GradientNormMetric(Metric):
         the predictions and targets as input. It takes the model as input.
         It also doesn't work per task, but for the full model
     """
+
     def __init__(self, dist_sync_on_step=False):
         super().__init__(dist_sync_on_step=dist_sync_on_step)
         self.add_state("gradient_norm_sq", default=torch.tensor(0.0), dist_reduce_fx="sum")
@@ -473,4 +496,3 @@ class GradientNormMetric(Metric):
 
     def compute(self) -> Tensor:
         return (self.gradient_norm_sq / self.total_steps).sqrt()
-

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from collections.abc import Mapping, Sequence
 
 # from pprint import pprint
@@ -127,7 +126,8 @@ def graphium_collate_fn(
 
 
 def collage_pyg_graph(
-    pyg_graphs: List[Data], num_nodes: List[int],
+    pyg_graphs: List[Data],
+    num_nodes: List[int],
 ):
     """
     Function to collate pytorch geometric graphs.

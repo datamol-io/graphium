@@ -192,7 +192,8 @@ class BaseDataModule(lightning.LightningDataModule):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
             collate_fn = partial(
-                graphium_collate_fn, mask_nan=0,
+                graphium_collate_fn,
+                mask_nan=0,
             )
             collate_fn.__name__ = graphium_collate_fn.__name__
 
@@ -871,14 +872,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if self._ready_to_load_all_from_file():
             self._data_is_prepared = True
             train_metadata = graphium_cpp.load_metadata_tensors(
-                        self.processed_graph_data_path, "train", self.data_hash
-                    )
+                self.processed_graph_data_path, "train", self.data_hash
+            )
             val_metadata = graphium_cpp.load_metadata_tensors(
-                    self.processed_graph_data_path, "val", self.data_hash
-                )
+                self.processed_graph_data_path, "val", self.data_hash
+            )
             test_metadata = graphium_cpp.load_metadata_tensors(
-                    self.processed_graph_data_path, "test", self.data_hash
-                )
+                self.processed_graph_data_path, "test", self.data_hash
+            )
             length = 0
             if len(train_metadata) > 0:
                 length += len(train_metadata[2])
@@ -1241,7 +1242,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-
     def get_dataloader(
         self, dataset: Dataset, shuffle: bool, stage: RunningStage
     ) -> Union[DataLoader, "poptorch.DataLoader"]:
@@ -1556,7 +1556,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             test_indices = np.asarray(splits[test]).astype("int")
             test_indices = test_indices[~np.isnan(test_indices)].tolist()
 
-        elif split_type == "scaffold" and split_test != 1.:
+        elif split_type == "scaffold" and split_test != 1.0:
             # Scaffold splitting
             try:
                 import splito
@@ -1565,7 +1565,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                     f"To do the splitting, `splito` needs to be installed. "
                     f"Please install it with `pip install splito`"
                 ) from error
-                
+
             # Split data into scaffolds
             splitter = splito.ScaffoldSplit(
                 smiles=self.smiles,
@@ -1576,7 +1576,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             train_val_smiles = [self.smiles[i] for i in train_val_indices]
 
             sub_split_val = split_val / (1 - split_test)
-                
+
             splitter = splito.ScaffoldSplit(
                 smiles=train_val_smiles,
                 test_size=sub_split_val,
@@ -1590,10 +1590,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
             # Random splitting
             if split_test + split_val > 0:
-                if split_test == 1.:
+                if split_test == 1.0:
                     train_indices = np.array([])
                     val_test_indices = sample_idx
-                    sub_split_test = 1.
+                    sub_split_test = 1.0
                 else:
                     train_indices, val_test_indices = train_test_split(
                         sample_idx,
@@ -1607,7 +1607,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 sub_split_test = 0
 
             if split_test > 0:
-                if split_test == 1.:
+                if split_test == 1.0:
                     val_indices = np.array([])
                     test_indices = val_test_indices
                 else:

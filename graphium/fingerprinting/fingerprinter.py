@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import torch
 
 from collections import defaultdict
@@ -138,7 +137,7 @@ class Fingerprinter:
         self.network._enable_readout_cache(list(self._spec.keys()))
         return self
 
-    def get_fingerprints_for_batch(self, batch, store_dict: bool=False):
+    def get_fingerprints_for_batch(self, batch, store_dict: bool = False):
         """Get the fingerprints for a single batch"""
         self.network.eval()
 
@@ -163,21 +162,23 @@ class Fingerprinter:
             readout_dict = {}
             for module_name, layers in self._spec.items():
                 for layer in layers:
-                    readout_dict[f"{module_name}:{layer}"] = self._convert_output_type(self.network._module_map[module_name]._readout_cache[layer].cpu())
+                    readout_dict[f"{module_name}:{layer}"] = self._convert_output_type(
+                        self.network._module_map[module_name]._readout_cache[layer].cpu()
+                    )
 
             return readout_dict
-          
+
         else:
             readout_list = []
             for module_name, layers in self._spec.items():
                 readout_list.extend(
                     [self.network._module_map[module_name]._readout_cache[layer].cpu() for layer in layers]
                 )
-  
+
             feats = torch.cat(readout_list, dim=-1)
             return self._convert_output_type(feats)
 
-    def get_fingerprints_for_dataset(self, dataloader, store_dict: bool=False):
+    def get_fingerprints_for_dataset(self, dataloader, store_dict: bool = False):
         """Return the fingerprints for an entire dataset"""
 
         original_out_type = self._out_type
@@ -197,7 +198,7 @@ class Fingerprinter:
             for item in fps[1:]:
                 for key, value in item.items():
                     fps_dict[key].extend([value])
-            
+
             self._out_type = original_out_type
             for key, value in fps_dict.items():
                 fps_dict[key] = self._convert_output_type(torch.cat(value, dim=0))

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import time
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, Literal, Mapping
@@ -112,9 +111,9 @@ class PredictorModule(lightning.LightningModule):
                 loss_fun=loss_fun[task],
                 metrics=metrics[task],
                 metrics_on_progress_bar=metrics_on_progress_bar[task],
-                metrics_on_training_set=metrics_on_training_set[task]
-                if metrics_on_training_set is not None
-                else None,
+                metrics_on_training_set=(
+                    metrics_on_training_set[task] if metrics_on_training_set is not None else None
+                ),
             )
             eval_options[task].check_metrics_validity()
 
@@ -170,21 +169,21 @@ class PredictorModule(lightning.LightningModule):
                 target_nan_mask=self.target_nan_mask,
                 multitask_handling=self.multitask_handling,
             )
-        
+
         # Initialize the epoch summary
         self.task_epoch_summary = {
             "train": MultiTaskSummary(
-                task_metrics=metrics_with_loss, 
-                step_name="train", 
+                task_metrics=metrics_with_loss,
+                step_name="train",
                 task_metrics_on_progress_bar=None,
                 task_metrics_on_training_set=self.metrics_on_training_set,
-                ),
+            ),
             "val": MultiTaskSummary(
-                task_metrics=metrics_with_loss, 
-                step_name="val", 
+                task_metrics=metrics_with_loss,
+                step_name="val",
                 task_metrics_on_progress_bar=self.metrics_on_progress_bar,
                 task_metrics_on_training_set=None,
-                ),
+            ),
             "test": MultiTaskSummary(
                 task_metrics=metrics_with_loss,
                 step_name="test",
@@ -247,8 +246,12 @@ class PredictorModule(lightning.LightningModule):
         if not task.startswith(task_prefix):
             task = task_prefix + task
         return task
-    
-    def _get_average_loss_from_outputs(self, outputs: Dict[Literal["loss", "task_losses"], Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
+
+    def _get_average_loss_from_outputs(
+        self,
+        outputs: Dict[Literal["loss", "task_losses"], Tensor],
+        step_name: Literal["train", "val", "test"],
+    ) -> Dict[str, Tensor]:
         r"""
         Averages the loss over the different tasks
         """
@@ -262,7 +265,6 @@ class PredictorModule(lightning.LightningModule):
                 this_losses = this_losses[this_losses != 0].mean()
             average_losses[f"{task}/loss/{step_name}"] = this_losses
         return average_losses
-
 
     def configure_optimizers(self, impl=None):
         if impl is None:
@@ -356,7 +358,9 @@ class PredictorModule(lightning.LightningModule):
         weighted_loss = total_loss / num_tasks
         return weighted_loss, all_task_losses
 
-    def _general_step(self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Any]:
+    def _general_step(
+        self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]
+    ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)  # The dictionary of predictions
 
@@ -419,8 +423,9 @@ class PredictorModule(lightning.LightningModule):
         step_dict["task_losses"] = task_losses
         return step_dict
 
-
-    def flag_step(self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]) -> Dict[str, Any]:
+    def flag_step(
+        self, batch: Dict[str, Tensor], step_name: Literal["train", "val", "test"]
+    ) -> Dict[str, Any]:
         r"""
         Perform adversarial data agumentation during one training step using FLAG.
         Paper: https://arxiv.org/abs/2010.09891
@@ -568,30 +573,29 @@ class PredictorModule(lightning.LightningModule):
 
     def test_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test")
-    
+
     def _general_epoch_start(self, step_name: Literal["train", "val", "test"]) -> None:
         self.task_epoch_summary[step_name].reset()
         self.epoch_start_time[step_name] = time.time()
         self.mean_time_tracker.reset()
         self.mean_tput_tracker.reset()
-    
+
     def predict_step(self, batch: Dict[str, Tensor]) -> Dict[str, Any]:
         preds = self.forward(batch)  # The dictionary of predictions
         targets_dict = batch.get("labels")
 
         return preds, targets_dict
 
-
     def _general_epoch_end(self, step_name: Literal["train", "val", "test"]) -> Dict[str, Tensor]:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
         # Transform the list of dict of dict, into a dict of list of dict
-        
+
         metric_logs = self.task_epoch_summary[step_name].compute()
         self.task_epoch_summary[step_name].reset()
         metric_logs_cpu = {k: v for k, v in metric_logs.items() if v.device == torch.device("cpu")}
         if len(metric_logs_cpu) > 0:
             self.log_dict(metric_logs_cpu, logger=True, prog_bar=True, sync_dist=False, on_epoch=True)
-        
+
         metric_logs_accelerator = {k: v for k, v in metric_logs.items() if v.device != torch.device("cpu")}
         if len(metric_logs_accelerator) > 0:
             self.log_dict(metric_logs_accelerator, logger=True, prog_bar=True, sync_dist=True, on_epoch=True)
@@ -600,7 +604,9 @@ class PredictorModule(lightning.LightningModule):
         time_metrics = {}
         time_metrics[f"_global/mean_batch_time/{step_name}"] = torch.tensor(self.mean_time_tracker.mean_value)
         time_metrics[f"_global/mean_tput/{step_name}"] = self.mean_tput_tracker.mean_value
-        time_metrics[f"_global/epoch_time/{step_name}"] = torch.tensor(time.time() - self.epoch_start_time[step_name])
+        time_metrics[f"_global/epoch_time/{step_name}"] = torch.tensor(
+            time.time() - self.epoch_start_time[step_name]
+        )
 
         self.log_dict(time_metrics, logger=True, prog_bar=False, sync_dist=False, on_epoch=True)
 
@@ -620,9 +626,7 @@ class PredictorModule(lightning.LightningModule):
         self.batch_start_time = time.time()
         return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
 
-    def on_validation_batch_end(
-        self, outputs, batch: Any, batch_idx: int, dataloader_idx: int = 0
-    ) -> None:
+    def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         val_batch_time = time.time() - self.batch_start_time
         self.mean_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
@@ -641,12 +645,14 @@ class PredictorModule(lightning.LightningModule):
 
         self._general_epoch_end(step_name="test")
         return super().on_test_epoch_end()
-    
+
     def on_test_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
         self.batch_start_time = time.time()
         return super().on_test_batch_start(batch, batch_idx, dataloader_idx)
-    
-    def on_test_batch_end(self, outputs: Tensor | Mapping[str, Any] | None, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> None:
+
+    def on_test_batch_end(
+        self, outputs: Tensor | Mapping[str, Any] | None, batch: Any, batch_idx: int, dataloader_idx: int = 0
+    ) -> None:
         test_batch_time = time.time() - self.batch_start_time
         self.mean_time_tracker.update(test_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
@@ -683,7 +689,7 @@ class PredictorModule(lightning.LightningModule):
         """List available pretrained models."""
         from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT
 
-        return GRAPHIUM_PRETRAINED_MODELS_DICT # Avoiding circular imports with `space.py`
+        return GRAPHIUM_PRETRAINED_MODELS_DICT  # Avoiding circular imports with `space.py`
 
     @staticmethod
     def load_pretrained_model(name_or_path: str, device: str = None, strict: bool = True, **kwargs):
@@ -694,7 +700,9 @@ class PredictorModule(lightning.LightningModule):
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT # Avoiding circular imports with `space.py`
+        from graphium.utils.spaces import (
+            GRAPHIUM_PRETRAINED_MODELS_DICT,
+        )  # Avoiding circular imports with `space.py`
 
         name = GRAPHIUM_PRETRAINED_MODELS_DICT.get(name_or_path)
 
@@ -709,7 +717,9 @@ class PredictorModule(lightning.LightningModule):
                 "or pass a valid checkpoint (.ckpt) path."
             )
 
-        return PredictorModule.load_from_checkpoint(name_or_path, map_location=device, strict=strict, **kwargs)
+        return PredictorModule.load_from_checkpoint(
+            name_or_path, map_location=device, strict=strict, **kwargs
+        )
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()

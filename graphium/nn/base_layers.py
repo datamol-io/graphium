@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import pytest
 from graphium.cli.train_finetune_test import cli
 import sys
@@ -35,7 +34,8 @@ from graphium.config._loader import (
     load_trainer,
 )
 
-class test_CLITraining():
+
+class test_CLITraining:
     @classmethod
     def setup_class(cls):
         print("Setting up the test class...")
@@ -114,11 +114,13 @@ def initialize_hydra(config_path, job_name="app"):
         GlobalHydra.instance().clear()
     hydra.initialize(config_path=config_path, job_name=job_name)
 
+
 def compose_main_config(config_dir):
     initialize_hydra(config_dir)
     # Compose the main configuration
     main_config = hydra.compose(config_name="main")
     return main_config
+
 
 def compose_task_config(config_dir, task_name):
     task_config_dir = os.path.join(config_dir, "tasks")
@@ -126,6 +128,7 @@ def compose_task_config(config_dir, task_name):
     # Compose the specific task configuration
     task_config = hydra.compose(config_name=task_name)
     return task_config
+
 
 class test_TrainToymix(ut.TestCase):
     def test_train_toymix(self):
@@ -148,7 +151,6 @@ class test_TrainToymix(ut.TestCase):
         cfg["datamodule"]["args"]["task_specific_args"]["qm9"]["sample_size"] = 300
         cfg["datamodule"]["args"]["task_specific_args"]["tox21"]["sample_size"] = 300
 
-        
         # Initialize the accelerator
         cfg, accelerator_type = load_accelerator(cfg)
 
@@ -189,6 +191,7 @@ class test_TrainToymix(ut.TestCase):
         # Run the model training
         trainer.fit(model=predictor, datamodule=datamodule)
         trainer.test(model=predictor, datamodule=datamodule)
+
 
 if __name__ == "__main__":
     config_dir = "../expts/hydra-configs/"  # Path to your config directory

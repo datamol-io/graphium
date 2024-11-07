@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Iterable, List, Dict, Literal, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
 from torch_geometric.utils import to_dense_batch
@@ -919,9 +918,7 @@ class FeedForwardGraph(FeedForwardNN):
         self.out_dim_edges = (
             out_dim_edges
             if out_dim_edges is not None
-            else self.hidden_dims_edges[-1]
-            if self.hidden_dims_edges
-            else 0
+            else self.hidden_dims_edges[-1] if self.hidden_dims_edges else 0
         )
         self.full_dims_edges = None
         if len(self.hidden_dims_edges) or self.out_dim_edges > 0:
@@ -1522,7 +1519,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 raise ValueError(
                     f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
                 )
-
 
     def _enable_readout_cache(self, module_filter: Optional[Union[str, List[str]]]):
         """

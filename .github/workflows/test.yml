@@ -16,13 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - python-version: "3.10"
-            pytorch-version: "2.0"
-          - python-version: "3.11"
-            pytorch-version: "2.0"
-          - python-version: "3.12"
-            pytorch-version: "2.3"
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11"] -> Will re-enable support for py312 once pyg is released
+        pytorch-version: ["2.0"]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30

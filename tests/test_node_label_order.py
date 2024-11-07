@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import unittest as ut
 
 from graphium.utils.fs import rm, exists
@@ -36,12 +35,12 @@ class Test_NodeLabelOrdering(ut.TestCase):
         ###################################################################################################################
         ### Test I: Test if atom labels are ordered correctly for a single dataset that contains only a single molecule ###
         ###################################################################################################################
-            
+
         # Import node labels from parquet file
         df = pd.DataFrame(
             {
                 "ordered_smiles": ["[C:0][C:1][O:2]"],
-                "node_labels": [[0., 0., 2.]],
+                "node_labels": [[0.0, 0.0, 2.0]],
             }
         )
 
@@ -49,10 +48,20 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task_kwargs},
+            "task": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
@@ -64,13 +73,13 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         atom_types = batch["labels"].node_task.squeeze()
         atom_types_from_features = batch["features"].feat.argmax(1)
-        
+
         np.testing.assert_array_equal(atom_types, atom_types_from_features)
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
             rm(TEMP_CACHE_DATA_PATH, recursive=True)
-            
+
         ###################################################################################
         ### Test II: Two ordered SMILES representing the same molecule in same dataset ###
         ###################################################################################
@@ -79,7 +88,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
         df = pd.DataFrame(
             {
                 "ordered_smiles": ["[C:0][C:1][O:2]", "[O:0][C:1][C:2]"],
-                "node_labels": [[0., 0., 2.], [2., 0., 0.]],
+                "node_labels": [[0.0, 0.0, 2.0], [2.0, 0.0, 0.0]],
             }
         )
 
@@ -87,10 +96,20 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task_kwargs},
+            "task": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
@@ -102,7 +121,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         atom_types = batch["labels"].node_task.squeeze()
         atom_types_from_features = batch["features"].feat.argmax(1)
-        
+
         np.testing.assert_array_equal(atom_types_from_features, atom_types)
 
         # Delete the cache if already exist
@@ -117,14 +136,14 @@ class Test_NodeLabelOrdering(ut.TestCase):
         df1 = pd.DataFrame(
             {
                 "ordered_smiles": ["[C:0][C:1][O:2]"],
-                "node_labels": [[0., 0., 2.]],
+                "node_labels": [[0.0, 0.0, 2.0]],
             }
         )
-        
+
         df2 = pd.DataFrame(
             {
                 "ordered_smiles": ["[O:0][C:1][C:2]"],
-                "node_labels": [[2., 0., 0.]],
+                "node_labels": [[2.0, 0.0, 0.0]],
             }
         )
 
@@ -133,11 +152,27 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task1": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task1_kwargs},
-            "task2": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task2_kwargs},
+            "task1": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task1_kwargs,
+            },
+            "task2": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task2_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
@@ -154,7 +189,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
         atom_types1 = unbatched_node_labels1[0].squeeze()
         atom_types2 = unbatched_node_labels2[0].squeeze()
         atom_types_from_features = unbatched_node_features[0].argmax(1)
-        
+
         np.testing.assert_array_equal(atom_types_from_features, atom_types1)
         np.testing.assert_array_equal(atom_types_from_features, atom_types2)
 
@@ -171,14 +206,14 @@ class Test_NodeLabelOrdering(ut.TestCase):
         df1 = pd.DataFrame(
             {
                 "ordered_smiles": ["CCO"],
-                "graph_labels": [1.],
+                "graph_labels": [1.0],
             }
         )
-        
+
         df2 = pd.DataFrame(
             {
                 "ordered_smiles": ["[O:0][C:1][C:2]"],
-                "node_labels": [[2., 0., 0.]],
+                "node_labels": [[2.0, 0.0, 0.0]],
             }
         )
 
@@ -187,11 +222,27 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task1": {"task_level": "graph", "label_cols": ["graph_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task1_kwargs},
-            "task2": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task2_kwargs},
+            "task1": {
+                "task_level": "graph",
+                "label_cols": ["graph_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task1_kwargs,
+            },
+            "task2": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task2_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
@@ -208,7 +259,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
         nan_indices = atom_types.isnan()
         atom_types_from_features[nan_indices] = 333
         atom_types[nan_indices] = 333
-        
+
         np.testing.assert_array_equal(atom_types, atom_types_from_features)
 
         # Delete the cache if already exist
@@ -223,14 +274,14 @@ class Test_NodeLabelOrdering(ut.TestCase):
         df1 = pd.DataFrame(
             {
                 "ordered_smiles": ["[C:0][C:1][O:2]"],
-                "graph_labels": [1.],
+                "graph_labels": [1.0],
             }
         )
-        
+
         df2 = pd.DataFrame(
             {
                 "ordered_smiles": ["[O:0][C:1][C:2]"],
-                "node_labels": [[2., 0., 0.]],
+                "node_labels": [[2.0, 0.0, 0.0]],
             }
         )
 
@@ -239,11 +290,27 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task1": {"task_level": "graph", "label_cols": ["graph_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task1_kwargs},
-            "task2": {"task_level": "node", "label_cols": ["node_labels"], "smiles_col": "ordered_smiles", "seed": 42, **task2_kwargs},
+            "task1": {
+                "task_level": "graph",
+                "label_cols": ["graph_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task1_kwargs,
+            },
+            "task2": {
+                "task_level": "node",
+                "label_cols": ["node_labels"],
+                "smiles_col": "ordered_smiles",
+                "seed": 42,
+                **task2_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
@@ -255,7 +322,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         atom_types = batch["labels"].node_task2.squeeze()
         atom_types_from_features = batch["features"].feat.argmax(1)
-        
+
         np.testing.assert_array_equal(atom_types, atom_types_from_features)
 
         # Delete the cache if already exist
@@ -271,7 +338,7 @@ class Test_NodeLabelOrdering(ut.TestCase):
         df = pd.DataFrame(
             {
                 "smiles": ["CCO", "OCC", "COC", "[C:0][C:1][O:2]", "[O:0][C:1][C:2]", "[C:0][O:1][C:2]"],
-                "graph_labels": [0., 0., 1., 0., 0., 1.],
+                "graph_labels": [0.0, 0.0, 1.0, 0.0, 0.0, 1.0],
             }
         )
 
@@ -279,10 +346,20 @@ class Test_NodeLabelOrdering(ut.TestCase):
 
         # Check datamodule with single task and two labels
         task_specific_args = {
-            "task": {"task_level": "graph", "label_cols": ["graph_labels"], "smiles_col": "smiles", "seed": 42, **task_kwargs},
+            "task": {
+                "task_level": "graph",
+                "label_cols": ["graph_labels"],
+                "smiles_col": "smiles",
+                "seed": 42,
+                **task_kwargs,
+            },
         }
 
-        dm = MultitaskFromSmilesDataModule(task_specific_args, processed_graph_data_path=TEMP_CACHE_DATA_PATH, featurization={"atom_property_list_onehot": ["atomic-number"]})
+        dm = MultitaskFromSmilesDataModule(
+            task_specific_args,
+            processed_graph_data_path=TEMP_CACHE_DATA_PATH,
+            featurization={"atom_property_list_onehot": ["atomic-number"]},
+        )
         dm.prepare_data()
         dm.setup()
 
