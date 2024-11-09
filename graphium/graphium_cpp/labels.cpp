@@ -7,13 +7,14 @@
 
 
 #include "labels.h"
-
 #include "features.h"
 
 // C++ standard library headers
 #include <filesystem>
 #include <thread>
 #include <unordered_map>
+#define NOMINMAX // Disabling MVSC-defined min/max macros
+#include <algorithm>
 
 // RDKit headers
 #include <GraphMol/ROMol.h>

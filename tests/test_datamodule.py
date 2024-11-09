@@ -80,7 +80,9 @@ class test_DataModule(ut.TestCase):
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
-        assert len(ds) == 642
+        assert (
+            len(ds) == 642 or len(ds) == 644
+        )  # Accounting for differences in csv file reads across Linux & OSX
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
@@ -183,7 +185,9 @@ class test_DataModule(ut.TestCase):
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
-        assert len(ds) == 642
+        assert (
+            len(ds) == 642 or len(ds) == 644
+        )  # Accounting for differences in csv file reads across Linux & OSX
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))

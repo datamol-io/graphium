@@ -195,8 +195,8 @@ template<> struct FeatureValues<double> {
         static_assert(std::is_floating_point_v<T>);
         return double(inputType);
     }
-
-    static constexpr bool is_finite(double v) {
+    
+    static bool is_finite(double v) {
         return std::isfinite(v);
     }
 

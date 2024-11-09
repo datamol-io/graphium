@@ -1,5 +1,7 @@
 channels:
   - conda-forge
+  - pytorch
+  - pyg 
 
 dependencies:
   - python >3.9,<3.12
@@ -33,12 +35,12 @@ dependencies:
   - lightning >=2.0
   - torchmetrics
   - ogb
-  - pytorch_geometric >=2.0
+  - pyg >=2.0
   - wandb >=0.18.5
   - mup
-  - pytorch_sparse >=0.6
-  - pytorch_cluster >=1.5
-  - pytorch_scatter >=2.0
+  - pytorch-sparse >=0.6
+  - pytorch-cluster >=1.5
+  - pytorch-scatter >=2.0
 
   # chemistry
   - rdkit <=2024.03.4

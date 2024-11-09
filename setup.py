@@ -19,22 +19,33 @@ import numpy
 
 python_version = str(sys.version_info[0]) + str(sys.version_info[1])
 
-torch_dir = torch.__path__[0]
-rdkit_lib_index = rdkit.__path__[0].split("/").index("lib")
-rdkit_prefix = "/".join(rdkit.__path__[0].split("/")[:rdkit_lib_index])
+# Base variables required for compilation
+path_separator = "/"
+lib_folder_name = "lib"
+boost_include = "include/boost"
+package_compile_args = []
 
+# Updating variables used during compilation based on OS
 system = platform.system()
-package_compile_args = [
-    "-O3",
-    "-Wall",
-    "-Wmissing-field-initializers",
-    "-Wmaybe-uninitialized",
-    "-Wuninitialized",
-]
+if system == "Darwin" or system == "Linux":
+    package_compile_args += ["-O3", "-Wall", "-Wmaybe-uninitialized", "-Wuninitialized"]
+
 if system == "Darwin":
-    package_compile_args.append("-mmacosx-version-min=10.15")
+    package_compile_args += ["-mmacosx-version-min=10.15"]
 elif system == "Windows":
-    pass
+    path_separator = "\\"
+    lib_folder_name = "Lib"
+    package_compile_args += ["/Wall", "/O3"]
+
+# Extracting paths to torch and rdkit dependencies
+torch_dir = torch.__path__[0]
+rdkit_lib_index = rdkit.__path__[0].split(path_separator).index(lib_folder_name)  # breaks on windows
+rdkit_prefix = "/".join(rdkit.__path__[0].split(path_separator)[:rdkit_lib_index])
+
+# Windows-specific changed to rdkit path
+if system == "Windows":
+    rdkit_prefix += "/Library"
+    boost_include = "include"
 
 ext_modules = [
     Pybind11Extension(
@@ -57,10 +68,11 @@ ext_modules = [
             os.path.join(torch_dir, "include"),
             os.path.join(torch_dir, "include/torch/csrc/api/include"),
             os.path.join(rdkit_prefix, "include/rdkit"),
-            os.path.join(rdkit_prefix, "include/boost"),
+            os.path.join(rdkit_prefix, boost_include),
             numpy.get_include(),
         ],
         libraries=[
+            "RDKitRDGeneral",
             "RDKitAlignment",
             "RDKitDataStructs",
             "RDKitDistGeometry",
@@ -73,13 +85,13 @@ ext_modules = [
             "RDKitInchi",
             "RDKitRDInchiLib",
             "RDKitRDBoost",
-            "RDKitRDGeneral",
             "RDKitRDGeometryLib",
             "RDKitRingDecomposerLib",
             "RDKitSmilesParse",
             "RDKitSubstructMatch",
             "torch_cpu",
             "torch_python",
+            "c10",
             f"boost_python{python_version}",
         ],
         library_dirs=[os.path.join(rdkit_prefix, "lib"), os.path.join(torch_dir, "lib")],
