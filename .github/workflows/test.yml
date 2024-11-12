@@ -54,6 +54,7 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
 
+      # To prevent issues where Windows will re-use old/cached versions of RDKit
       - name: Update rdkit version
         run: |
           micromamba install --force-reinstall rdkit=2024.03.4

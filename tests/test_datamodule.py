@@ -380,7 +380,7 @@ class test_DataModule(ut.TestCase):
 
         self.assertEqual(len(ds.train_ds), 20)
 
-    def test_splits_file(self):
+    def test_splits_file(self, tmp_path):
         # Test single CSV files
         csv_file = "tests/data/micro_ZINC_shard_1.csv"
         df = pd.read_csv(csv_file)
@@ -424,7 +424,7 @@ class test_DataModule(ut.TestCase):
         self.assertEqual(len(ds.test_ds), len(split_test))
 
         # Create a TemporaryFile to save the splits, and test the datamodule
-        with tempfile.NamedTemporaryFile(suffix=".pt") as temp:
+        with tempfile.NamedTemporaryFile(suffix=".pt", dir=tmp_path) as temp:
             # Save the splits
             torch.save(splits, temp)
 
