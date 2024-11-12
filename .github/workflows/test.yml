@@ -53,7 +53,11 @@ jobs:
           cache-downloads: true
           create-args: >-
             python=${{ matrix.python-version }}
-            --force-reinstall
+
+      - name: Update rdkit version
+        run: |
+          micromamba install --force-reinstall rdkit=2024.03.4
+        if: matrix.os == 'windows-latest'
       
       - name: Install library
         run: python -m pip install --no-deps --no-build-isolation -e . -v # `-e` required for correct `coverage` run.
