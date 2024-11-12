@@ -36,7 +36,7 @@ elif system == "Windows":
     path_separator = "\\"
     lib_folder_name = "Lib"
     package_compile_args += [
-	    "/DWIN32",
+        "/DWIN32",
         "/DRDKIT_DYN_LINK",
     ]
 
