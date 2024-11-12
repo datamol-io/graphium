@@ -35,7 +35,10 @@ if system == "Darwin":
 elif system == "Windows":
     path_separator = "\\"
     lib_folder_name = "Lib"
-    package_compile_args += ["/Wall", "/O3"]
+    package_compile_args += [
+	    "/DWIN32",
+        "/DRDKIT_DYN_LINK",
+    ]
 
 # Extracting paths to torch and rdkit dependencies
 torch_dir = torch.__path__[0]
@@ -72,7 +75,6 @@ ext_modules = [
             numpy.get_include(),
         ],
         libraries=[
-            "RDKitRDGeneral",
             "RDKitAlignment",
             "RDKitDataStructs",
             "RDKitDistGeometry",
@@ -85,6 +87,7 @@ ext_modules = [
             "RDKitInchi",
             "RDKitRDInchiLib",
             "RDKitRDBoost",
+            "RDKitRDGeneral",
             "RDKitRDGeometryLib",
             "RDKitRingDecomposerLib",
             "RDKitSmilesParse",
