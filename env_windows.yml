@@ -84,3 +84,4 @@ dependencies:
       # Build deps
       - setuptools-scm
       - build
+      - pywin32

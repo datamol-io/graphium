@@ -17,9 +17,11 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 import torch, rdkit, os
 import numpy
 
-python_version = str(sys.version_info[0]) + str(sys.version_info[1])
+# Constants
+PYTHON_310 = "310"
 
 # Base variables required for compilation
+python_version = str(sys.version_info[0]) + str(sys.version_info[1])
 path_separator = "/"
 lib_folder_name = "lib"
 boost_include = "include/boost"
@@ -34,11 +36,15 @@ if system == "Darwin":
     package_compile_args += ["-mmacosx-version-min=10.15"]
 elif system == "Windows":
     path_separator = "\\"
-    lib_folder_name = "Lib"
     package_compile_args += [
         "/DWIN32",
         "/DRDKIT_DYN_LINK",
     ]
+
+    if python_version == PYTHON_310:
+        lib_folder_name = "lib"
+    else:
+        lib_folder_name = "Lib"
 
 # Extracting paths to torch and rdkit dependencies
 torch_dir = torch.__path__[0]
