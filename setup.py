@@ -4,10 +4,9 @@
 """
 Setup script that builds graphium_cpp.
 
-It requires that a conda environment be created according to the 
-env.yml file. This file contains the build dependencies which
-are necessary to compile and build graphium_cpp for use by the
-graphium package.
+It requires that a conda environment be created according to an env file in 
+the root-level `requirements` folder. This file contains the build dependencies which
+are necessary to compile and build graphium_cpp for use by the graphium package.
 """
 
 import platform

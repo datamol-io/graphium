@@ -1,5 +1,7 @@
 channels:
   - conda-forge
+  - pytorch
+  - nvidia
 
 dependencies:
   - python >3.9,<3.12
@@ -30,6 +32,7 @@ dependencies:
   # ML packages
   - cuda-version # works also with CPU-only system.
   - pytorch >=1.12,<2.5
+  - pytorch-cuda
   - lightning >=2.0
   - torchmetrics
   - ogb

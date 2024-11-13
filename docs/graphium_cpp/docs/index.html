@@ -106,10 +106,12 @@ Installation for users</h2>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md3"></a>
 Installation for developers</h2>
 <p>To install <code>graphium_cpp</code> (and <code>graphium</code>) locally, refer to these steps: </p><div class="fragment"><div class="line"># Install Graphium&#39;s dependencies in a new environment named `graphium`</div>
-<div class="line">mamba env create -f env.yml -n graphium</div>
+<div class="line"># Replace `ENV_FILE` with the path to the env file in the `requirements` folder</div>
+<div class="line"># which matches your machine&#39;s OS</div>
+<div class="line">mamba env create -f ENV_FILE -n graphium</div>
 <div class="line"> </div>
 <div class="line"># To force the CUDA version to 11.2, or any other version you prefer, use the following command:</div>
-<div class="line"># CONDA_OVERRIDE_CUDA=11.2 mamba env create -f env.yml -n graphium</div>
+<div class="line"># CONDA_OVERRIDE_CUDA=11.2 mamba env create -f ENV_FILE -n graphium</div>
 <div class="line"> </div>
 <div class="line"># Activate the mamba environment containing Graphium&#39;s dependencies</div>
 <div class="line">mamba activate graphium</div>
