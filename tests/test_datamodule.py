@@ -25,8 +25,9 @@ import graphium_cpp
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
+
 class test_DataModule(ut.TestCase):
-    
+
     def test_ogb_datamodule(self):
         # other datasets are too large to be tested
         dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
@@ -423,10 +424,10 @@ class test_DataModule(ut.TestCase):
         self.assertEqual(len(ds.val_ds), len(split_val))
         self.assertEqual(len(ds.test_ds), len(split_test))
 
-        try: 
+        try:
             # Create a TemporaryFile to save the splits, and test the datamodule
             temp_file = tempfile.NamedTemporaryFile(suffix=".pt", delete=False)
-            
+
             # Save the splits
             torch.save(splits, temp_file)
 
@@ -470,7 +471,7 @@ class test_DataModule(ut.TestCase):
             )
             np.testing.assert_array_equal(ds.val_ds.smiles_offsets_tensor, ds2.val_ds.smiles_offsets_tensor)
             np.testing.assert_array_equal(ds.test_ds.smiles_offsets_tensor, ds2.test_ds.smiles_offsets_tensor)
-        
+
         finally:
             temp_file.close()
             os.unlink(temp_file.name)
