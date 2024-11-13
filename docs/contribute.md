@@ -11,6 +11,7 @@ Use [`mamba`](https://github.com/mamba-org/mamba), a preferred alternative to co
 
 ```bash
 # Install Graphium's dependencies in a new environment named `graphium`
+# If on a Windows machine, use `env_windows.yml` instead of `env.yml`
 mamba env create -f env.yml -n graphium
 
 # Activate the mamba environment containing graphium's dependencies
