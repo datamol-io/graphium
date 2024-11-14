@@ -44,7 +44,7 @@ dependencies:
   - pytorch_scatter >=2.0
 
   # chemistry
-  - rdkit <=2024.03.4
+  - rdkit 
   - datamol >=0.10
   - boost # needed by rdkit
 

@@ -68,7 +68,7 @@ dependencies = [
     # chemistry
     "datamol >=0.10",
     "hydra-core",
-    "rdkit==2024.03.4"
+    "rdkit"
 ]
 
 [project.optional-dependencies]
