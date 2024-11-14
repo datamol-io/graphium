@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This file declares functions for preprocessing and looking up label data,
+//!       for exporting to Python, defined in labels.cpp
+
 #pragma once
 
 #include <memory>

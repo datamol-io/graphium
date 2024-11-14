@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This file defines and instantiates the `compute_graphormer_distances` function,
+//!       declared in graphormer.h and called from features.cpp
+
 #include "graphormer.h"
 
 #include <algorithm>

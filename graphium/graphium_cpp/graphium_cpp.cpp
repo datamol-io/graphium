@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This file specifies which functions are exported to Python,
+//!       as well as defining `parse_mol` and `get_canonical_atom_order`,
+//!       declared in features.h and called from features.cpp and labels.cpp
+
 #include "features.h"
 #include "labels.h"
 

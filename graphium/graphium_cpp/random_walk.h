@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This header file declares the `compute_rwse` function,
+//!       defined in random_walk.cpp and called from features.cpp
+
 #pragma once
 
 #include <stdint.h>
