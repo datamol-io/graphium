@@ -55,7 +55,7 @@ If you are using a GPU, we recommend enforcing the CUDA version that you need wi
 ```bash
 # Install Graphium's dependencies in a new environment named `graphium`
 # Replace `ENV_FILE` with the path to the env file in the `requirements` folder
-# which matches your machine's OS
+# which matches your machine's OS. For example `/requirements/linux_env.yml`
 mamba env create -f ENV_FILE -n graphium
 
 # To force the CUDA version to 11.2, or any other version you prefer, use the following command:
