@@ -1,14 +1,20 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "labels.h"
+/**
+@file
+*/
 
+
+#include "labels.h"
 #include "features.h"
 
 // C++ standard library headers
 #include <filesystem>
 #include <thread>
 #include <unordered_map>
+#define NOMINMAX // Disabling MVSC-defined min/max macros
+#include <algorithm>
 
 // RDKit headers
 #include <GraphMol/ROMol.h>

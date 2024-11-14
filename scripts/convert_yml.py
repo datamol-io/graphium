@@ -11,15 +11,16 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
-Convert the dependencies from conda's `env.yml` to pip `requirements.txt`
+# Replace `ENV_FILE` with the path to the env file in the `requirements` folder
+# which matches your machine's OS
+Convert the dependencies from conda's ENV_FILE to pip `requirements.txt`
 """
 
 import ruamel.yaml
 
 yaml = ruamel.yaml.YAML()
-data = yaml.load(open("env.yml"))
+data = yaml.load(open("ENV_FILE"))
 
 requirements = []
 for dep in data["dependencies"]:

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the different layers of graphium/nn/pyg_layers/...
 
@@ -309,9 +308,7 @@ class test_Pyg_Layers(ut.TestCase):
         )
         # bias: [batch, num_heads, nodes, nodes]
         # node_feature: [total_nodes, embed_dim]
-        bias, node_feature = layer.forward(
-            bg, max_num_nodes_per_graph=4, positions_3d_key="positions_3d"
-        )
+        bias, node_feature = layer.forward(bg, max_num_nodes_per_graph=4, positions_3d_key="positions_3d")
         self.assertEqual(bias.size(), torch.Size([2, num_heads, 4, 4]))
         self.assertFalse(np.isnan(bias.detach().numpy()).any())
         self.assertEqual(node_feature.size(), torch.Size([7, self.out_dim]))

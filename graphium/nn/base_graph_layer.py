@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import abc
 from typing import Union, Callable, List, Optional, Mapping
 from copy import deepcopy

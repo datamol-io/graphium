@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 
 from collections import OrderedDict
@@ -54,7 +53,7 @@ class GraphFinetuning(BaseFinetuning):
             self.training_depth += unfreeze_pretrained_depth
         self.epoch_unfreeze_all = epoch_unfreeze_all
         self.always_freeze_modules = always_freeze_modules
-        if self.always_freeze_modules == 'none':
+        if self.always_freeze_modules == "none":
             self.always_freeze_modules = None
         if isinstance(self.always_freeze_modules, str):
             self.always_freeze_modules = [self.always_freeze_modules]
@@ -115,4 +114,6 @@ class GraphFinetuning(BaseFinetuning):
 
             if self.always_freeze_modules is not None:
                 for module_name in self.always_freeze_modules:
-                    self.freeze_module(pl_module, module_name, pl_module.model.pretrained_model.net._module_map)
+                    self.freeze_module(
+                        pl_module, module_name, pl_module.model.pretrained_model.net._module_map
+                    )

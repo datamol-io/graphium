@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from torch import Tensor
 from torch.nn import Module
 from typing import Tuple, Union, List, Optional

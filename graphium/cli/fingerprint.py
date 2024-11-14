@@ -16,6 +16,7 @@ from graphium.cli.main import app
 fp_app = typer.Typer(help="Automated fingerprinting from pretrained models.")
 app.add_typer(fp_app, name="fps")
 
+
 @fp_app.command(name="create", help="Create fingerprints for pretrained model.")
 def smiles_to_fps(cfg_name: str, overrides: List[str]) -> Dict[str, Any]:
     with initialize(version_base=None, config_path="../../expts/hydra-configs/fingerprinting"):
@@ -33,12 +34,14 @@ def smiles_to_fps(cfg_name: str, overrides: List[str]) -> Dict[str, Any]:
 
     # Allow alternative definition of `pretrained_models` with the single model specifier and desired layers
     if "layers" in pretrained_models.keys():
-        assert "model" in pretrained_models.keys(), "this workflow allows easier definition of fingerprinting sweeps"
+        assert (
+            "model" in pretrained_models.keys()
+        ), "this workflow allows easier definition of fingerprinting sweeps"
         model, layers = pretrained_models.pop("model"), pretrained_models.pop("layers")
         pretrained_models[model] = layers
-        
+
     data_kwargs = cfg.get("datamodule")
-    
+
     datamodule = FingerprintDatamodule(
         pretrained_models=pretrained_models,
         **data_kwargs,

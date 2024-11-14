@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Tuple, Optional, Dict, Union
 import importlib.resources
 from copy import deepcopy

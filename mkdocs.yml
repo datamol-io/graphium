@@ -43,6 +43,7 @@ nav:
     - Commands:
       - graphium: cli/graphium.md
       - graphium-train: cli/graphium-train.md
+  - Graphium C++: graphium_cpp/docs/index.html
   - Contribute: contribute.md
   - License: license.md
 

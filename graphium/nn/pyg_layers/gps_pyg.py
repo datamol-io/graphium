@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import torch
 from copy import deepcopy
 from typing import Callable, Union, Optional, Dict, Any
@@ -388,7 +387,7 @@ class GPSLayerPyg(BaseGraphModule):
         """
         Convert the dense batch back to a sparse batch.
         """
-        
+
         return h_dense[mask]
 
     def _self_attention_block(self, feat: Tensor, feat_in: Tensor, batch: Batch) -> Tensor:
@@ -418,9 +417,7 @@ class GPSLayerPyg(BaseGraphModule):
             attn_bias = batch[self.biased_attention_key]
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
-        feat_attn = self._sa_block(
-            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask
-        )
+        feat_attn = self._sa_block(feat_dense, attn_bias=attn_bias, attn_mask=attn_mask)
 
         # feat_attn[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_nodes, hidden_dim]
         feat_attn = self._to_sparse_batch(batch, feat_attn, attn_mask)

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 # Misc
 import os
 from copy import deepcopy
@@ -80,7 +79,7 @@ def load_datamodule(
         datamodule: The datamodule used to process and load the data
     """
 
-    from graphium.utils.spaces import DATAMODULE_DICT # Avoid circular imports with `spaces.py`
+    from graphium.utils.spaces import DATAMODULE_DICT  # Avoid circular imports with `spaces.py`
 
     cfg_data = config["datamodule"]["args"]
 
@@ -91,7 +90,6 @@ def load_datamodule(
         **config["datamodule"]["args"],
     )
     return datamodule
-
 
 
 def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
@@ -338,7 +336,7 @@ def load_trainer(
             name += f"_{date_time_suffix}"
         trainer_kwargs["logger"] = WandbLogger(name=name, **wandb_cfg)
 
-    progress_bar_callback = ProgressBarMetrics(metrics_on_progress_bar = metrics_on_progress_bar)
+    progress_bar_callback = ProgressBarMetrics(metrics_on_progress_bar=metrics_on_progress_bar)
     callbacks.append(progress_bar_callback)
 
     trainer = Trainer(
@@ -516,7 +514,9 @@ def get_checkpoint_path(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> 
     Otherwise, assume it refers to a file in the checkpointing dir.
     """
 
-    from graphium.utils.spaces import GRAPHIUM_PRETRAINED_MODELS_DICT # Avoid circular imports with `spaces.py`
+    from graphium.utils.spaces import (
+        GRAPHIUM_PRETRAINED_MODELS_DICT,
+    )  # Avoid circular imports with `spaces.py`
 
     cfg_trainer = config["trainer"]
 

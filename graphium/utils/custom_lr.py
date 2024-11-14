@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import warnings
 from torch.optim.lr_scheduler import _LRScheduler
 

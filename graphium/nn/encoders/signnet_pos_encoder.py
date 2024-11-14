@@ -2,6 +2,7 @@
 SignNet https://arxiv.org/abs/2202.13013
 based on https://github.com/cptq/SignNet-BasisNet
 """
+
 from typing import Dict, Any, Optional, List
 
 import torch

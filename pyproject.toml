@@ -7,10 +7,12 @@ name = "graphium"
 description = "Graphium: Scaling molecular GNNs to infinity."
 dynamic = ["version"]
 authors = [
-    { name = "Dominique Beaini", email = "dominique@valencediscovery.com" },
+    { name = "Dominique Beaini", email = "dominique@valencelabs.com" },
+    { name = "Frederik Wenkel", email = "frederik@valencelabs.com" },
+    { name = "Nia Dickson", email = "ndickson@nvidia.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">3.9,<3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -35,31 +37,44 @@ dependencies = [
     "omegaconf >=2.0.0",
     "tqdm",
     "platformdirs",
+
     # scientific
-    "numpy",
+    "numpy==1.2.5",
     "scipy >=1.4",
     "pandas >=1.0",
     "scikit-learn",
     "fastparquet",
+
     # viz
     "matplotlib >=3.0.1",
     "seaborn",
+
     # cloud IO
     "fsspec >=2021.6",
     "s3fs >=2021.6",
     "gcsfs >=2021.6",
+
     # ML packages
     "lightning >=2.0",
-    "torchmetrics >=0.7.0,<0.11",
+    "torchmetrics",
     "ogb",
     "torch-geometric >=2.0",
-    "wandb",
+    "wandb >=0.18.5",
     "mup",
     "torch_sparse >=0.6",
     "torch_cluster >=1.5",
     "torch_scatter >=2.0",
+
     # chemistry
     "datamol >=0.10",
+    "hydra-core",
+    "rdkit"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+
 ]
 
 [project.scripts]
@@ -94,7 +109,7 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --durations=10 -n 1 --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
+addopts = "--verbose --durations=10"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",
@@ -102,8 +117,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:lightning_fabric.*:",
     "ignore::DeprecationWarning:pytorch_lightning.*:",
     "ignore::DeprecationWarning:pkg_resources.*:",
-]
-markers = [
 ]
 
 [tool.coverage.run]

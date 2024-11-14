@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from copy import deepcopy
 from typing import Any, Dict, List, Union
 
@@ -31,7 +30,9 @@ def filter_cfg_for_custom_task(config: Dict[str, Any], task: str, task_type: str
 
     # Filter the relevant config sections
     if "predictor" in cfg and "metrics_on_progress_bar" in cfg["predictor"]:
-        cfg["predictor"]["metrics_on_progress_bar"] = {task: cfg["predictor"]["metrics_on_progress_bar"][task_type]}
+        cfg["predictor"]["metrics_on_progress_bar"] = {
+            task: cfg["predictor"]["metrics_on_progress_bar"][task_type]
+        }
     if "predictor" in cfg and "loss_fun" in cfg["predictor"]:
         cfg["predictor"]["loss_fun"] = {task: cfg["predictor"]["loss_fun"][task_type]}
     if "metrics" in cfg:
@@ -91,28 +92,28 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
         # NOTE (cwognum): This prevents the need for having many different files for each of the tasks
         #    with lots and lots of config repetition.
         cfg = filter_cfg_based_on_admet_benchmark_name(cfg, task)
-    
+
     cfg_finetune = cfg["finetuning"]
 
     # Load pretrained model
     pretrained_model = cfg_finetune["pretrained_model"]
     if isinstance(pretrained_model, dict):
-        mode = pretrained_model.get('mode')
-        size = pretrained_model.get('size')
-        model = pretrained_model.get('model')
-        pretraining_seed = pretrained_model.get('pretraining_seed')
-        if mode == 'width':
+        mode = pretrained_model.get("mode")
+        size = pretrained_model.get("size")
+        model = pretrained_model.get("model")
+        pretraining_seed = pretrained_model.get("pretraining_seed")
+        if mode == "width":
             size = size[:4]
-        elif mode == 'depth':
+        elif mode == "depth":
             size = size[:2]
-        elif mode == 'molecule':
+        elif mode == "molecule":
             size = size[:3]
-        elif mode == 'label':
+        elif mode == "label":
             size = size[:3]
-        elif mode == 'ablation':
-            size = f"_{size}" 
+        elif mode == "ablation":
+            size = f"_{size}"
         pretrained_model_name = f"{mode}{size}_{model}_s{pretraining_seed}"
-    
+
     else:
         pretrained_model_name = pretrained_model
 
@@ -169,10 +170,10 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
 
     # Update config
     new_module_kwargs.update(upd_kwargs)
-    depth, hidden_dims = new_module_kwargs['depth'], new_module_kwargs['hidden_dims']
+    depth, hidden_dims = new_module_kwargs["depth"], new_module_kwargs["hidden_dims"]
     if isinstance(hidden_dims, list):
         if len(hidden_dims) != depth:
-            new_module_kwargs['hidden_dims'] = (depth - 1) * [hidden_dims[0]]
+            new_module_kwargs["hidden_dims"] = (depth - 1) * [hidden_dims[0]]
 
     if sub_module_from_pretrained is None:
         cfg_arch[finetuning_module] = new_module_kwargs
@@ -203,7 +204,10 @@ def modify_cfg_for_finetuning(cfg: Dict[str, Any]):
 
     def _change_dropout(c):
         if isinstance(c, dict):
-            return {k: (_change_dropout(v) if k != 'dropout' else cfg['constants']['model_dropout']) for k, v in c.items()}
+            return {
+                k: (_change_dropout(v) if k != "dropout" else cfg["constants"]["model_dropout"])
+                for k, v in c.items()
+            }
         return c
 
     cfg_arch = _change_dropout(cfg_arch)

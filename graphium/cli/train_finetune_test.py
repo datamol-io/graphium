@@ -44,6 +44,7 @@ import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
+
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
 def cli(cfg: DictConfig) -> None:
     """
@@ -145,7 +146,9 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
     ## Trainer
     date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-    trainer = load_trainer(cfg, accelerator_type, date_time_suffix, metrics_on_progress_bar=metrics_on_progress_bar)
+    trainer = load_trainer(
+        cfg, accelerator_type, date_time_suffix, metrics_on_progress_bar=metrics_on_progress_bar
+    )
 
     if not testing_only:
         # Add the fine-tuning callback to trainer
