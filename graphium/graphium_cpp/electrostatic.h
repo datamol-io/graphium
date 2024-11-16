@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This header file declares the `compute_electrostatic_interactions`
+//!       and `compute_laplacian_pseudoinverse` functions,
+//!       defined in electrostatic.cpp and called from features.cpp and commute.cpp
+
 #pragma once
 
 #include "spectral.h"

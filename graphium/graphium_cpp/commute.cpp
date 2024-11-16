@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This file defines and instantiates the `compute_commute_distances`
+//!       function, declared in commute.h and called from features.cpp
+
 #include "commute.h"
 
 #include "electrostatic.h"
