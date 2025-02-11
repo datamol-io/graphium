@@ -45,8 +45,6 @@ datamodule:
         weights_col: null                 # This may not always be provided
 
     # Featurization
-    featurization_n_jobs: 16
-    featurization_progress: True
     featurization:
       atom_property_list_onehot: ["atomic-number", "degree"]
       atom_property_list_float: []

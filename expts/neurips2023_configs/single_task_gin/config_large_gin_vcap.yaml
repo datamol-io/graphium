@@ -1,22 +1,14 @@
-# Testing the gine model with the PCQMv2 dataset on IPU.
+# Testing the gine model with the PCQMv2 dataset.
 constants:
   name: &name neurips2023_large_data_gine_vcap
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 100
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 150
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 2
@@ -28,29 +20,8 @@ accelerator:
         precision: 32
         accumulate_grad_batches: 8
 
-  ipu_config:
-    - deviceIterations(1) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
-
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       l1000_vcap:
@@ -65,10 +36,6 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
     processed_graph_data_path: "../datacache/neurips2023-large/vcap/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
@@ -103,7 +70,6 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
 
 architecture:
@@ -200,7 +166,7 @@ predictor:
     l1000_vcap: []
   loss_fun:
     l1000_vcap:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 5
   random_seed: *seed
   optim_kwargs:
@@ -222,13 +188,13 @@ predictor:
 metrics:
   l1000_vcap: &classif_metrics
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       num_classes: 5
       task: multiclass
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: average_precision
       num_classes: 5
       task: multiclass
       target_to_int: True

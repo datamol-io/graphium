@@ -1,4 +1,4 @@
-# Running the gin model with the largemix dataset on IPU.
+# Running the gin model with the largemix dataset.
 defaults:
   # - base_config: large
   # - base_config: large_pcqm_g25

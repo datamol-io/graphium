@@ -2,7 +2,6 @@ from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
 from graphium.nn.pyg_layers.utils import PreprocessPositions
-from graphium.ipu.ipu_utils import is_running_on_ipu
 from graphium.nn.encoders.base_encoder import BaseEncoder
 
 
@@ -116,13 +115,10 @@ class GaussianKernelPosEncoder(BaseEncoder):
         """
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
-        on_ipu = is_running_on_ipu()
         max_num_nodes_per_graph = None
-        if on_ipu:
-            max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
         attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
-            batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0]
+            batch, max_num_nodes_per_graph, positions_3d_key=input_keys[0]
         )
 
         # Return `attn_bias_3d` if the key starts with 'nodepair_'

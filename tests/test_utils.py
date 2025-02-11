@@ -22,7 +22,6 @@ import scipy as sp
 import unittest as ut
 import gzip
 
-from graphium.utils.read_file import file_opener
 from graphium.utils.tensor import (
     nan_mad,
     nan_mean,
@@ -179,7 +178,7 @@ class test_SafeRun(ut.TestCase):
             print("This is not an error")
 
 
-class TestTensorFp16ToFp32(ut.TestCase):
+class test_TensorFp16ToFp32(ut.TestCase):
     def test_tensor_fp16_to_fp32(self):
         # Create a tensor
         tensor = torch.randn(10, 10).half()

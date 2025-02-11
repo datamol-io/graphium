@@ -1,4 +1,4 @@
-# Testing the gine model with the PCQMv2 dataset on IPU.
+# Testing the gine model with the PCQMv2 dataset.
 
 defaults:
   - base_config: small

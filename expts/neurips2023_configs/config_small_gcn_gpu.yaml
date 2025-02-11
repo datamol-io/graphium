@@ -12,7 +12,7 @@ architecture:
     layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
 
 accelerator:
-  type: gpu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   float32_matmul_precision: medium
   config_override:
     datamodule:
@@ -41,7 +41,6 @@ datamodule:
       zinc:
         df_path: expts/data/neurips2023/small-dataset/ZINC12k.csv.gz
         splits_path: expts/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
-    featurization_n_jobs: 4 # 30
     processed_graph_data_path: "../datacache/neurips2023-small/"
     num_workers: 4 # 30
 
@@ -52,7 +51,7 @@ architecture:
 
 predictor:
   loss_fun:
-    tox21: bce_logits_ipu
+    tox21: bce_logits
 
   torch_scheduler_kwargs:
     max_num_epochs: &max_epochs 300

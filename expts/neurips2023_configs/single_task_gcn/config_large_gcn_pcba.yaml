@@ -5,18 +5,10 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
-  type: ipu  # cpu or ipu or gpu
+  type: gpu  # cpu or gpu
   config_override:
     datamodule:
       args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 100
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 200 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 400
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 2
@@ -28,29 +20,8 @@ accelerator:
         precision: 32
         accumulate_grad_batches: 8
 
-  ipu_config:
-    - deviceIterations(10) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
-
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       pcba_1328:
@@ -65,10 +36,6 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 30
-    featurization_progress: True
-    featurization_backend: "loky"
     processed_graph_data_path: "../datacache/neurips2023-large/pcba/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
@@ -103,7 +70,6 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
 
 architecture:
@@ -199,7 +165,7 @@ predictor:
   metrics_on_training_set:
     pcba_1328: []
   loss_fun:
-    pcba_1328: bce_ipu
+    pcba_1328: bce
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -220,12 +186,12 @@ predictor:
 metrics:
   pcba_1328:
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: average_precision
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null

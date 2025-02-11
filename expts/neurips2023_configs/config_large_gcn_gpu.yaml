@@ -49,7 +49,6 @@ datamodule:
         df_path: expts/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
         splits_path: expts/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
 
-    featurization_n_jobs: 4 # 30
     processed_graph_data_path: "../datacache/neurips2023-small/"
     num_workers: 4 # 30
 
@@ -60,7 +59,7 @@ architecture:
 
 predictor:
   loss_fun:
-    pcba_1328: bce_logits_ipu
+    pcba_1328: bce_logits
 
   torch_scheduler_kwargs:
     max_num_epochs: &max_epochs 20

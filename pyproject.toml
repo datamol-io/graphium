@@ -104,7 +104,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:pkg_resources.*:",
 ]
 markers = [
-    "ipu: marks tests that are specific to the IPU (deselect with '-m \"not ipu\"')",
 ]
 
 [tool.coverage.run]

@@ -55,7 +55,8 @@ finetuning:
 
 constants:
   seed: 42
-  max_epochs: 2
+  max_epochs: 5
+  model_dropout: 0.
 
 accelerator:
   float32_matmul_precision: medium
@@ -64,14 +65,14 @@ accelerator:
 predictor:
   random_seed: ${constants.seed}
   optim_kwargs:
-    lr: 4.e-5
+    lr: 1.e-3
   scheduler_kwargs: null
-  target_nan_mask: null
+  target_nan_mask: ignore
   multitask_handling: flatten # flatten, mean-per-label
   
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 2
+    max_num_epochs: 4
     warmup_epochs: 1
     verbose: False
   
@@ -84,22 +85,22 @@ metrics:
   lipophilicity_astrazeneca:
     - name: mae
       metric: mae
-      target_nan_mask: null
+      target_nan_mask: ignore
       multitask_handling: flatten
       threshold_kwargs: null
     - name: spearman
       metric: spearmanr
       threshold_kwargs: null
-      target_nan_mask: null
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
     - name: pearson
       metric: pearsonr
       threshold_kwargs: null
-      target_nan_mask: null
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
     - name: r2_score
       metric: r2_score
-      target_nan_mask: null
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
       threshold_kwargs: null
 
@@ -107,7 +108,7 @@ trainer:
   seed: ${constants.seed}
   trainer:
     precision: 32
-    max_epochs: 2
+    max_epochs: 5
     min_epochs: 1
     check_val_every_n_epoch: 1
     accumulate_grad_batches: 1
@@ -120,18 +121,14 @@ datamodule:
 
 ### FROM FINETUNING ###
 
-  module_type: "ADMETBenchmarkDataModule"
+  module_type: "TDCBenchmarkDataModule"
   args:
+    processed_graph_data_path: datacache/processed_graph_data/dummy_finetuning_from_gnn
     # TDC specific
     tdc_benchmark_names: [lipophilicity_astrazeneca]
     tdc_train_val_seed: ${constants.seed}
-    
-    batch_size_training: 200
-    batch_size_inference: 200
-    featurization_n_jobs: 0
+    batch_size_training: 20
+    batch_size_inference: 20
     num_workers: 0
 
-    prepare_dict_or_graph: pyg:graph
-    featurization_progress: True
-    featurization_backend: "loky"
     persistent_workers: False

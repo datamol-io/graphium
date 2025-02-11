@@ -1,0 +1,77 @@
+# @package _global_
+
+#Task-specific
+predictor:
+  metrics_on_progress_bar:
+    reg: ["mae"]
+    cls: ["auroc"]
+  loss_fun:
+    reg: mae
+    cls: bce_logits
+  random_seed: ${constants.seed}
+  optim_kwargs:
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: &max_epochs 10
+    warmup_epochs: 10
+    verbose: False
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  multitask_handling: flatten # flatten, mean-per-label
+
+# Task-specific
+metrics:
+  reg:
+    - name: mae
+      metric: mae
+      target_nan_mask: null
+      multitask_handling: flatten
+      threshold_kwargs: null
+    - name: spearman
+      metric: spearmanr
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: pearson
+      metric: pearsonr
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+  cls:
+    - name: auroc
+      metric: auroc
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: auprc
+      metric: averageprecision
+      task: binary
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
+    - name: accuracy
+      metric: accuracy
+      multitask_handling: mean-per-label
+      target_to_int: True
+      average: micro
+      threshold_kwargs: &threshold_05
+        operator: greater
+        threshold: 0.5
+        th_on_preds: True
+        th_on_target: True
+
+datamodule:
+  args:
+    task_specific_args:
+      finetune:
+        df: null
+        df_path: expts/data/finetuning_example-reg/raw.csv
+        smiles_col: smiles
+        label_cols: target
+        task_level: graph
+        splits_path: expts/data/finetuning_example-reg/split.csv
+        epoch_sampling_fraction: 1.0

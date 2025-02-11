@@ -7,25 +7,24 @@ predictor:
   metrics_on_training_set:
     homolumo: ["pearsonr"]  
   loss_fun:
-    homolumo: mae_ipu
+    homolumo: mae
 
 # Task-specific
 metrics:
   homolumo:
     - name: mae
-      metric: mae_ipu
+      metric: mae
       target_nan_mask: null
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:

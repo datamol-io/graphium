@@ -1,4 +1,4 @@
-# Testing the gated_gcn model with the PCQMv2 dataset on IPU.
+# Testing the gated_gcn model with the PCQMv2 dataset.
 
 defaults:
   - base_config: small

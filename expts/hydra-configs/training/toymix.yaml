@@ -11,7 +11,7 @@ predictor:
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs: null
-  target_nan_mask: null
+  target_nan_mask: ignore
   multitask_handling: flatten # flatten, mean-per-label
 
 trainer:
@@ -23,4 +23,4 @@ trainer:
     precision: 16
     max_epochs: ${constants.max_epochs}
     min_epochs: 1
-    check_val_every_n_epoch: 20
+    check_val_every_n_epoch: 2

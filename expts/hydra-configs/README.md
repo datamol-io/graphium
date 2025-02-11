@@ -1,14 +1,14 @@
 # Configuring Graphium with Hydra
 This document provides users with a point of entry to composing configs in Graphium. As a flexible library with many features, configuration is an important part of Graphium. To make configurations as reusable as possible while providing maximum flexibility, we integrated Graphium with `hydra`. Our config structure is designed to make the following functionality as accessible as possible:
 
-- Switching between **accelerators** (CPU, GPU and IPU)
+- Switching between **accelerators** (CPU, GPU)
 - **Benchmarking** different models on the same dataset
 - **Fine-tuning** a pre-trained model on a new dataset
 
 In what follows, we describe how each of the above functionality is achieved and how users can benefit from this design to achieve the most with Graphium with as little configuration as possible.
 
 ## Accelerators
-With Graphium supporting CPU, GPU and IPU hardware, easily switching between these accelerators is pre-configured. General, accelerator-specific configs are specified under `accelerator/`, whereas experiment-specific differences between the accelerators are specialized under `training/accelerator`.
+With Graphium supporting CPU, GPU hardware, easily switching between these accelerators is pre-configured. General, accelerator-specific configs are specified under `accelerator/`, whereas experiment-specific differences between the accelerators are specialized under `training/accelerator`.
 
 ## Benchmarking
 Benchmarking multiple models on the same datasets and tasks requires us to easily switch between model configurations without redefining major parts of the architecture, task heads, featurization, metrics, predictor, etc. For example, when changing from a GCN to a GIN model, a simple switch of `architecture.gnn.layer_type: 'pyg:gin'` might suffice. Hence, we abstract the `model` configs under `model/` where such model configurations can be specified.

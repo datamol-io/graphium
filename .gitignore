@@ -29,6 +29,7 @@ draft/
 scripts-expts/
 sweeps/
 mup/
+loc-*
 
 # Data and predictions
 graphium/data/ZINC_bench_gnn/
@@ -38,6 +39,7 @@ graphium/data/cache/
 graphium/data/b3lyp/
 graphium/data/PCQM4Mv2/
 graphium/data/PCQM4M/
+graphium/data/largemix/
 graphium/data/neurips2023/small-dataset/
 graphium/data/neurips2023/large-dataset/
 graphium/data/neurips2023/dummy-dataset/
@@ -53,15 +55,6 @@ debug/
 change_commits.sh
 graphium/features/test_new_pes.ipynb
 
-# IPU related ignores and profiler outputs
-*.a
-*.cbor
-*.capnp
-*.pop
-*.popart
-*.pop_cache
-*.popef
-*.pvti*
 
 ############ END graphium Custom GitIgnore ##############
 

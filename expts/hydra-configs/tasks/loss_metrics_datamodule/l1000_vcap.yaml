@@ -7,7 +7,7 @@ predictor:
     l1000_vcap: []
   loss_fun:
     l1000_vcap:
-      name: hybrid_ce_ipu
+      name: hybrid_ce
       n_brackets: 3
       alpha: 0.5
 

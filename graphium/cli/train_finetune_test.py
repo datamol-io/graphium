@@ -20,6 +20,7 @@ from omegaconf import DictConfig, OmegaConf
 from graphium.config._loader import (
     load_accelerator,
     load_architecture,
+    load_mup,
     load_datamodule,
     load_metrics,
     load_predictor,
@@ -43,83 +44,12 @@ import graphium.cli.finetune_utils
 
 TESTING_ONLY_CONFIG_KEY = "testing_only"
 
-
 @hydra.main(version_base=None, config_path="../../expts/hydra-configs", config_name="main")
 def cli(cfg: DictConfig) -> None:
     """
     The main CLI endpoint for training, fine-tuning and evaluating Graphium models.
     """
     return run_training_finetuning_testing(cfg)
-
-
-def get_replication_factor(cfg):
-    try:
-        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
-        for item in ipu_config:
-            if "replicationFactor" in item:
-                # Extract the number between parentheses
-                start = item.find("(") + 1
-                end = item.find(")")
-                if start != 0 and end != -1:
-                    return int(item[start:end])
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if replicationFactor is not found or an error occurred
-    return 1
-
-
-def get_gradient_accumulation_factor(cfg):
-    """
-    WARNING: This MUST be called after accelerator overrides have been applied
-    (i.e. after `load_accelerator` has been called)
-    """
-    try:
-        # Navigate through the nested dictionaries and get the gradient accumulation factor
-        grad_accumulation_factor = cfg.get("trainer", {}).get("trainer", {}).get("accumulate_grad_batches", 1)
-
-        # Ensure that the extracted value is an integer
-        return int(grad_accumulation_factor)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if an error occurred
-    return 1
-
-
-def get_training_batch_size(cfg):
-    """
-    WARNING: This MUST be called after accelerator overrides have been applied
-    (i.e. after `load_accelerator` has been called)
-    """
-    try:
-        # Navigate through the nested dictionaries and get the training batch size
-        batch_size_training = cfg.get("datamodule", {}).get("args", {}).get("batch_size_training", 1)
-
-        # Ensure that the extracted value is an integer
-        return int(batch_size_training)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if an error occurred
-    return 1
-
-
-def get_training_device_iterations(cfg):
-    try:
-        ipu_config = cfg.get("accelerator", {}).get("ipu_config", [])
-        for item in ipu_config:
-            if "deviceIterations" in item:
-                # Extract the number between parentheses
-                start = item.find("(") + 1
-                end = item.find(")")
-                if start != 0 and end != -1:
-                    return int(item[start:end])
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    # Return default value if deviceIterations is not found or an error occurred
-    return 1
 
 
 def run_training_finetuning_testing(cfg: DictConfig) -> None:
@@ -187,6 +117,8 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
         predictor = PredictorModule.load_pretrained_model(
             name_or_path=get_checkpoint_path(cfg), device=accelerator_type
         )
+        mup_base_path = cfg["architecture"].pop("mup_base_path", None)
+        predictor = load_mup(mup_base_path, predictor)
 
     else:
         ## Architecture
@@ -194,14 +126,6 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
 
         ## Metrics
         metrics = load_metrics(cfg)
-
-        # Note: these MUST be called after `cfg, accelerator = load_accelerator(cfg)`
-        replicas = get_replication_factor(cfg)
-        gradient_acc = get_gradient_accumulation_factor(cfg)
-        micro_bs = get_training_batch_size(cfg)
-        device_iterations = get_training_device_iterations(cfg)
-
-        global_bs = replicas * gradient_acc * micro_bs * device_iterations
 
         ## Predictor
         predictor = load_predictor(
@@ -213,17 +137,15 @@ def run_training_finetuning_testing(cfg: DictConfig) -> None:
             accelerator_type=accelerator_type,
             featurization=datamodule.featurization,
             task_norms=datamodule.task_norms,
-            replicas=replicas,
-            gradient_acc=gradient_acc,
-            global_bs=global_bs,
         )
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
+    metrics_on_progress_bar = predictor.get_metrics_on_progress_bar
 
     ## Trainer
     date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
-    trainer = load_trainer(cfg, accelerator_type, date_time_suffix)
+    trainer = load_trainer(cfg, accelerator_type, date_time_suffix, metrics_on_progress_bar=metrics_on_progress_bar)
 
     if not testing_only:
         # Add the fine-tuning callback to trainer

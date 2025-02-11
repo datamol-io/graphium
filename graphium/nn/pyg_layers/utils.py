@@ -16,13 +16,13 @@ import math
 import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
+from torch_geometric.utils import to_dense_batch
 from typing import Tuple
 from torch import Tensor
 
 from torch_geometric.typing import SparseTensor
 
 from graphium.nn.base_layers import MLP, get_norm
-from graphium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
 
 class PreprocessPositions(nn.Module):
@@ -74,7 +74,7 @@ class PreprocessPositions(nn.Module):
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
     def forward(
-        self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str
+        self, batch: Batch, max_num_nodes_per_graph: int, positions_3d_key: str
     ) -> Tuple[Tensor, Tensor]:
         r"""
         Inputs:
@@ -82,8 +82,6 @@ class PreprocessPositions(nn.Module):
                 Batch object.
             max_num_nodes_per_graph:
                 Maximum number of nodes per graph.
-            on_ipu:
-                If model rus on IPU.
             positions_3d_key:
                 The key of the pyg graph object that contains the 3D positions.
 
@@ -92,17 +90,14 @@ class PreprocessPositions(nn.Module):
         pos = batch[positions_3d_key]
         if self.first_normalization is not None:
             pos = self.first_normalization(pos)
-        batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
-        # batch_size = None if batch.feat.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.feat is only available after passing through layers, not a good attribute to check
+        batch_size = None
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
-        # idx: [totoal_nodes]
-        pos, mask, idx = to_dense_batch(
+        pos, mask = to_dense_batch(
             pos,
             batch=batch.batch,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
-            drop_nodes_last_graph=on_ipu,
+            max_num_nodes=max_num_nodes_per_graph,
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.
@@ -153,7 +148,7 @@ class PreprocessPositions(nn.Module):
         # unsqueezed mask size: [batch, 1, 1] apply on tensor [batch, nodes, embed_dim]
         node_feature.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2).to(torch.bool), 0.0)
         # [total_nodes, embed_dim]
-        node_feature = to_sparse_batch(node_feature, idx)
+        node_feature = node_feature[mask]
 
         return attn_bias, node_feature
 

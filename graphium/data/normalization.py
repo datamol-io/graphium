@@ -57,6 +57,12 @@ class LabelNormalization:
         self.data_mean = None
         self.data_std = None
 
+    def set_statistics(self, data_min, data_max, data_mean, data_std):
+        self.data_min = data_min
+        self.data_max = data_max
+        self.data_mean = data_mean
+        self.data_std = data_std
+
     def calculate_statistics(self, array):
         """
         Saves the normalization parameters (e.g. mean and variance) to the object.
@@ -106,13 +112,11 @@ class LabelNormalization:
             return input
         elif self.method == "normal":
             mean, std = torch.tensor(self.data_mean), torch.tensor(self.data_std)
-            if input.device.type != "ipu":  # Cast to device if not on IPU
-                mean, std = mean.to(input.device), std.to(input.device)
+            mean, std = mean.to(input.device), std.to(input.device)
             return (input * std) + mean
         elif self.method == "unit":
             dmax, dmin = torch.tensor(self.data_max), torch.tensor(self.data_min)
-            if input.device.type != "ipu":  # Cast to device if not on IPU
-                dmax, dmin = dmax.to(input.device), dmin.to(input.device)
+            dmax, dmin = dmax.to(input.device), dmin.to(input.device)
             return input * (dmax - dmin) + dmin
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")

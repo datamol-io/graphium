@@ -1,41 +1,45 @@
 # @package _global_
 
 predictor:
+  target_nan_mask: ignore
+  multitask_handling: flatten
   metrics_on_progress_bar:
     qm9: ["mae"]
     tox21: ["auroc"]
     zinc: ["mae"]
   loss_fun:
-    qm9: mae_ipu
-    tox21: bce_logits_ipu
-    zinc: mae_ipu
+    qm9: mae
+    tox21: bce_logits
+    zinc: mae
 
 metrics:
   qm9: &qm9_metrics
     - name: mae
-      metric: mae_ipu
-      target_nan_mask: null
+      metric: mae
+      target_nan_mask: ignore
       multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr_ipu
+      metric: pearsonr
       threshold_kwargs: null
-      target_nan_mask: null
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
     - name: r2_score
-      metric: r2_score_ipu
-      target_nan_mask: null
+      metric: r2_score
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
       threshold_kwargs: null
   tox21:
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr
-      metric: average_precision_ipu
+      metric: averageprecision
       task: binary
+      target_nan_mask: ignore
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: f1 > 0.5
@@ -44,6 +48,8 @@ metrics:
       target_to_int: True
       num_classes: 2
       average: micro
+      task: binary
+      target_nan_mask: ignore
       threshold_kwargs: &threshold_05
         operator: greater
         threshold: 0.5
@@ -53,6 +59,8 @@ metrics:
       metric: precision
       multitask_handling: mean-per-label
       average: micro
+      task: binary
+      target_nan_mask: ignore
       threshold_kwargs: *threshold_05
   zinc: *qm9_metrics
 

@@ -17,7 +17,7 @@ from copy import deepcopy
 import unittest as ut
 
 
-class TestLoader(ut.TestCase):
+class test_Loader(ut.TestCase):
     def test_merge_dicts(self):
         dict_a = {"a": {"b": {"c": 1, "d": 2}, "e": 3}, "f": 4}
 
