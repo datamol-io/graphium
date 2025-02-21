@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
-
+//! @file This file defines generic feature-related functions,
+//!       some of which are declared in features.h for exporting to Python.
 
 #define DEBUG_LOGGING 0
 

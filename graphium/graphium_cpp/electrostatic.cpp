@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
-
+//! @file This file defines and instantiates the `compute_electrostatic_interactions`
+//!       and `compute_laplacian_pseudoinverse` functions,
+//!       declared in electrostatic.h and called from features.cpp and commute.cpp
 
 #include "electrostatic.h"
 

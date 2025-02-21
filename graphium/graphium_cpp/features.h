@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+//! @file This header file declares feature-related enums, functions, and structs,
+//!       some of which are defined in features.cpp and exported to Python.
+
 #pragma once
 
 #include <cmath>

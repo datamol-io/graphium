@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
-
+//! @file This file defines functions for one-hot atom and bond features,
+//!       declared in one_hot.h and called from features.cpp
 
 #include "one_hot.h"
 #include "features.h"

@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
+//! @file This file defines functions for preprocessing and looking up label data,
+//!       some of which are declared in labels.h for exporting to Python.
+
+#include "labels.h"
 
 
 #include "labels.h"
@@ -1424,7 +1425,7 @@ static void save_label_data(
 
     // temp_data is used for normalization
     std::vector<char> temp_data;
-    temp_data.reserve(total_num_cols*sizeof(double));
+    temp_data.resize(total_num_cols*sizeof(double));
 
     std::vector<char> data;
     data.reserve(num_mols_per_file*(total_num_cols*sizeof(double) + (1+2*num_tasks)*sizeof(uint64_t)));
@@ -1520,6 +1521,7 @@ static void save_label_data(
                 const size_t in_bytes_per_float,
                 const size_t out_bytes_per_float,
                 const NormalizationMethod normalization_method,
+                const bool do_clipping,
                 const double* task_stats) {
                 
                 if (size_t(col_stride) == in_bytes_per_float) {
@@ -1543,8 +1545,10 @@ static void save_label_data(
                         assert(in_bytes_per_float == sizeof(uint16_t));
                         value = c10::detail::fp16_ieee_to_fp32_value(((const uint16_t*)(temp_data.data()))[col]);
                     }
-                    value = std::max(value, task_stats[stat_min_offset]);
-                    value = std::min(value, task_stats[stat_max_offset]);
+                    if (do_clipping) {
+                        value = std::max(value, task_stats[stat_min_offset]);
+                        value = std::min(value, task_stats[stat_max_offset]);
+                    }
                     if (normalization_method == NormalizationMethod::NORMAL) {
                         if (task_stats[stat_std_offset] != 0) {
                             value = (value - task_stats[stat_mean_offset])/task_stats[stat_std_offset];
@@ -1602,6 +1606,9 @@ static void save_label_data(
                 const size_t task_first_col = task_col_starts[task_index];
                 const size_t task_num_cols = task_col_starts[task_index+1] - task_first_col;
                 const NormalizationOptions& normalization = task_normalization_options[task_index];
+                const bool do_clipping =
+                    (normalization.min_clipping > -std::numeric_limits<double>::infinity()) &&
+                    (normalization.max_clipping < std::numeric_limits<double>::infinity());
                 const double* task_stats = all_task_stats + num_stats*task_first_col;
 
                 const size_t bytes_per_float = task_bytes_per_float[task_index];
@@ -1706,7 +1713,7 @@ static void save_label_data(
                     const intptr_t offsets_stride = label_offsets_numpy_array ? PyArray_STRIDES(label_offsets_numpy_array)[0] : 0;
                     if (offsets_raw_data == nullptr) {
                         const char* row_data = raw_data + strides[0]*task_mol_index;
-                        store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                        store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, do_clipping, task_stats);
                     }
                     else {
                         size_t begin_offset = *reinterpret_cast<const int64_t*>(offsets_raw_data + offsets_stride*task_mol_index);
@@ -1714,13 +1721,13 @@ static void save_label_data(
                         const char* row_data = raw_data + strides[0]*begin_offset;
                         if (same_order_as_first) {
                             for (size_t row = begin_offset; row < end_offset; ++row, row_data += strides[0]) {
-                                store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                                store_single_row(row_data, task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, do_clipping, task_stats);
                             }
                         }
                         else if (task_levels[task_index] == FeatureLevel::NODE) {
                             assert(end_offset - begin_offset == current_atom_order.size());
                             for (unsigned int current_index : current_atom_order) {
-                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, do_clipping, task_stats);
                             }
                         }
                         else if (task_levels[task_index] == FeatureLevel::NODEPAIR) {
@@ -1728,14 +1735,14 @@ static void save_label_data(
                             assert(end_offset - begin_offset == n*n);
                             for (unsigned int current_index0 : current_atom_order) {
                                 for (unsigned int current_index1 : current_atom_order) {
-                                    store_single_row(row_data + (current_index0*n + current_index1)*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                                    store_single_row(row_data + (current_index0*n + current_index1)*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, do_clipping, task_stats);
                                 }
                             }
                         }
                         else {
                             assert(task_levels[task_index] == FeatureLevel::EDGE);
                             for (unsigned int current_index : current_bond_order) {
-                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, task_stats);
+                                store_single_row(row_data + current_index*strides[0], task_num_cols, strides[1], bytes_per_float, bytes_per_float, normalization.method, do_clipping, task_stats);
                             }
                         }
                     }

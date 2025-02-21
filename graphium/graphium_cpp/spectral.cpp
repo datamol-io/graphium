@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
-
+//! @file This file defines and instantiates the `compute_laplacian_eigendecomp`
+//!       and `find_components` functions, declared in spectral.h
+//!       and called from features.cpp
 
 #include "spectral.h"
 

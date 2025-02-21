@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/**
-@file
-*/
-
+//! @file This file defines functions for float-valued atom and bond features,
+//!       declared in float_features.h and called from features.cpp
 
 #include "float_features.h"
 
