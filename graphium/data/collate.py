@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from collections.abc import Mapping, Sequence
 
 # from pprint import pprint

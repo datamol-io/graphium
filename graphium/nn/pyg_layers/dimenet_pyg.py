@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Callable, Union, Optional, Tuple
 from functools import partial
 

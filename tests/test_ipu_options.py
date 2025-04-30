@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import pytest
 from graphium.config._loader import _get_ipu_opts, load_ipu_options
 from graphium.ipu.ipu_utils import ipu_options_list_to_file

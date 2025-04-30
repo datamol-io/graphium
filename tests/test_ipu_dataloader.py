@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 # General imports
 import yaml
 import unittest as ut

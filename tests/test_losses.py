@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the metrics and wrappers of graphium/trainer/metrics/...
 """

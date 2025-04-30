@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Dict, List, Optional, Union, Callable
 from functools import partial
 

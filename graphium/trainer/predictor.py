@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import time
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
@@ -115,9 +114,9 @@ class PredictorModule(lightning.LightningModule):
                 loss_fun=loss_fun[task],
                 metrics=metrics[task],
                 metrics_on_progress_bar=metrics_on_progress_bar[task],
-                metrics_on_training_set=metrics_on_training_set[task]
-                if metrics_on_training_set is not None
-                else None,
+                metrics_on_training_set=(
+                    metrics_on_training_set[task] if metrics_on_training_set is not None else None
+                ),
             )
             eval_options[task].check_metrics_validity()
 

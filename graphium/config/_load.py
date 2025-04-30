@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import importlib.resources
 
 import omegaconf

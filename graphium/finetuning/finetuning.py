@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 
 from collections import OrderedDict

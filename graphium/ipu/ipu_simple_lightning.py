@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import lightning
 from lightning_graphcore import IPUStrategy
 from lightning.pytorch.loggers import WandbLogger

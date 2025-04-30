@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import pytest
 from graphium.cli.train_finetune_test import cli
 import sys

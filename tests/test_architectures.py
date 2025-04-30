@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the different architectures of graphium/nn/architectures...
 
@@ -643,9 +642,11 @@ class test_FeedForwardGraph(ut.TestCase):
 
                         f = gnn.layers[0].out_dim_factor
                         f2 = [
-                            ((ii // residual_skip_steps) + 1) * f
-                            if ((ii % residual_skip_steps) == 0 and ii > 0)
-                            else f
+                            (
+                                ((ii // residual_skip_steps) + 1) * f
+                                if ((ii % residual_skip_steps) == 0 and ii > 0)
+                                else f
+                            )
                             for ii in range(6)
                         ]
                         self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)

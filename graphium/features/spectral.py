@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Tuple, Union, Dict, Any
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix

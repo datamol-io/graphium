@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """ Argument checker module """
 import collections
 import numpy as np

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 ##### Code adapted from the `mup` package from Microsoft https://github.com/microsoft/mup
 
 from torch.nn import Linear

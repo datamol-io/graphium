@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Convert the dependencies from conda's `env.yml` to pip `requirements.txt`
 """

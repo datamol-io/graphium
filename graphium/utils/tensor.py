@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import os
 import numpy as np
 import pandas as pd
@@ -415,7 +414,7 @@ def tensor_fp16_to_fp32(tensor: Tensor) -> Tensor:
 
 
 def dict_tensor_fp16_to_fp32(
-    dict_tensor: Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]
+    dict_tensor: Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]],
 ) -> Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]:
     r"""Recursively Cast a dictionary of tensors from fp16 to fp32 if it is in fp16
 

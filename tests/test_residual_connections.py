@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Unit tests for the file residual_connections.py
 """

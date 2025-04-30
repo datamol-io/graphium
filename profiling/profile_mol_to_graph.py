@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from tqdm import tqdm
 import datamol as dm
 import pickle
