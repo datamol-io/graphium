@@ -27,7 +27,7 @@ import graphium
 from torch_geometric.data import Data
 from graphium.features.featurizer import GraphDict
 
-GRAPHIUM_DATASETS_BASE_URL = "gs://graphium-public/datasets"
+GRAPHIUM_DATASETS_BASE_URL = "https://storage.valencelabs.com/graphium/datasets"
 GRAPHIUM_DATASETS = {
     "graphium-zinc-micro": "zinc-micro.zip",
     "graphium-zinc-bench-gnn": "zinc-bench-gnn.zip",

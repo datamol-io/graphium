@@ -57,7 +57,7 @@ datamodule:
       qm9:
         df: null
         df_path: qm9.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
@@ -71,7 +71,7 @@ datamodule:
       tox21:
         df: null
         df_path: Tox21-7k-12-labels.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
@@ -83,7 +83,7 @@ datamodule:
         df: null
         df_path: ZINC12k.csv.gz
         # df_path: data/neurips2023/small-dataset/ZINC12k.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]

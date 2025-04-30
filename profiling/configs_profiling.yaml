@@ -5,7 +5,7 @@ constants:
 datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
-    df_path: https://storage.googleapis.com/graphium-public/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz
+    df_path: https://storage.valencelabs.com/graphium/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz
     processed_graph_data_path: null
     label_cols: ['score']
     smiles_col: SMILES
@@ -32,7 +32,7 @@ datamodule:
     split_val: null
     split_test: null
     split_seed: *seed
-    splits_path: https://storage.googleapis.com/graphium-public/datasets/graphium-zinc-bench-gnn/indexes_train_val_test.csv.gz
+    splits_path: https://storage.valencelabs.com/graphium/datasets/graphium-zinc-bench-gnn/indexes_train_val_test.csv.gz
     batch_size_training: 128
     batch_size_inference: 256
 

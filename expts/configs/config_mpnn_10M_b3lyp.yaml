@@ -67,8 +67,8 @@ datamodule:
         df: null
         task_level: "graph"
         df_path: graphium/data/b3lyp/b3lyp_mini.parquet #graphium/data/b3lyp/b3lyp_mini.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/b3lyp/b3lyp_mini.parquet
-        # or set path as https://storage.googleapis.com/graphium-public/datasets/b3lyp/b3lyp_mini.parquet directly
+        # wget https://storage.valencelabs.com/graphium/datasets/b3lyp/b3lyp_mini.parquet
+        # or set path as https://storage.valencelabs.com/graphium/datasets/b3lyp/b3lyp_mini.parquet directly
         smiles_col: "smiles"
         label_cols: ["beta_gap"]
         # sample_size: 30000 # use sample_size for test
@@ -78,12 +78,12 @@ datamodule:
         df: null
         task_level: "graph"
         df_path: graphium/data/b3lyp/b3lyp_mini.parquet #graphium/data/b3lyp/b3lyp_mini.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/b3lyp/b3lyp_mini.parquet
-        # or set path as https://storage.googleapis.com/graphium-public/datasets/b3lyp/b3lyp_mini.parquet directly
+        # wget https://storage.valencelabs.com/graphium/datasets/b3lyp/b3lyp_mini.parquet
+        # or set path as https://storage.valencelabs.com/graphium/datasets/b3lyp/b3lyp_mini.parquet directly
         smiles_col: "smiles"
         label_cols: ["alpha_gap"]
         # sample_size: 30000 # use sample_size for test
-        # splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        # splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.valencelabs.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_val: 0.1
         split_test: 0.1
 

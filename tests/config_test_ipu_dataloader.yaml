@@ -34,7 +34,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-2k-lumo-alpha.csv
+        df_path: &df_path https://storage.valencelabs.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-2k-lumo-alpha.csv
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap", "lumo"]
         split_val: 0.2

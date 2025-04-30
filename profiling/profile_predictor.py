@@ -29,7 +29,7 @@ from lightning import Trainer
 
 def main():
     CONFIG_PATH = "expts/config_micro-PCBA.yaml"
-    # DATA_PATH = "https://storage.googleapis.com/graphium-public/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz"
+    # DATA_PATH = "https://storage.valencelabs.com/graphium/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz"
 
     with fsspec.open(CONFIG_PATH, "r") as f:
         cfg = yaml.safe_load(f)

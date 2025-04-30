@@ -32,12 +32,12 @@ datamodule:
         df: null
         task_level: "graph"
         df_path: graphium/data/PCQM4M/pcqm4mv2.csv
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        # wget https://storage.valencelabs.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
+        # or set path as https://storage.valencelabs.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 8000 # use sample_size for test
-        splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.valencelabs.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_names: ["train", "valid", "test-dev"]
         # graphium/data/PCQM4Mv2/split_dict.pt
         # graphium/data/PCQM4Mv2/pcqm4m_split.csv

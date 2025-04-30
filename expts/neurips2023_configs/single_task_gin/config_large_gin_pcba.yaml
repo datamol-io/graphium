@@ -56,13 +56,13 @@ datamodule:
       pcba_1328:
         df: null
         df_path: graphium/data/neurips2023/large-dataset/PCBA_1328_1564k.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
         # sample_size: 2000 # use sample_size for test
         task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
