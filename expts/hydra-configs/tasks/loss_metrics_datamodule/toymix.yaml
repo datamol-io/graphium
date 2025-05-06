@@ -62,12 +62,12 @@ datamodule:
       qm9:
         df: null
         df_path: ${constants.data_dir}/qm9.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
         # sample_size: 2000 # use sample_size for test
-        splits_path: ${constants.data_dir}/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        splits_path: ${constants.data_dir}/qm9_random_splits.pt  # Download with `wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: ${constants.seed} #*seed
         task_level: graph
         label_normalization:
@@ -77,24 +77,24 @@ datamodule:
       tox21:
         df: null
         df_path: ${constants.data_dir}/Tox21-7k-12-labels.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
         # sample_size: 2000 # use sample_size for test
-        splits_path: ${constants.data_dir}/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        splits_path: ${constants.data_dir}/Tox21_random_splits.pt  # Download with `wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: ${constants.seed}
         task_level: graph
 
       zinc:
         df: null
         df_path: ${constants.data_dir}/ZINC12k.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
         # sample_size: 2000 # use sample_size for test
-        splits_path: ${constants.data_dir}/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        splits_path: ${constants.data_dir}/ZINC12k_random_splits.pt  # Download with `wget https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: ${constants.seed}
         task_level: graph
         label_normalization:

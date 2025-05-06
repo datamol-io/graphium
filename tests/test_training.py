@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import pytest
 from graphium.cli.train_finetune_test import cli
 import sys
@@ -29,7 +28,7 @@ class TestCLITraining:
         toymix_dir = "expts/data/neurips2023/small-dataset/"
         subprocess.run(["mkdir", "-p", toymix_dir])
 
-        base_url = "https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/"
+        base_url = "https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/"
         files = [
             "ZINC12k.csv.gz",
             "Tox21-7k-12-labels.csv.gz",

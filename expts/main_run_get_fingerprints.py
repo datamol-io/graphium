@@ -27,7 +27,7 @@ os.chdir(MAIN_DIR)
 def main() -> None:
     LIST_CONCAT_LAST_LAYERS = [1, 0, [1, 2], [0, 1, 2]]
     DATA_NAME_ALL = ["molbace"]  # , "mollipo", "moltox21", "molHIV"]
-    MODEL_PATH = "gs://graphium-public/pretrained-models"
+    MODEL_PATH = "https://storage.valencelabs.com/graphium/pretrained-models"
     MODEL_NAME = "graphium-zinc-micro-dummy-test"
     MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
     MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"

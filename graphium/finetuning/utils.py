@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from copy import deepcopy
 from typing import Any, Dict, List, Union
 

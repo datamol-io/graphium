@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Dict, Any, Optional, Callable, Union, Type, Tuple, Iterable
 
 from torch_geometric.data import Batch

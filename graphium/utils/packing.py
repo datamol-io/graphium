@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import List, Tuple, Iterable, Optional
 import numpy as np
 import torch

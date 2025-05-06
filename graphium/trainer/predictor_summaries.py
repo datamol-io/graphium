@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -285,9 +284,9 @@ class Summary(SummaryInterface):
 
         # Convert all metrics to CPU, except for the loss
         # metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
-        metric_logs[
-            self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)
-        ] = self.loss.detach().cpu()
+        metric_logs[self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)] = (
+            self.loss.detach().cpu()
+        )
         # print("Metrics logs keys: ", metric_logs.keys())
         metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
 

@@ -10,7 +10,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 """
 Different types of residual connections, including None, Simple (ResNet-like),
 Concat and DenseNet

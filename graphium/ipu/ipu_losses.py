@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import torch
 from torch import Tensor
 from torch.nn import BCELoss, BCEWithLogitsLoss, MSELoss, L1Loss

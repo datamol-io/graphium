@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from tqdm import tqdm
 from graphium.utils.tensor import one_of_k_encoding
 

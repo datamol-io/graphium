@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Tuple, Union, List, Dict, Any, Optional
 
 import numpy as np

@@ -97,7 +97,7 @@ echo "Downloading the sub-datasets consisting on the ToyMix dataset"
 toymix_dir=expts/data/neurips2023/small-dataset/
 mkdir -p $toymix_dir
 
-base_url="https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/"
+base_url="https://storage.valencelabs.com/graphium/datasets/neurips_2023/Small-dataset/"
 files=("ZINC12k.csv.gz" "Tox21-7k-12-labels.csv.gz" "qm9.csv.gz" "qm9_random_splits.pt" "Tox21_random_splits.pt" "ZINC12k_random_splits.pt")
 
 for file in "${files[@]}"; do

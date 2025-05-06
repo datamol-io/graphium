@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Tuple, Union, Optional, List, Dict, Any, Iterable
 
 from scipy.sparse import issparse, spmatrix, coo_matrix

@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 import unittest as ut
 import torch
 from torch.nn import BCELoss, MSELoss, L1Loss, BCEWithLogitsLoss

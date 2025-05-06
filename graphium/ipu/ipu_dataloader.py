@@ -11,7 +11,6 @@ Refer to the LICENSE file for the full terms and conditions.
 --------------------------------------------------------------------------------
 """
 
-
 from typing import Callable, Iterable, Optional, List, Tuple, Dict, Any, Union
 from copy import deepcopy
 from dataclasses import dataclass
